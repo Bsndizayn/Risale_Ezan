@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">Risale Ezan</string>
+
+    <string-array name="countries_array">
+        <item>Türkiye</item>
+        <item>Almanya</item>
+        <item>Fransa</item>
+        <item>İngiltere</item>
+        <item>Suudi Arabistan</item>
+    </string-array>
+
+    <string-array name="cities_turkey">
+        <item>Adana</item>
+        <item>Ankara</item>
+        <item>Bursa</item>
+        <item>İstanbul</item>
+        <item>İzmir</item>
+        <item>Konya</item>
+    </string-array>
+
+    <string-array name="cities_germany">
+        <item>Berlin</item>
+        <item>Hamburg</item>
+        <item>Münih</item>
+        <item>Köln</item>
+    </string-array>
+
+    <string-array name="risale_quotes">
+        <item>İman hem nurdur, hem kuvvettir. Evet, hakiki imanı elde eden adam, kâinata meydan okuyabilir.</item>
+        <item>Güzel gören, güzel düşünür. Güzel düşünen, hayatından lezzet alır.</item>
+        <item>Her şeyin bir kıymeti vardır; fakat her şeyin bir fiyatı yoktur.</item>
+        <item>Kâinatta en yüksek hakikat imandır, imandan sonra namazdır.</item>
+        <item>Zulmün temelinde, cehaletin derinliklerinde, adaletin ışığı parlar.</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

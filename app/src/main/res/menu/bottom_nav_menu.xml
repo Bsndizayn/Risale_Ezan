@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/namazFragment"
+        android:icon="@drawable/ic_namaz"
+        android:title="Namaz" />
+    <item
+        android:id="@+id/kibleFragment"
+        android:icon="@drawable/ic_kible"
+        android:title="Kıble" />
+    <item
+        android:id="@+id/risaleFragment"
+        android:icon="@drawable/ic_risale"
+        android:title="Risale" />
+    <item
+        android:id="@+id/ayarlarFragment"
+        android:icon="@drawable/ic_ayarlar"
+        android:title="Ayarlar" />
+</menu>
