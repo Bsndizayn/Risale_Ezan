@@ -22,8 +22,14 @@ class AyarlarFragment : Fragment() {
 
         val buttonSelectCity = view.findViewById<Button>(R.id.buttonSelectCity)
         buttonSelectCity.setOnClickListener {
-            // Navigasyon haritasında tanımladığımız action'ı kullanarak geçiş yap
+            // Şehir seçme ekranına git
             findNavController().navigate(R.id.action_ayarlarFragment_to_citiesFragment)
+        }
+
+        val buttonNotificationSettings = view.findViewById<Button>(R.id.buttonNotificationSettings)
+        buttonNotificationSettings.setOnClickListener {
+            // Yeni bildirim ayarları ekranına git
+            findNavController().navigate(R.id.action_ayarlarFragment_to_bildirimAyarlariFragment)
         }
     }
 }

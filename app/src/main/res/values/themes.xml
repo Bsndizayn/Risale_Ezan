@@ -11,8 +11,14 @@
         <item name="android:statusBarColor">@color/dark_burgundy</item>
     </style>
 
+    <style name="BottomNavTextStyle" parent="Widget.MaterialComponents.TextView">
+        <item name="android:textSize">14sp</item>
+    </style>
+
     <style name="CustomBottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
-        <item name="itemIconSize">30dp</item>
+        <item name="itemIconSize">34dp</item>
+        <item name="itemTextAppearanceActive">@style/BottomNavTextStyle</item>
+        <item name="itemTextAppearanceInactive">@style/BottomNavTextStyle</item>
     </style>
 
 </resources>

@@ -28,6 +28,9 @@
         <action
             android:id="@+id/action_ayarlarFragment_to_citiesFragment"
             app:destination="@id/citiesFragment" />
+        <action
+            android:id="@+id/action_ayarlarFragment_to_bildirimAyarlariFragment"
+            app:destination="@id/bildirimAyarlariFragment" />
     </fragment>
 
     <fragment
@@ -48,5 +51,11 @@
             android:name="countryName"
             app:argType="string" />
     </fragment>
+
+    <fragment
+        android:id="@+id/bildirimAyarlariFragment"
+        android:name="com.example.risaleezan.BildirimAyarlariFragment"
+        android:label="fragment_bildirim_ayarlari"
+        tools:layout="@layout/fragment_bildirim_ayarlari" />
 
 </navigation>

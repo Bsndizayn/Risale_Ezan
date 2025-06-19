@@ -1,17 +1,14 @@
 package com.example.risaleezan // Paket adını kontrol et
 
-import android.app.AlarmManager
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Looper
-import android.provider.Settings
+import android.text.method.ScrollingMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -39,6 +36,8 @@ class NamazFragment : Fragment() {
     private lateinit var prayerTimesAdapter: PrayerTimesAdapter
     private lateinit var homeProgressBar: ProgressBar
     private lateinit var prayerInfoLayout: View
+    private lateinit var textViewVecize: TextView
+    private lateinit var imageViewShare: ImageView
     private var countDownTimer: CountDownTimer? = null
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
@@ -52,7 +51,6 @@ class NamazFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initializeViews(view)
-        displayCurrentDate()
 
         sharedViewModel.selectedLocation.observe(viewLifecycleOwner) { location ->
             fetchPrayerTimes(location)
@@ -61,6 +59,8 @@ class NamazFragment : Fragment() {
         if (sharedViewModel.selectedLocation.value == null) {
             sharedViewModel.selectLocation(SelectedLocation("İzmir", "Turkey"))
         }
+
+        setupVecize()
     }
 
     private fun initializeViews(view: View) {
@@ -71,27 +71,43 @@ class NamazFragment : Fragment() {
         recyclerViewPrayerTimes = view.findViewById(R.id.recyclerViewPrayerTimes)
         homeProgressBar = view.findViewById(R.id.homeProgressBar)
         prayerInfoLayout = view.findViewById(R.id.prayer_info_layout)
+        textViewVecize = view.findViewById(R.id.textViewVecize)
+        imageViewShare = view.findViewById(R.id.imageViewShare)
+
+        // VECİZE METNİNİ KAYDIRILABİLİR YAPAN KOD
+        textViewVecize.movementMethod = ScrollingMovementMethod()
 
         prayerTimesAdapter = PrayerTimesAdapter(mutableListOf())
         recyclerViewPrayerTimes.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewPrayerTimes.adapter = prayerTimesAdapter
     }
 
-    private fun displayCurrentDate() {
-        val dateFormat = SimpleDateFormat("dd MMMM yyyy, EEEE", Locale("tr"))
-        textViewDate.text = dateFormat.format(Date())
+    private fun setupVecize() {
+        val quotes = resources.getStringArray(R.array.risale_quotes)
+        val randomQuote = quotes.random()
+        textViewVecize.text = randomQuote
+
+        imageViewShare.setOnClickListener {
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, randomQuote)
+                type = "text/plain"
+            }
+            startActivity(Intent.createChooser(shareIntent, "Vecizeyi Paylaş"))
+        }
     }
+
 
     private fun fetchPrayerTimes(location: SelectedLocation) {
         homeProgressBar.visibility = View.VISIBLE
         prayerInfoLayout.visibility = View.INVISIBLE
+
         val city = location.city
-        val country = location.country
-        textViewCityName.text = "$city, $country"
+        textViewCityName.text = city
 
         val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         val currentDate = sdf.format(Date())
-        val url = "https://api.aladhan.com/v1/timingsByCity/$currentDate?city=$city&country=$country&method=2"
+        val url = "https://api.aladhan.com/v1/timingsByCity/$currentDate?city=$city&country=${location.country}&method=2"
 
         val queue = Volley.newRequestQueue(requireContext())
         val jsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
@@ -99,6 +115,24 @@ class NamazFragment : Fragment() {
                 try {
                     val data = response.getJSONObject("data")
                     val timings = data.getJSONObject("timings")
+
+                    val dateData = data.getJSONObject("date")
+                    val gregorianData = dateData.getJSONObject("gregorian")
+                    val hijriData = dateData.getJSONObject("hijri")
+
+                    val gregorianDay = gregorianData.getString("day")
+                    val gregorianMonth = gregorianData.getJSONObject("month").getString("en")
+                    val gregorianYear = gregorianData.getString("year")
+                    val formattedGregorianDate = formatToTurkishDate(gregorianDay, gregorianMonth, gregorianYear)
+
+
+                    val hijriDay = hijriData.getString("day")
+                    val hijriMonth = hijriData.getJSONObject("month").getString("en")
+                    val hijriYear = hijriData.getString("year")
+                    val formattedHijriDate = "$hijriDay $hijriMonth $hijriYear"
+
+                    textViewDate.text = "$formattedGregorianDate\n$formattedHijriDate"
+
                     startCountdown(timings)
                     updatePrayerTimesList(timings)
                     homeProgressBar.visibility = View.GONE
@@ -118,6 +152,18 @@ class NamazFragment : Fragment() {
         jsonObjectRequest.setShouldCache(false)
         queue.add(jsonObjectRequest)
     }
+
+    private fun formatToTurkishDate(day: String, month: String, year: String): String {
+        val monthMap = mapOf(
+            "January" to "Ocak", "February" to "Şubat", "March" to "Mart",
+            "April" to "Nisan", "May" to "Mayıs", "June" to "Haziran",
+            "July" to "Temmuz", "August" to "Ağustos", "September" to "Eylül",
+            "October" to "Ekim", "November" to "Kasım", "December" to "Aralık"
+        )
+        val turkishMonth = monthMap[month] ?: month
+        return "$day $turkishMonth $year"
+    }
+
 
     private fun updatePrayerTimesList(timings: JSONObject) {
         val prayerList = mutableListOf<PrayerTime>()
@@ -142,7 +188,9 @@ class NamazFragment : Fragment() {
         var nextPrayerName = ""
         var nextPrayerTime: Calendar? = null
 
-        for ((name, timeStr) in prayerTimes.entries.sortedBy { it.value }) {
+        val sortedPrayerTimes = prayerTimes.entries.sortedBy { it.value }
+
+        for ((name, timeStr) in sortedPrayerTimes) {
             val prayerCal = Calendar.getInstance()
             val prayerTime = timeFormat.parse(timeStr) ?: continue
             prayerCal.time = prayerTime
@@ -157,8 +205,9 @@ class NamazFragment : Fragment() {
         }
 
         if (nextPrayerTime == null) {
-            nextPrayerName = "İMSAK"
-            val imsakTimeStr = prayerTimes["İMSAK"]!!
+            val firstPrayerEntry = sortedPrayerTimes.first()
+            nextPrayerName = firstPrayerEntry.key
+            val imsakTimeStr = firstPrayerEntry.value
             val prayerCal = Calendar.getInstance()
             val prayerTime = timeFormat.parse(imsakTimeStr) ?: return
             prayerCal.time = prayerTime
@@ -166,7 +215,6 @@ class NamazFragment : Fragment() {
             nextPrayerTime = prayerCal
         }
 
-        scheduleAlarm(nextPrayerTime.timeInMillis, nextPrayerName)
         val millisUntilFinished = nextPrayerTime.timeInMillis - now.timeInMillis
         textViewNextPrayerName.text = nextPrayerName
 
@@ -186,24 +234,6 @@ class NamazFragment : Fragment() {
                 }, 5000)
             }
         }.start()
-    }
-
-    private fun scheduleAlarm(timeInMillis: Long, prayerName: String) {
-        val alarmManager = requireActivity().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), AlarmReceiver::class.java).apply {
-            putExtra("PRAYER_NAME", prayerName)
-            val selectedSoundResourceId = R.raw.ezan
-            putExtra("SOUND_RESOURCE_ID", selectedSoundResourceId)
-        }
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(),
-            prayerName.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-
     }
 
     override fun onDestroyView() {

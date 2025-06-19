@@ -26,11 +26,393 @@
     </string-array>
 
     <string-array name="risale_quotes">
-        <item>İman hem nurdur, hem kuvvettir. Evet, hakiki imanı elde eden adam, kâinata meydan okuyabilir.</item>
-        <item>Güzel gören, güzel düşünür. Güzel düşünen, hayatından lezzet alır.</item>
-        <item>Her şeyin bir kıymeti vardır; fakat her şeyin bir fiyatı yoktur.</item>
-        <item>Kâinatta en yüksek hakikat imandır, imandan sonra namazdır.</item>
-        <item>Zulmün temelinde, cehaletin derinliklerinde, adaletin ışığı parlar.</item>
+        <item>Bismillah her hayrın başıdır. Sözler–5</item>
+        <item>Şu âlemde mü’minin mü’mine karşı en büyük yardımı dua iledir. Barla -247</item>
+        <item>Zulme rıza zulümdür; tarafdar olsa, zâlim olur. Kastamonu L – 207</item>
+        <item>Hastalık, sabun gibi, günahların kirlerini yıkar, temizler. Lem’alar – 209</item>
+        <item>Nefsini ıslah etmeyen, başkasını ıslah edemez. Sözler – 269</item>
+        <item>Ömür sermayesi pek azdır. Lüzumlu işler pek çoktur. Lem. – 202</item>
+        <item>Zarara rızasıyla girene merhamet edilmez ve lâyık değildir. Sözler -147</item>
+        <item>Kanaat eden, iktisad eder; iktisad eden, bereket bulur. Mek. -282</item>
+        <item>Ölümün hakikatını gören kâmil insanlar, ölümü sevmişler. Daha ölüm gelmeden ölmek istemişler. Sözler – 31</item>
+        <item>Helâl dairesi geniştir, keyfe kâfi gelir. Harama girmeye hiç lüzum yoktur. Sözler -29</item>
+        <item>Devlete intisab; hizmet etmek içindir. Maaş kapmak için değildir. A.Bediiye – 331</item>
+        <item>Amelinizde rıza-yı İlahî olmalı. Eğer o razı olsa, bütün dünya küsse ehemmiyeti yok. Lem’alar -160</item>
+        <item>Namaz kılanın diğer mübah dünyevî amelleri, güzel bir niyet ile ibadet hükmünü alır. Sözler -21</item>
+        <item>Kavga kapısını kapamak için banka kapısını kapayınız. S. – 409</item>
+        <item>Bizler uzun bir seferdeyiz. Buradan kabre, kabirden haşre, haşirden ebed memleketine gitmek üzereyiz. Mesnevi – 220</item>
+        <item>Elbette en bahtiyar odur ki: Dünya için âhireti unutmasın, âhiretini dünyaya feda etmesin. Mektubat – 71</item>
+        <item>Tefekkür, gafleti izale eder. Mes. -147</item>
+        <item>Allah için işleyiniz, Allah için görüşünüz, Allah için çalışınız. O vakit sizin ömrünüzün dakikaları, seneler hükmüne geçer. Lem’alar -17</item>
+        <item>Evet ümidvar olunuz. Şu istikbal inkılâbı içinde en yüksek gür sadâ, İslâmın sadâsı olacaktır. Tarihçe-i Hayat -133</item>
+        <item>En ziyade musibet ve meşakkate giriftar olanlar, insanların en iyisi, en kâmilleridirler. Lem’alar – 213</item>
+        <item>Kur’an kalblere kuvvet ve gıdadır. Ruhlara şifadır. Mesnevi – 127</item>
+        <item>Büyük görünme, küçülürsün. Sözler – 724</item>
+        <item>Merak ilmin hocasıdır. Sünuhat – 45</item>
+        <item>Zaman gösterdi ki: Cennet ucuz değil, Cehennem dahi lüzumsuz değil. Mek. – 472</item>
+        <item>Nev’-i beşerin en büyük mes’elesi Cehennem’den kurtulmaktır. Şualar- 232</item>
+        <item>Hakikî ve elemsiz lezzet, yalnız imanda ve iman ile olabilir. Şualar – 199</item>
+        <item>Hayat, teessürat ile tasaffi edip, teellümat ile cilalanarak kuvvet buluyor. B.Mes: 380</item>
+        <item>Günahlar, hayat-ı ebediyede daimî hastalıklardır. Lem’alar – 209</item>
+        <item>Hastalık gafleti dağıtır, âhireti düşündürür, ölümü tahattur ettirir. Lem – 212</item>
+        <item>Hastaların kalbini hoşnud etmek, teselli vermek, mühim bir sadaka hükmüne geçer. Lem’alar – 214</item>
+        <item>Ehl-i iman ile bütün kâinat alâkadardır, ondan memnundur. Lem’alar – 86</item>
+        <item>Biz, hizmetle mükellefiz. Neticeleri ve muvaffakıyet, Cenab-ı Hakk’a aittir. Kastamonu L.- 88</item>
+        <item>Helâl dairesi geniştir. Keyfe kâfi gelir. Sözler – 29</item>
+        <item>Kur’an akıllara istikamet ve nur ve hayata hayat ve saadet veriyor.Söz – 446</item>
+        <item>Kadere iman eden, gamlardan kurtulur. Şualar – 260</item>
+        <item>Şeytanı dinleyen bir nefis, kusurunu görmek istemez. Lem – 88</item>
+        <item>Madem iman gibi hadsiz derecede kıymettar bir nimet bizde vardır; ihtiyarlık da hoştur, hastalık da hoştur, vefat da hoştur. Lem’alar – 238</item>
+        <item>İnsan bu âleme ilim ve dua vasıtasıyla tekemmül etmek için gelmiştir. S – 316</item>
+        <item>Rahat, zahmette; zahmet, rahattadır. Lem’alar – 125</item>
+        <item>Tembellikle namazı terkeden veyahut kıymetini bilmeyen; ne kadar câhil, ne derece hâsir, ne kadar zararlı olduğunu bilâhare anlar, ama iş işten geçer. İ. İ’caz – 43</item>
+        <item>Dindaşlarınızla ittifak ediniz.. yani, ihtilafa düşmeyiniz. Lem’alar – 155</item>
+        <item>Milletin kalb hastalığı; za’f-ı diyanettir. Bunu takviye ile sıhhat bulabilir. H. Ş. – 86</item>
+        <item>Dünyanın lezaizi zehirli bala benzer. Lezzeti nispetinde elemi de vardır. Mes-125</item>
+        <item>Bütün yıldızları elinde tutmayan, bir tek zerreye Rab olamaz. Sözler – 591</item>
+        <item>Sivrisineğin gözünü halk eden, Güneş’i dahi o halk etmiştir. Mektubat – 468</item>
+        <item>Bu zamanda en büyük ihsan, bir vazife, imanını kurtarmaktır. Emirdağ L – 62</item>
+        <item>Hastalığın faidelerini, sevabını ve çabuk geçeceğini düşün, merakı kaldır, hastalığın kökünü kes. Lem’alar – 210</item>
+        <item>Ölüm, muzır hayvanlarla dolu bir hapisten geniş bir sahraya çıkmak gibidir. İşarat-ül İ’caz – 180</item>
+        <item>Bir derman, haddinden geçse, dert getirir. Mektubat – 475</item>
+        <item>Hastalığın hafifleşmesini istersen, merak etmemeye çalış. Lem’alar – 210</item>
+        <item>İşlediğimiz her bir günah, kafamıza giren her bir şübhe, kalb ve ruhumuza yaralar açar. Lem’alar – 8</item>
+        <item>Zekatı vermeyenin herhalde elinden zekat kadar bir mal çıkacak; ya lüzumsuz yerlere verecektir, ya bir musibet gelip alacaktır. Mektubat – 273</item>
+        <item>Zaman ihtiyarlandıkça, Kur’an gençleşiyor. Mektubat – 475</item>
+        <item>Cehennem lüzumsuz değil; çok işler var ki, bütün kuvvetiyle “Yaşasın Cehennem!” der. Mektubat – 397</item>
+        <item>Nasihati dinleyen, ancak cehlini bilenlerdir. Os. İşarat-ül İ’caz</item>
+        <item>Gururu bırak, aczini anla, mâlikini tanı, vazifeni bil, dünyaya ne için geldiğini öğren. Lem’alar – 208</item>
+        <item>Kur’an hem zikirdir, hem fikirdir, hem hikmettir, hem ilimdir, hem hakikattir, hem şeriattır. Mesnevi – 128</item>
+        <item>Umuma el atmak, umumu terk etmek demektir. Muhakemat – 28</item>
+        <item>Güzel gören, güzel düşünür. Güzel düşünen, hayatından lezzet alır. Mek- 473</item>
+        <item>Kendini beğenen, belayı bulur zahmete düşer; kendini beğenmeyen, safayı bulur, rahmete gider. Mektubat – 282</item>
+        <item>Hayır, o vakit hayır olur ki; Allah için ola. Nurun İlk Kapısı – 45</item>
+        <item>İnkâr etmemek başkadır, iman etmek bütün bütün başkadır. Emirdağ 1 – 203</item>
+        <item>Büyük günahları serbest işleyip istiğfar etmemek ve aldırmamak, o imandan hissesi olmadığına delildir. Emirdağ 1 – 203</item>
+        <item>Dünyevî dostlar ve rütbeler, kabir kapısına kadardır. Mek. – 71</item>
+        <item>İnsanda en tehlikeli damar, enaniyettir ve en zaîf damarı da odur. Mek – 424</item>
+        <item>Böyle bir zamanda en lüzumlu, en ehemmiyetli, en birinci vazife imanı kurtarmaktır. Kastamonu L. – 22</item>
+        <item>Bu zaman cemaat zamanıdır. Kastamonu L.- 6</item>
+        <item>Ni’met ve Rahmet-i İlâhiyenin fiatı, şükürdür. Emirdağ 1 – 32</item>
+        <item>Ey kendini insan bilen insan! Kendini oku… Yoksa hayvan ve camid hükmünde insan olmak ihtimali var! Sözler – 687</item>
+        <item>Şükür ve muhabbet ve hamd ve ibadet ise; hayatın meyvesi olduğu gibi, kâinatın gayesidir. Lem’alar – 331</item>
+        <item>Bu zamanda ehl-i İslâmın en mühim tehlikesi, fen ve felsefeden gelen bir dalaletle kalblerin bozulması ve imanın zedelenmesidir. Lem’alar – 104</item>
+        <item>Evet, her şeyi maddiyatta arayanların akılları gözlerindedir. Göz ise, maneviyatı göremez. Muhakemat – 18</item>
+        <item>Din hayatın hayatı, hem nuru, hem esası. İhya-yı din ile olur şu milletin ihyası. Sözler – 717</item>
+        <item>Şöhret, insanın malı olmayanı da, insana mal eder. Mu. – 23</item>
+        <item>Şükür içinde, safi bir iman var, hâlis bir tevhid bulunur. Mektubat – 366</item>
+        <item>Evet, Hakk’ı tanıyan, hakkın hâtırını hiçbir hâtıra fedâ etmez. Zira Hakk’ın hâtırı âlîdir, hiçbir hâtıra fedâ edilmemek gerekir. Münazarat – 15</item>
+        <item>Atmaca kuşu serçelere tasliti, zâhiren rahmete uygun gelmez. Hâlbuki serçe kuşunun istidadı, o taslit ile inkişaf eder. Sözler – 232</item>
+        <item>Gıybet odur ki: Gıybet edilen adam hazır olsa idi ve işitse idi, kerahet edip darılacaktı. Eğer doğru dese, zâten gıybettir. Mektubat – 276</item>
+        <item>Her mü’minin namazı, onun bir nev’i mi’racı hükmündedir. Şualar: 92</item>
+        <item>Merak musibeti ikleştirir, maddî musibeti kalbde de yerleştirmek için bir kök olur. Şualar – 323</item>
+        <item>Namazda ruhun ve kalbin ve aklın büyük bir rahatı vardır. Hem cisme de o kadar ağır bir iş değildir. Sözler – 21</item>
+        <item>Gıybet, ehl-i adavet ve hased ve inadın en çok istimal ettikleri alçak bir silâhtır. Mektubat – 276</item>
+        <item>Hazım olmayan ilim, telkin edilmemeli. Sözler – 706</item>
+        <item>Gençlik ni’metine bir şükür olarak, o tatlı ni’meti, iffetle, istikamette sarf etmek lâzım ve elzemdir. Şualar – 204</item>
+        <item>Nev-i beşere rahmet olan Kur’an ancak umumun, lâakal ekseriyetin saadetini tazammun eden bir medeniyeti kabul eder. Tarihce – 132</item>
+        <item>Kısa bir ömürde, az bir lezzet için; ebedî, daimî hayatını ve saadet-i ebediyesini berbad etmek, ehl-i aklın kârı değil. Mek.- 68</item>
+        <item>Tevekkül, kanaat ve iktisat öyle bir hazine ve bir servettir ki, hiçbir şey ile değişilmez. Mektubat – 14</item>
+        <item>Bilirsin ki: En ziyade insanı tahrik eden meraktır. Sözler – 238</item>
+        <item>Şimdi insanlarda kim var ki, kusuru bulunmasın. Mâdem, hasenat seyyiata râcih gelse affedilir. G. Münteşir – 53/391</item>
+        <item>Cenab-ı Hak bir abdini severse, dünyayı ona küstürür, çirkin gösterir. Mektubat – 278</item>
+        <item>Evet, kim kendi uyanık vicdanını dinlerse, “Ebed, Ebed” sesini işitecektir. Bütün kâinat o vicdana verilse, ebede karşı olan ihtiyacının yerini dolduramaz. Sözler – 522</item>
+        <item>Ecel gizlidir; her vakit ölüm, başını kesmek için gelebiliyor ve genç ihtiyar farkı yoktur. Sözler – 142</item>
+        <item>Dünyanın lezzetini, zevkini, saadetini, rahatını isterseniz; meşru dairedeki keyfe iktifa ediniz. O, keyfinize kâfidir. Sözler – 144</item>
+        <item>Zalim izzetinde, mazlum zilletinde kalıp buradan göçüp gidiyorlar. Demek bir mahkeme-i kübraya bırakılıyor. Sözler – 50</item>
+        <item>Şu vesvese öyle bir şeydir ki, cehil onu davet eder, ilim onu tard eder. Tanımazsan gelir, tanısan gider. Sözler – 274</item>
+        <item>Mü’min olan bir insanın dünyanın kuruluşundan sonuna kadar uzanan manevî bir ömrü vardır. Şualar – 75</item>
+        <item>Nihayetsiz hacat-ı insaniyeyi ihsan edecek, ancak nihayetsiz bir kudret ve muhit bir ilim sahibi olabilir. Öyle ise, mabudiyete lâyık yalnız odur. Sözler – 319</item>
+        <item>Hırs, hasâret ve muvaffakiyetsizliğin sebebidir.. Lem’alar – 145</item>
+        <item>Bence şu dâr-ı dünyada en kıymettar şey, sıddık bir dosttur. G. Münteşir – 290/1</item>
+        <item>Sadaka nasıl mal ile olur. İlim ile dahi olur. Kavl ile, fiil ile, nasihat ile de oluyor. Sözler – 371</item>
+        <item>Dua, ubûdiyetin ruhudur ve hâlis bir imanın neticesidir. Mektubat – 302</item>
+        <item>İnsanın helâl sa’yiyle meşru dairede gördüğü zevkler, lezzetler, keyfine kâfidir. Harama girmeye ihtiyaç bırakmaz. Sözler – 327</item>
+        <item>Haksızlığı hak iddia edenlere karşı hak dava etmek– ve onlara müracaat etmek; bir haksızlıktır, hakka karşı bir hürmetsizliktir. Mektubat – 74</item>
+        <item>Gayr-ı meşru’ bir muhabbetin neticesi, merhametsiz bir adavettir. Mektubat – 75</item>
+        <item>Nebatatın tohumları ve çekirdekleri, onların niyetleridir. Sözler – 361</item>
+        <item>Câhil dost, düşman kadar zarar verebilir. Muhakemat – 51</item>
+        <item>Hürriyetin şe’ni odur ki, ne nefsine, ne gayriye zararı dokunmasın. Münazarat – 20</item>
+        <item>Baharı icad etmeyen, bir elmayı icad edemez. Zira o elma, o tezgâhta dokunuyor. Sözler – 79</item>
+        <item>Sefahet ve rezaletteki hürriyet, hürriyet değildir. Belki hayvanlıktır, şeytanın istibdadıdır, nefs-i emmareye esir olmaktır. Münazarat – 19</item>
+        <item>İnsanın Allah’a karşı ubudiyet, vazifesidir. Terk-i kebair takvasıdır. Nefis ve şeytanla uğraşması, cihadıdır. Mesnevi – 224</item>
+        <item>Tevekkülsüzlük içinde derd-i maişet, ruha sersemlik ve felsefe-i tabiiye ve maddiye akla körlük verir. Sözler – 492</item>
+        <item>Herkes bir ahlâkta olamaz. Bazıları meşru’ dairede rahatını istese de, itiraz edilmemeli. Kastamonu L. – 223</item>
+        <item>Esbab ve vesaitin arkasında, kudretin şuaı görünür; tesir onundur, esbab ise perdedir. İşarat-ül İ’caz – 191</item>
+        <item>Şu zaman da gösterdi: Cehennem lüzumsuz olmaz, Cennet ucuz değildir. Sözler – 708</item>
+        <item>Nasıl ki bu yaz ve güzün âhiri kıştır. Öyle de, gençlik yazı ve ihtiyarlık güzünün arkası kabir ve berzah kışıdır. Şualar – 198</item>
+        <item>Mesâil-i imaniyenin münakaşa sûretinde bahsi, câiz değildir. Mektubat – 42</item>
+        <item>Tabiatın perdesi ile Allah’ın nurunu görmeyen insan, her şeye bir ulûhiyet verip kendi başına musallat eder. Sözler – 539</item>
+        <item>Mal sahibi zannettiğin esbab, mal sahibi değillerdir. Asıl mal sahibi, onların arkasında iş gören kudret-i ezeliyedir. Mesnevi – 10</item>
+        <item>Kaderi tenkid eden başını örse vurur, kırar. Rahmete itiraz eden, rahmetten mahrum kalır. Mektubat – 266</item>
+        <item>Kimse demez ayranım ekşidir. Fakat siz mehenge vurmadan almayınız. Zira çok silik söz ticarette geziyor. Münazarat – 14</item>
+        <item>Musibet; cinayetin neticesi, mükâfatın mukaddimesidir. Mektubat – 474</item>
+        <item>Deli adama “iyisin, iyisin” denilse iyileşmesi, iyi adama “fenasın, fenasın” denilse fenalaşması nâdir değildir. Mektubat – 474</item>
+        <item>İstikbal yalnız ve yalnız İslâmiyetin olacak ve hâkim, hakaik-i Kur’aniye ve imaniye olacak. Hutbe-i Şamiye – 21</item>
+        <item>Asabiyet-i cahiliye, birbirine tesanüd edip yardım eden gaflet, dalalet, riya ve zulmetten mürekkeb bir macundur. Mesnevi – 112</item>
+        <item>Böyle acib bir zamanda, şübheli mallarda, zaruret derecesinde iktifa etmek lâzımdır. Lem’alar – 142</item>
+        <item>Nazar-ı dikkate almak lâzımdır ki, kim bir şeyde çok tevaggul etse; galiben başkasında gabileşmesine sebebiyet verir. Muhakemat – 17</item>
+        <item>Bütün fenlerin şehadetiyle, fıtratta israf yoktur. İşarat-ül İ’caz – 54</item>
+        <item>İnşâallah istikbaldeki İslâmiyet’in kuvveti ile medeniyetin mehasini galebe edecek, zemin yüzünü pisliklerden temizleyecek, sulh-u umumîyi de temin edecek. Hutbe-i şamiye – 36</item>
+        <item>Maddiyatta mahareti olanın maneviyatta hükmü hüccet olmasına sebep olmadığı gibi, çok defa sözü dahi şayan-ı istima’ değildir. Muhakemat – 18</item>
+        <item>Evet, Kur’an-ı Hakîm, şu Kur’an-ı Azîm-i Kâinatın en âlî bir müfessiridir ve en belîğ bir tercümanıdır. Sözler – 131</item>
+        <item>Ezan-ı Muhammedî’nin (A.S.M.) o tatlı sesiyle, ibadete ve cemaate bir meyl, bir şevk husule gelir. İşarat-ül İ’caz – 43</item>
+        <item>Her birimiz bir vazifeyi kendine meşgale yapsa, sıkıntı kalmaz. Zâten işsizliktir ki, insanı sıkar. G. Münteşir – 12/64</item>
+        <item>Madem meşru daire; ruh ve kalb ve nefsin bütün lezzetlerine, safalarına, keyiflerine kâfidir. Gayr-ı meşru daireye girme. Sözler – 636</item>
+        <item>Evet günah kalbe işleyip, siyahlandıra siyahlandıra tâ nur-u imanı çıkarıncaya kadar katılaştırıyor. Lem’alar – 9</item>
+        <item>Her bir günah içinde küfre gidecek bir yol var. O günah istiğfar ile çabuk imha edilmezse, kurt değil, belki küçük bir manevî yılan olarak kalbi ısırıyor Lem’alar – 9</item>
+        <item>En müdhiş maraz asabiliktir. Zira her şeyi haddinden geçirmekle, aks-ül amel yaptırır. Sünuhat – 63</item>
+        <item>Sıkıntı, sefahetin muallimidir. Sünuhat – 45</item>
+        <item>İhtiyaç, medeniyetin üstadıdır. Sünuhat – 45</item>
+        <item>Anlaşılmaz bir kitab, muallimsiz olsa; manasız bir kâğıttan ibaret kalır. Sözler – 128</item>
+        <item>Bu benlik ve enaniyet zamanında, mahviyet büyük bir fazilettir. G. Münteşir – 53/6</item>
+        <item>Tarih bize gösteriyor ki, İslâm ne derece dine temessük etmiş ise terakki etmiş, ne vakit dinde za’f göstermiş ise tedenni etmiştir. Sünuhat – 26</item>
+        <item>Bazen saadette felâket olduğu gibi, felâketten dahi saadet çıkar. Sünuhat – 31</item>
+        <item>Bu medenîlerden çoğu, eğer içi dışına çevrilse kurt, ayı, yılan, hınzır, maymun postu görülecek gibi hayale gelir. Sünuhat – 33</item>
+        <item>Tarafgirlik damarı, ihlâsı kırar, hakikatı değiştirir. Mektubat – 272</item>
+        <item>Müteferrik büyük işlerde, yalnız kusurları görmek cerbezeliktir; aldanır ve aldatır. Cerbezenin şe’ni, bir seyyieyi sünbüllendirerek hasenata galib etmektir. Sünuhat – 60</item>
+        <item>Müsavatsız adalet, adalet değildir. Sünuhat -46</item>
+        <item>Cennet olmasa, Cehennem tazib etmez. İşârât – 82</item>
+        <item>Beşerin bulaşık eli karışmamak şartıyla, hiçbir şeyde hakikî nezafetsizlik ve çirkinlik görünmüyor. Lem’alar – 310</item>
+        <item>Bir şeyden her şeyi yapmak ve her şeyi bir tek şey yapmak, her şeyin Halıkına has bir iştir. Sözler – 61</item>
+        <item>Evet, baharımızda yeryüzünü bir mahşer eden, yüz bin haşir numunelerini icad eden Kadîr-i Mutlak’a, Cennet’in icadı nasıl ağır olabilir? Sözler – 72</item>
+        <item>Beşer, fıtraten şu kâinatın Hâlıkına karşı hadsiz bir muhabbet üzerine yaratılmıştır. Lem’alar – 57</item>
+        <item>Muhali taleb etmek, kendine fenalık etmektir. Bir dağdan uçmak niyeti ile kendini havalandıran parça parça olur. A. Bediiyye</item>
+        <item>Bütün insanların halk olunması ve haşredilmesi, kudret-i İlahiyeye nisbeten bir tek insanın halkı ve haşri gibi âsandır. Sözler – 90</item>
+        <item>Evet, iman kalbde, kafada daimî bir manevî yasakçı bıraktığından fena meyelanlar histen, nefisten çıktıkça “yasaktır” der, tardeder, kaçırır. Hutbe-i Şamiye – 77</item>
+        <item>Muhit bir ilmin tecellisidir ki, o tecelli kadere, kader de mikdara, mikdar da kalıba tahavvül eder. Mesnevi – 139</item>
+        <item>Ferşten arşa, ezelden ebede kadar en geniş dairelerde insanın vazifesi, yalnız duadır. Mesnevi – 110</item>
+        <item>Güzel gör, hem güzel bak. Tâ güzel düşünmeli. Güzel bil, hem güzel düşün. Tâ leziz hayatı bulmalı. Sözler – 711</item>
+        <item>Asıl hüner, kardeşini fena gördüğü vakit onu terk etmek değil, belki daha ziyade uhuvvetini kuvvetleştirip ıslahına çalışmak, ehl-i sadakatin şe’nidir. Şualar – 319</item>
+        <item>Kur’an-ı Mu’ciz-ül Beyan‘ın hemen hemen üçten birisi haşir ve âhireti teşkil ediyor ve onu bütün hakaikine temel taşı ve üss-ül esas yapıyor ve her şeyi onun üstüne bina ediyor. Sözler – 105</item>
+        <item>İnsanın bu dünyada tulû’ ve gurubu ve sair mukadderatı, kalem-i kader ile cephesinde yazılıdır. İsterse başını taşa vursun ki, o yazıları silsin; fakat başı kırılır, yazılara bir şey olmaz ha! Mesnevi – 122</item>
+        <item>İman hem nurdur, hem kuvvettir. Evet, hakikî imanı elde eden adam, kâinata meydan okuyabilir ve imanın kuvvetine göre hâdisatın tazyikatından kurtulabilir. S: 314</item>
+        <item>San’atlı bir nakış, nakkaşını bildirmemek olmaz. Nasıl olur ki: Bir harfte koca bir kitabı yazan, bir nakışta bin nakşı nakşeden nakkaş, kendi kitabıyla ve nakşıyla bilinmesin? Sözler – 283</item>
+        <item>Kalem-i kader, dağ gibi bir ağaçta ne yazmış ise, tırnak gibi meyvesinde dahi derc etmiştir. Sözler – 283</item>
+        <item>Her dua için cevab vermek var; fakat kabul etmek, hem ayn-ı matlubu vermek Cenab-ı Hakk’ın hikmetine tâbi’dir. Sözler – 317</item>
+        <item>Bir kalb ve vicdan, fezâil-i İslâmiye ile mütezeyyin olmazsa, ondan hakikî hamiyet ve sadakat ve adalet beklenilmez. Münazarat – 20</item>
+        <item>Bir müslüman başkasına benzemez. Dini terk edip, İslâmiyet seciyesinden çıkan bir müslim; dalalet-i mutlakaya düşer, anarşist olur, daha idare edilmez. Emirdağ L. 1 – 21</item>
+        <item>Evet, bu zamanlarda öyle günahlar, zulümler oluyor ki; rahmet istemeye yüzümüz kalmıyor. Emirdağ L. 1 – 33</item>
+        <item>Her şey zıddıyla bilinir. Meselâ, karanlık olmazsa ışık bilinmez, lezzetsiz kalır. Soğuk olmazsa hararet anlaşılmaz, zevksiz kalır. Lem’alar – 209</item>
+        <item>Evet, insanın en birinci üstadı ve en te’sirli muallimi, onun vâlidesidir. Lem’alar – 200</item>
+        <item>Bu zamanda en büyük bir ihsan, bir vazife, imanını kurtarmaktır, başkaların imanına kuvvet verecek bir surette çalışmaktır. Emirdağ L. 1 – 62</item>
+        <item>Bir çocuk küçüklüğünde kuvvetli bir ders-i imanî alamazsa, sonra pek zor ve müşkül bir tarzda İslâmiyet ve imanın erkânlarını ruhuna alabilir. Emirdağ L. 1 – 41</item>
+        <item>Risale-i Nur’un bir esası, kusurunu bilmekle mahviyetkârane yalnız rıza-i İlahî için rekabetsiz hizmet etmektir. Emirdağ L. 1 -87</item>
+        <item>İhlâs dairesinde, hizmet noktasında çok hırs ve kanaatsizlik gösterdiğimiz halde, neticelerine ve semeratına karşı kanaatle mükellefiz. Emirdağ L. 1 – 90</item>
+        <item>İnadın gözü, meleği şeytan görür. Sözler – 718</item>
+        <item>Muhali taleb etmek, kendine fenalık etmektir. Münazarat – 17</item>
+        <item>Kur’an-ı Hakîm ehl-i şuura imamdır, cin ve inse mürşiddir, ehl-i kemale rehberdir, ehl-i hakikata muallimdir. Mektubat – 311</item>
+        <item>Kur’an’ın manaları, dağ gibi akılları işba’ ettiği gibi, sinek gibi küçücük basit akılları dahi aynı sözlerle talim eder, tatmin eder. Sözler – 409</item>
+        <item>Bizler için şimdi her şeyin iyi tarafına ve güzel cihetine ve ferah verecek vechine bakmak lâzımdır ki manasız, lüzumsuz, zararlı, sıkıntılı, çirkin, geçici haller nazar-ı dikkatimizi celbedip kalbimizi meşgul etmesin. Şualar – 510</item>
+        <item>Şu âlemin mikyasıyla âlem-i ebedînin şeyleri tartılmaz. Buranın en büyüğü, oranın en küçüğüne muvazi gelemez. Sözler -348</item>
+        <item>Bazen olur ki; bir tek kelime, bir tek tesbih, öyle bir saadet hazinesini açar ki, altmış sene hizmetle o açılmamış. Sözler -349</item>
+        <item>Rûy-i zemin, umumî bir mezraadır. İçindeki bütün hayvanatın taifelerine Hâlık-ı Zülcelal’in emriyle, izniyle, hesabıyla, havl ve kuvvetiyle bir melek-i müekkel nezaret eder. Sözler -353</item>
+        <item>Her şeyin suret-i maddiyesinde Kudret-i Rabbanî ustadır, kader mühendistir. Mesnevi – 34</item>
+        <item>İman ne kadar mükemmel olursa, o derece hürriyet parlar. İşte asr-ı saadet. Münazarat – 23</item>
+        <item>İfrat ve tefrit de muzırdır. Belki daha ziyade, fakat ifrat, tefrite sebep olduğundan daha kabahatlidir. Muhakemat – 22</item>
+        <item>Eğer bir adamın iyilikleri fenalıklarına kemmiyeten veya keyfiyeten ziyade gelse, o adam muhabbete ve hürmete müstehaktır. Lem’alar – 88</item>
+        <item>İnsan, fıtratındaki zulüm damarıyla, şeytanın telkiniyle, bir zâtın yüz hasenatını bir tek seyyie yüzünden unutur, mü’min kardeşine adavet eder, günahlara girer. Lem’alar – 88</item>
+        <item>Elbette bu zamanda umum âlem-i İslâmı alâkadar edecek bir kudsî vazife yüzünden hafif bir zahmete ehemmiyet vermemekle mükellefiz. Şualar – 323</item>
+        <item>Hiss-i rekabet, makina-i terakkiyat-ı medeniyetin buharı hükmünde olan müsabakayı intac eder. A. Bediiyye – 356</item>
+        <item>Kur’an-ı Hakîm’in bize verdiği en mühim bir ders, “iman-ı bil’âhiret“tir. Lem’alar – 227</item>
+        <item>Eğer ezkiya zekâvetlerinin zekâtını ve ağniya velev zekâtın zekâtını milletin menfaatine sarf etseler; milletimiz de başka milletlere yolda karışabilir. Münazarat – 63</item>
+        <item>İdarede kuvvet kanunda olmalı. Ve ilimde de, kuvvet hakta olmalı. Yoksa istibdad hükümferma olur. A. Bediiyye: 374</item>
+        <item>Maddiyatta tevaggul eden, ma’neviyatta gabileşir ve sathî olur. Muhakemat – 18</item>
+        <item>Dünyada en sevdiğim şey muhabbet ve en darıldığım şey de husumet ve adavettir. Münazarat – 77</item>
+        <item>Bir harf kâtibsiz olmaz bildikleri halde, nasıl bir harfinde bir kitab yazılan şu kâinat kitabını, kâtibsiz zannediyorlar. Sözler – 387</item>
+        <item>Lübbü bulmayan, kışır ile meşgul olur. Hakikatı tanımayan hayâlata sapar. Muhakemat – 49</item>
+        <item>İttihad, cehl ile olmaz. İttihad, imtizâc-ı efkârdır. Münazarat – 73</item>
+        <item>İnsanlara kendini bildirmek, bir şöhretperestlik olmasından; bir enaniyet, bir hodfüruşluk, bir riyakârlık ihtimali var. Bu ise, bizim gibilere tam zarardır. Emir L 1 – 161</item>
+        <item>Işık verici, ısındırıcı müteharrik bir lâmba olan Güneş, elbette bir gün seyri bitecek, mahall-i kararına yetişecek, size faidesi dokunmayacak bir suret alacaktır. Sözler – 393</item>
+        <item>Güneş, nurani bir ağaçtır. Seyyareler onun müteharrik meyveleri… Ağaçların hilafına olarak güneş silkinir, tâ o meyveler düşmesin. Eğer silkinmezse, düşüp dağılacaklar.” Sözler – 394</item>
+        <item>Kur’an’ın düsturları, kanunları, ezelden geldiğinden ebede gidecektir. Medeniyetin kanunları gibi ihtiyar olup ölüme mahkûm değildir. Dâima gençtir, kuvvetlidir. Söz: 408</item>
+        <item>Nasıl maddî hava fena ise, fena tesir ediyor. Manevî hava da bozulsa, herkesin istidadına göre bir sarsıntı verir. Kastamonu L. – 66</item>
+        <item>Hüsn-ü niyet öyle bir kimyadır ki; şişeleri, elmasa çevirir; toprağı, altun yapar. Kastamonu L. – 67</item>
+        <item>Hidayet, ruhun Cennet’idir. Dalâlet, ruhun Cehennem’idir. İşarat’ul-ül İcaz – 60</item>
+        <item>İbadeti terk eden, mevcudatın ibadetini görmez ve göremez: belki de inkâr eder. Lem’alar – 190</item>
+        <item>Bu asrın hassası şudur ki: hayat-ı dünyeviyeyi, hayat-ı bâkiyeye bilerek tercih ettiriyor. Kastamonu L. – 104</item>
+        <item>Ekser hastalıklar sû-i istimalâttan, perhizsizlikten ve israftan ve hatîattan ve sefâhetten ve dikkatsizlikten geliyor. Lem’alar – 217</item>
+        <item>Cehennem matvîdir: ya’ni bükülmüştür: ya’ni tam açık değildir. İşarât-ül İ’caz – 129</item>
+        <item>Büyük işlerde yalnız kusurları gören, cerbezelik ile aldanır veya aldatır. Münazarat – 34</item>
+        <item>Me’muriyete veya imârete giren, yalnız hamiyet ve hizmet için girmelidir. Yoksa yalnız maişet ve menfaat için girse, bir nev’i çingenelik eder. Münazarat- 39</item>
+        <item>Âkıbeti görmeyen kör hissiyatın hükmüyle, hâzır bir dirhem zehirli lezzeti, ileride bir batman sâfi lezzete tercih etmek bu zamanın dehşetli bir marazı, bir musibetidir. Kastamonu L. – 197</item>
+        <item>Cesed, ruhun hânesi ve yuvasıdır, libâsı değil! Sözler – 517</item>
+        <item>İbadetin yapılması, ateşe girmemeğe vesiledir. İşârat-ül İ’caz – 127</item>
+        <item>Âyât-ı Kur’aniyyede öyle bir câmiiyyet var ki, her derde devâ, her hâcete gıda olabilir. Sözler – 213</item>
+        <item>Tevhidin en kuvvetli delili ve kudretin en hayretli mu’cizesi, sûretleri açmasıdır. Şualar – 167</item>
+        <item>Hakkı bulduktan sonra, ehak için ihtilâfı çıkarma! Lemaat – 718</item>
+        <item>Beğendiğin şeyde ifrat etme! Lemaât – 718</item>
+        <item>Kâmillerde büyüklük mikyasıdır küçüklük. Nâkıslarda küçüklük mîzânıdır, büyüklük. Lemaat – 724</item>
+        <item>Evet, velâyetin kerâmeti olduğu gibi, niyet-i hâlisenin dahi kerâmeti vardır. Samimiyetin dahi kerâmeti vardır. Mektubat – 372</item>
+        <item>Evet, hakikat-ı mutlaka mukayyed enzâr ile ihâta edilmez. Kur’an gibi bir nazar-ı küllî lâzım ki, ihâta etsin. Sözler – 439</item>
+        <item>Kur’an-ı Mübîn, yirmi senede hâcetlerin mevkileri i’tibâriyle necim necim olarak, müteferrik parça parça nüzûl ettiği halde, öyle bir kemâl-i tenâsübü vardır ki, gûya bir def’ada nâzil olmuş gibi bir münasebet göste­riyor. Sözler – 414</item>
+        <item>Meziyetin varsa, hafâ turâbında kalsın: tâ neşvünema bulsun. Lemaat – 720</item>
+        <item>Ebedî ve sermedî olan bir cemâlin seyirci müştâkı ve âyinedâr âşıkı, elbette bâki kalıp ebede gidecektir. Sözler – 126</item>
+        <item>Cenâb-ı Hak, haşirde adâlet-i mutlaka ile mîzân-ı ekberinde a’mâl-i mükellefini tarttığı zaman, hasenatı seyyiata galibiyeti, mağlûbiyeti noktasında hükmeyler. Lem’alar – 88</item>
+        <item>Evet bir bahr-ı müsebbih olan şu semavatın kelimat-ı tesbihiyesi: güneşler, aylar, yıldızlar olduğu gibi, bir tayr-ı müsebbih ve hâmid olan şu zeminin dahi elfaz-ı tahmidiyesi: hayvanlar, nebatlar ve ağaçlardır. Sözler – 164</item>
+        <item>Güzel değil batmakla gaib olan bir mahbub. Çünkü zevale mahkûm, hakikî güzel olamaz. Aşk-ı ebedî için yaratılan ve âyine-i Samed olan kalb ile sevilmez ve sevilmemeli. Sözler – 214</item>
+        <item>Zeval-i lezzet, elem olduğu gibi: zeval-i lezzetin tasavvuru dahi bir elemdir. Sözler – 215</item>
+        <item>Nimet içinde in’am görünür: Rahman’ın iltifatı hissedilir. Nimetten in’ama geçsen, Mün’im’i bulursun. Sözler – 216-217</item>
+        <item>Evet, masnuatta hiçbir eser yok ki, çok ma’nalı bir lâfz-ı mücessem olmasın, Sâni’-i Zülcelal’in çok esmâsını okutturmasın. Sözler – 217</item>
+        <item>Tohumlar gibi neşv ü nemasız kalan birçok istidad çekirdekleri, zâhirî çirkin görünen hâdiseler yüzünden sünbüllenip güzelleşir. Sözler – 231-232</item>
+        <item>Âlemin her hâlinde hayr-ı mahz olamaz. Sünuhat – 69</item>
+        <item>Şu kâinattan maksad-ı a’lâ: tezahür-ü rububiyete karşı, ubudiyet-i külliye-i insaniyedir ve insanın gaye-i aksası, o ubudiyete ulûm ve kemalât ile yetişmektir. Sözler – 264</item>
+        <item>İlm-i ezelî, imkânî vücûdlara âyine olduğu gibi, imkânî vücûdlar da vücûd-ü vücûbîye âyinedir. Mesnevi – 146</item>
+        <item>Üslûb-u Kur’an’ın o kadar acib bir camiiyeti var ki, bir tek sure, kâinatı içine alan bahr-i muhit-i Kur’anîyi içine alır. Bir tek âyet, o surenin hazinesini içine alır. Sözler – 398</item>
+        <item>Desatir-i hikmet, nevamis-i hükûmetle: kavanin-i hak, revabıt-ı kuvvetle imtizaç etmezse, cumhur-u avamda müsmir olamaz. Sünuhat – 63</item>
+        <item>Şu misafirhanelerden herkes çabuk gidip, kayboluyor. O kemal ve o cemalin bir ışığını, belki zayıf bir gölge­sini, bir anda bakıp doymadan gidiyor. Demek bir seyrangâh-ı daimîye gidiliyor.. Sözler – 51</item>
+        <item>Şu muhteşem kâinat öyle bir saraydır ki: Ay, Güneş lâmbaları: yıldızlar, mumları: zaman, bir ip, bir şerittir ki, o Sâni’-i Zülcelâl her sene bir başka âlemi ona takıp, gösteriyor. Sözler – 60</item>
+        <item>Hıristiyanlığın malı olmayan medeniyeti ona mal etmek, İslâmiyet’in düşmanı olan tedenniyi ona dost gös­termek, feleğin ters dönmesine delildir. Sünuhat – 50</item>
+        <item>Nihayetsiz hacat-ı insaniyeyi ifa edecek, ancak nihayetsiz bir kudret ve muhit bir ilim sahibi olabilir. Öyle ise, mabudiyete lâyık yalnız odur. Sözler – 319</item>
+        <item>Elbette bu kadar ağır şerâit altında göz önünde bu fevkalâde hizmet-i imaniye ile yüz binler bîçâreleri şübhelerden kurtarmak öyle bir hasenedir ki, binler kusuru afveder. Gayr-i münteşir – 53/391</item>
+        <item>İşlediğimiz her bir günah, kafamıza giren her bir şüphe, kalb ve ruhumuza yaralar açar. Lem’alar – 8</item>
+        <item>Binler ruhum olsa, binler hastalıklara mübtela olsam ve zahmetler çeksem, yine bu milletin imanına ve saadetine hizmet için burada kalmağa Kur’an’dan aldığım dersle karar verdim ve vermişiz. Emirdağ L. – 195</item>
+        <item>Sinek kanadından tâ semavat kandillerine kadar o derece ince bir intizam gözetilmiş ki, sinek kanadı kadar şirke yer bırakılmamış. Sözler – 389</item>
+        <item>Hayat, Zât-ı Hayy-ı Kayyum’a baktıkça ve iman dahi hayata hayat ve ruh oldukça, beka bulur hem bâki meyveler verir, hem öyle yükseklenir ki, sermediyet cilvesini alır, daha ömrün kısalığına ve uzunluğuna bakılmaz. Lem’alar – 257</item>
+        <item>Ehl-i hakikatın sohbetine zaman, mekân mâni’ olmaz: manevî radyo hükmünde biri şarkta biri garbda, biri dünyada biri berzahta olsa da rabıta-i Kur’aniye ve imaniye onları birbiriyle konuşturur. Kastamonu L. – 5</item>
+        <item>Pederine isyan eden ve onu rencide eden, insan bozması bir canavardır. Sözler – 639</item>
+        <item>Toprak, rahmet kapısı ve Cennet salonunun bir penceresidir. Sözler – 750</item>
+        <item>Hayat, vahdet ve ittihadın neticesidir. İmtizackârane ittihad gittiği vakit, manevî hayat da gider. Barla L 124</item>
+        <item>Tesanüd bozulsa, cemaatin tadı kaçar. Barla L. 124</item>
+        <item>Hizmet-i Kur’aniye’de bulunana: ya dünya ona küsmeli veya o dünyaya küsmeli. Tâ ihlas ile, ciddiyet ile hizmet-i Kur’aniyede bulunsun. 10. Lem’a – 42</item>
+        <item>Bu zamanda, şan şeref perdesi altında riyakârlık yer aldığından azamî ihlâs ile bütün bütün enaniyeti terk lâzımdır. Emirdağ 2 L. – 201</item>
+        <item>Ehl-i dalaletin cinayetleri, o kadar büyüktür ki: kısacık hayat-ı dünyeviyeye cezaları sığışmadığından, mukteza-yı adalet olarak âlem-i bekadaki mahkeme-i kübraya havale edildiği için, ekseriyetle burada ce­zaya çarpılmıyorlar. 10. Lem’a – 48</item>
+        <item>Sünnet-i Seniyeye ittibaı kendine âdet eden, âdâtını ibadete çevirir, bütün ömrünü semeredar ve sevabdar yapabilir. 11. Lem’a – 50,</item>
+        <item>Ne mutlu o kimseye ki, Sünnet-i Seniyeye ittibaından hissesi ziyade ola. Veyl o kimseye ki, Sünnet-i Seniyeyi takdir etmeyip, bid’alara giriyor. 11. Lem’a – 53</item>
+        <item>Edebin enva’ını, Cenab-ı Hak habibinde cem’etmiştir. Onun Sünnet-i Seniyesini terk eden, edebi terk eder. 11. Lem’a – 54</item>
+        <item>Mesail-i şeriatla sünnet-i seniyye düsturları, emraz-ı ruhaniyede ve akliyede ve kalbiyede, hususan emraz-ı içtimaiyede gayet nafi’ birer devadır. 11. Lem’a – 55</item>
+        <item>Sünnet-i Seniye, saadet-i dâreynin temel taşıdır ve kemalâtın madeni ve menbaıdır. 11. Lem’a – 56</item>
+        <item>Demek oluyor ki: insan için en mühim âlî maksad, Cenab-ı Hakk’ın muhabbetine mazhar olmasıdır. 11. Lem’a – 57</item>
+        <item>Sünnete ittiba etmeyen, tembellik eder ise, hasaret-i azîme: ehemmiyetsiz görür ise, cinayet-i azîme: tekzibini işmam eden tenkid ise, dalalet-i azîmedir. 11. Lem’a – 59</item>
+        <item>Kader, ilm-i ezelîden olduğu için: ilm-i ezelî, hadîsin tabiriyle Manzar-ı a’lâdan, ezelden ebede kadar her şey, olmuş ve olacak, birden tutar, ihata eder bir makam-ı a’lâdadır. 26. Söz: 467</item>
+        <item>Kusurunu itiraf etmemek, büyük bir noksanlıktır. Ve kusurunu görse, o kusur kusurluktan çıkar: itiraf etse, afva müstehak olur. 13.Lem’a: 88</item>
+        <item>Kardeşlerime de tavsiye ediyorum ki: İhtiyat etsinler, nâ-ehillerin eline hakikatları vermesinler. Hem ehl-i dünyanın evhamını tahrik edecek işlerde bulunmasınlar. 16. Lem’a: 105</item>
+        <item>Kardeşlerime tavsiye ediyorum ki: İnşikaka ve iftiraka sebebiyet veren münakaşa etmesinler. Yalnız müdavele-i efkâr suretinde niza’sız mübahaseye alışsınlar. 16. Lem’a: 106</item>
+        <item>İtikadı sarsılmış, ahlâkı bozulmuş yüz fâsıkın idaresi ve onlar içinde asayiş temini, binler ehl-i salahatın idaresinden daha müşkildir. 17. Lem’a: 123</item>
+        <item>Daima işsizler ömründen şikâyet eder: eğlence ile çabuk geçmesini ister. Sa’y eden ve çalışan ise: şâkirdir, hamd eder, ömrün geçmesini istemez. 17. Lem’a: 125</item>
+        <item>Samimî bir ihlas, şerde dahi olsa neticesiz kalmaz. Evet, ihlas ile kim ne isterse Allah verir. 20. Lem’a: 150</item>
+        <item>Hizmet-i diniyenin mukabilinde dünyada bir şey istenilmemeli ki, ihlas kaçmasın. Hâşiye 20. Lem’a: 150</item>
+        <item>Haklı her meslek sahibinin, başkasının mesleğine ilişmemek cihetinde hakkı ise: Mesleğim haktır yahud daha güzeldir diyebilir. 20. Lem’a: 151</item>
+        <item>Hayat-ı içtimaiye-i beşeriyede bir çığır açan, eğer kâinattaki kanun-u fıtrata muvafık hareket etmezse: hayırlı işlerde ve terakkide muvaffak olamaz. Bütün hareketi şer ve tahrib hesabına geçer. 22. Lem’a: 170</item>
+        <item>Tesettür, kadınlar için fıtrîdir. Ref’-i tesettür, fıtrata münafîdir. 25. Söz: 410</item>
+        <item>Ölmüş kadınların suretlerine veyahut sağ kadınların küçük cenazeleri hükmünde olan suretlerine hevesperverane bakmak, derinden derine hissiyat-ı ulviye-i insaniyeyi sarsar, tahrib eder. 25. Söz: 410</item>
+        <item>Bir elmayı, bir adama hakikî rızk olarak vermek: bütün yeryüzünü bütün meyvelerle dolduran o zât verebi­lir. Ve o, ona hakikî Rezzak olur. 25. Söz: 418</item>
+        <item>Kur’an, kulûbe kut ve gıda ve ukûle kuvvet ve gınadır ve ruha mâ ve ziya ve nüfusa deva ve şifa olduğun­dan usandırmaz. 25. Söz: 378</item>
+        <item>İbadeti ve namazı terk eden adam, Sultan-ı Ezel ve Ebed’in raiyeti hükmünde olan mevcudatın hukukuna ehemmiyetli bir tecavüz ve manevî bir zulüm eder. 23. Lem’a: 190</item>
+        <item>Mütefekkirane ve ciddî bir surette ibadet ve tesbih eden adam, mevcudatın hakikaten mevcud ve muhak­kak olan ibadet ve tesbihatlarını bir derece keşfeder ve görür. 23. Lem’a: 190</item>
+        <item>Evet nasıl ki küfür, mevcudata karşı bir tahkirdir: terk-i ibadet dahi, kâinatın kemalâtını bir inkârdır. 23. Lem’a: 191</item>
+        <item>Kader, ilmin bir nevidir ki, her şeyin manevî ve mahsus kalıbı hükmünde bir miktar tayin eder. Ve o mikdar-ı kaderî, o şey’in vücuduna bir plân, bir model hükmüne geçer. Kudret icad ettiği vakit: gayet sühuletle o kaderî mikdar üstünde icad eder. 23. Lem’a: 193</item>
+        <item>Evet bir valide veledini tehlikeden kurtarmak için hiçbir ücret istemeden ruhunu feda etmesi ve hakikî bir ihlas ile vazife-i fıtriyesi itibariyle kendini evlâdına kurban etmesi gösteriyor ki: hanımlarda gayet yüksek bir kahramanlık var. 24. Lem’a: 199</item>
+        <item>Aklı başında olan bir adam, refikasına muhabbetini ve sevgisini, beş on senelik fâni ve zâhirî hüsn-ü cema­line bina etmez. 24. Lem’a: 201</item>
+        <item>Bahtiyardır o adam ki: refika-i ebediyesini kaybetmemek için sâliha zevcesini taklid eder, o da sâlih olur. Bahtiyardır o kadın ki: kocasını mütedeyyin görür, ebedî dostunu ve arkadaşını kaybetmemek için o da tam mütedeyyin olur: saadet-i dünyeviyesi içinde saadet-i uhreviyesini kazanır. 24. Lem’a: 202</item>
+        <item>Katiyen biliniz ki: bu hayat-ı dünyeviyede hakikî lezzet, iman dairesindedir ve imandadır. Ve a’mal-i sâlihanın her birisinde bir manevî lezzet var. 24. Lem’a: 203</item>
+        <item>Âdeta imanda bir Cennet çekirdeği ve dalalette ve sefahatte bir Cehennem çekirdeği bulunduğunu, ben kendim çok tecrübelerle ve hâdiselerle aynelyakîn görmüşüm. 24. Lem’a: 203</item>
+        <item>Bir ağacın bir kısım meyvelerini kopardıkça yerine yine başka meyvelerin geldiği gibi, nev-i beşerde bu zeval ve firak dahi bir teceddüddür, tazelenmektir. 26. Lem’a: 251</item>
+        <item>Evet, kâinat sarayını tertemiz tutan bu ulvî, umumî tanzif: elbette İsm-i Kuddüs‘ün cilvesi ve muktezasıdır. 30. Lem’a: 307</item>
+        <item>Gecede teheccüd ise, kabir gecesinde ve Berzah karanlığında ne kadar lüzumlu bir ışık olduğunu bil! 9. Söz: 42</item>
+        <item>Bu âhirzaman çok çalkalanıyor, bu fitne-i âhirzaman acib şeyler doğuracağını ihsas ediyor. Barla: 339</item>
+        <item>Takarrür etmiş usuldendir: Akıl ve nakil taâruz ettikleri vakitte, akıl asıl itibar ve nakil tevil olunur. Fakat o akıl, akıl olsa gerektir. Muhakemat: 12</item>
+        <item>Kur’an’ı tefsir edecek, yine Kur’an ve hadîs-i sahihtir. Muhakemat: 19</item>
+        <item>Hadîs, maden-i hayat ve mülhim-i hakikattır. Muhakemat: 22</item>
+        <item>Asıl insaniyet-i kübra olan İslâmiyet, sema-i müstakbelde ve Asya’nın cinanı üzerinde bulutsuz güneş gibi pertev-efşan olacaktır. Muhakemat: 35-36</item>
+        <item>Kadere iman olmazsa hayat-ı dünyeviye saadeti mahvolur. 11. Şua: 261</item>
+        <item>Evet şu dâr-ı dünya, beşerin ruhunda mündemiç olan hadsiz istidadların sünbüllenmesine müsaid değildir. Demek başka âleme gönderilecektir. 29. Söz: 525</item>
+        <item>Haşirde bütün zevil-ervahın ihyası, bir sineğin baharda ihyasından daha ziyade kudrete ağır olmaz. 29. Söz: 529</item>
+        <item>Biz öyle bir hakikata hayatımızı vakfetmişiz ki, güneşten daha parlak ve Cennet gibi güzel ve saadet-i ebediye gibi şirindir. Ş: 312</item>
+        <item>Evvel âhir tavsiyemiz: Tesanüdünüzü muhafaza: enaniyet, benlik, rekabetten tahaffuz ve itidal-i dem ve ihtiyattır. Ş: 312</item>
+        <item>Hasenatı seyyiatına, sevabı hatasına tereccuh edenler, mağfiret ve affa müstahaktırlar. AB: 401</item>
+        <item>Akılları gözlerinde olan avama ders veren, fiildir. . AB:405</item>
+        <item>Evet gençlik damarı, akıldan ziyade hissiyatı dinler. His ve heves ise kördür, akibeti görmez. Bir dirhem hazır lezzeti, ileride bir batman lezzete tercih eder. S: 150</item>
+        <item>İnsan istidadı nispetinde burada ekiyor ve ekiliyor, âhirette mahsul alıyor. S: 86</item>
+        <item>Âyine-misal mevcudatın birbiri arkasında zeval ve fenalarıyla beraber, arkalarından gelenlerin üstünde ve yüzlerinde aynı hüsün ve cemalin cilvesinin bulunması gösterir ki: Cemal onların değil: belki o cemaller, bir hüsn-ü münezzeh ve bir cemal-i mukaddesin âyâtı ve emaratıdır. S: 68</item>
+        <item>Nasıl ki şu âlem bütün mevcudatıyla Sâni’-i Zülcelal’ine kat’î delalet eder. Sâni’-i Zülcelal’in de sıfât ve esma-i kudsiyesi, dâr-ı âhirete delalet eder ve gösterir ve ister. S: 69</item>
+        <item>Bazen adavet, şiddet-i muhabbetten gelir. Mü: 7</item>
+        <item>Adaletin tevziinde adalet olmazsa zulüm görünür. Bir hatır için bin hatır kırılmaz. Mü: 94</item>
+        <item>En büyük ders, doğruluk yolunda ölümünü istihkar dersi vermektir… D: 7</item>
+        <item>Siyaseti dinsizliğe âlet yapan bazı adamlar, kabahatini setr için başkasını irtica ile ve dinini siyasete âlet yapmakla itham ederler. D: 12</item>
+        <item>İnşâallah istikbaldeki İslâmiyet’in kuvveti ile medeniyetin mehasini galebe edecek, zemin yüzünü pisliklerden temiz­leyecek, sulh-u umumîyi de temin edecek. H: 36</item>
+        <item>Her kıştan sonra bir bahar, her geceden sonra bir sabah olduğu gibi, nev-i beşerin dahi bir sabahı, bir baharı olacak inşâallah. Hakikat-ı İslâmiye’nin güneşi ile sulh-u umumî dairesinde hakikî medeniyeti görmeyi, rahmet-i İlahiyeden bekleyebilirsiniz. H:. 37-38</item>
+        <item>İnsan, bu dünyaya yalnız güzel yaşamak için ve rahatla ve safa ile ömür geçirmek için gelmemiştir. Belki azîm bir sermaye elinde bulunan insan, burada ticaret ile ebedî daimî bir hayatın saadetine çalışmak için gelmiştir. L: 206</item>
+        <item>Vazifesi hizmetkârlık ve tabiatı çocukluk olanlar, büyük rütbeye girmekle tekebbür eder. Tekebbür etmekle tenasübünü bozup muaşereti teşviş eder. Mu: 100</item>
+        <item>Lübbü bulmayan, kışır ile meşgul olur. Hakikatı tanımayan hayalâta sapar. Sırat-ı müstakimi göremeyen, ifrat ve tefrite düşer. Muvazenesiz ve mizansız olan çok aldanır, aldatır. Mu: 49</item>
+        <item>Bir adam müstaid ve kabil olduğu şeyi terk ve ehil olmayan şeye teşebbüs etmek, şeriat-ı hilkate büyük bir itaatsizliktir. Mu: 53</item>
+        <item>Kıssa hisse içindir: sana ne lâzım teşrihatı.. Nasıl olursa olsun sana taalluk edemez. Kendi hisseni al, git. Mu: 69</item>
+        <item>Evet lezzetli üzüm salkımlarının hasiyetleri, kuru çubuğunda aranılmaz. İşte ben de öyle bir kuru çubuk hükmündeyim. T: 26</item>
+        <item>İlim iki kısımdır: Bir nevi ilim var ki, bir defa bilinse ve bir-iki defa düşünülse kâfi gelir. Diğer bir kısmı, ek­mek gibi, su gibi her vakit insan onu düşünmeye muhtaç olur. Bir defa anladım, yeter diyemez. İşte ulûm-u imaniye bu kısımdandır. Elinizdeki Sözler ekseriyet itibariyle inşâallah o cümledendir. B: 260-261</item>
+        <item>Şu istikbal inkılâbı içinde en yüksek gür sada, İslâm’ın sadası olacaktır! T: 145</item>
+        <item>Fena şeylerle meşguliyet fena tesir eder. Fena iz bırakır. T: 691</item>
+        <item>Hususan böyle bir asırda bâtılı iyice tasvir etmek, safî zihinleri idlâldir. T: 691</item>
+        <item>Binden bir-iki adam sizden kabul etse, yine sarsılmamak gerektir. Bazen bir-iki adam, bine mukabil geliyor. E2: 56</item>
+        <item>Bir milyon değil, belki bin insanın hayat-ı ebediyesini temine çalışmak, bir milyar insanın hayat-ı fâniye-i dünyeviye ve medeniyetine çalışmaktan daha kıymettar(dır). E2: 112</item>
+        <item>Bulut ile arz gibi camid ve mütehalif şeylerde tecavüb ve muavenet, yani birbirinin hacetine cevap vermek ve seyyarat gibi şemsten pek uzak olan yıldızların şemse veya birbirine tesanüd etmeleri, bütün eşyanın bir Müdebbirin idaresinde bulunduğuna şehadet eder. Ms: 55</item>
+        <item>Bir zîhayat, çok isim ve sıfatların tecellisine mazhardır. Meselâ, bir zîhayat vücuda geldiğinde Bari isminin cilvesine, teşekkülünde Musavvir sıfatının cilvesine, gıdalandığı zaman Rezzak ismi­nin cilvesine: hastalıktan şifa bulduğunda, Şâfi isminin tecellisine ve hakeza tesirde mütesanit, âsârda mütehalif, çok sıfat ve isimlere mazhardır. Ms: 56</item>
+        <item>Ene ile tabir edilen enaniyetin kalbi, Allah Allah zikrinin şua ve hararetiyle yanıp delinirse, büyüyüp gafletle firavunlaşamaz. Ve Hâlık-ı Semavat ve Arz’a isyan edemez. O zikr-i İlahî sayesinde, ene mahvolur. Ms: 103</item>
+        <item>Acaba çiçek açıp, semere veren ağaçlarda her sene icad edilen meyvelerin haşr ü neşirlerini gördükten sonra haşr-i umumîyi istib’ad eden sıkılmaz mı? Ms: 108</item>
+        <item>Kesret vahdete isnad edilmediği takdirde, vahdeti kesrete isnad etmek mecburiyeti hâsıl olur. Demek, dağınık bir nev’in icadındaki sühulet-i hârika, vahdet ve tevhid sırrına bağlıdır. Ms: 18</item>
+        <item>Nimete bakıldığı zaman Mün’im, san’ata bakıldığı zaman Sâni’, esbaba nazar edildiği vakit Müessir-i Hakikî zihne ve fikre gelmelidir. Ms: 51</item>
+        <item>İmansız İslâmiyet sebeb-i necat olmadığı gibi, bilerek İslâmiyetsiz iman dahi dayanamıyor, belki necat veremiyor, denilebilir. B: 349</item>
+        <item>Teveccüh-ü nâs istenilmez, belki verilir. Verilse de onunla hoşlanılmaz. Hoşlansa ihlası kaybeder, riyaya girer. Şan ü şeref arzusuyla teveccüh-ü nâs ise: ücret ve mükâfat değil, belki ihlassızlık yüzünden gelen bir itab ve bir mücazattır. 20.L:147</item>
+        <item>Cenab-ı Hakk’ın rızası ihlas ile kazanılır. Kesret-i etba’ ile ve fazla muvaffakıyet ile değildir. Çünki onlar vazife-i İlahiyeye ait olduğu için istenilmez: belki bazan verilir. Evet, bazan bir tek kelime sebeb-i necat ve medar-ı rıza olur. Kemmiyetin ehemmiyeti o kadar medar-ı nazar olmamalı. Çünkü bazen bir tek adamın irşadı, bin adamın irşadı kadar rıza-i İlahîye medar olur. 20.L:152</item>
+        <item>Sen neci oluyorsun ki, böyle hırs ile herkes beni dinlesin diye vazifeni unutup, vazife-i İlahiyeye karışıyorsun? Kabul ettirmek, senin etrafına halkı toplamak Cenab-ı Hakk’ın vazifesidir. Vazifeni yap, Allah’ın vazifesine karışma. 20.L:152</item>
+        <item>Ey musibetzede ve ihtilafa düşmüş ehl-i hak ve ashab-ı hakikat! Bu musibet zamanında ihlası kaçırdığınızdan ve rıza-yı İlahîyi münhasıran gaye-i maksad yapmadığınızdan, ehl-i hakkın bu zillet ve mağlubiyetine sebebiyet verdiniz. 20.L:156</item>
+        <item>Hak ve hakikatı dinleyen ve söyleyene sevab kazandıranlar, yalnız insanlar değildir. Cenab-ı Hakk’ın zîşuur mahlûkları ve ruhanîleri ve melaikeleri kâinatı doldurmuş, her tarafı şenlendirmişler. Madem çok sevab istersin, ihlâsı esas tut ve yalnız rıza-yı İlahîyi düşün.20.L:152</item>
+        <item>Herkeste nefs-i emmare bulunur. Bazı da hissiyat-ı nefsiye damarlara ilişir. Bir derece hükmünü: kalb, akıl ve ruhun rağmına olarak icra eder. 21.L:166</item>
+        <item>Mesleğimiz uhuvvettir. Kardeş kardeşe peder olamaz, mürşid vaziyetini takınamaz. Uhuvvetteki makam geniştir. Gıbtakârane müzahameye medar olamaz. Olsa olsa, kardeş kardeşe muavin ve zahîr olur: hizmetini tekmil eder. 21.L:166</item>
+        <item>Her bir masnuda, her bir zerrede görünen tasarruf-u mutlak, kudret-i muhita ve hikmet-i basîrenin delalet ve şehadetleriyle sabittir ki, bütün eşyanın Sânii, vâhiddir, şeriki yoktur. Ms: 187</item>
+        <item>Hâlık-ı Rahîm, nev-i beşere verdiği nimetlerin mukabilinde şükür istiyor. İsraf ise şükre zıddır, nimete karşı hasaretli bir istihfaftır. 19.L: 139</item>
+        <item>Ey uykuda iken kendilerini ayık zannedenler! Umûr-u diniyede müsamaha veya teşebbühle medenîlere yanaşmayın. Çünkü aramızdaki dere pek derindir. Doldurup hatt-ı muvasalayı temin edemezsiniz. Ya siz de onlara iltihak edersiniz veya dalalete düşer boğulursunuz. Ms: 126</item>
+        <item>Maddiyat âlemi Cenab-ı Hakk’ın envar-ı nimetini cezp etmek için hakikî bir ihtiyaç ile şemse muhtaç olduğu gibi, âlem-i maneviyat dahi rahmet-i İlahiyenin ziyalarını almak için şems-i nübüvvete muhtaçtır. Ms: 139</item>
+        <item>Kur’an-ı Kerim‘in bir meziyeti şudur ki: Bütün ülema ve ehl-i meşreb gibi herkes hidayeti için, şifası için müteaddid surelerden ayrı ayrı âyetleri ahzedebilir. Ms: 141</item>
+        <item>Arkadaş! Nefsî tefekkürde tafsilâtlı, âfâkî tefekkürde ise icmalî yaparsan, vahdete takarrüb edersin. Aksini yaptığın takdirde kesret fikrini dağıtır, evham seni havalandırır. Enaniyetin kalınlaşır, gafletin kuvvet bulur, tabiata kalbeder. İşte dalalete îsal eden kesret yolu budur. Ms: 147</item>
+        <item>Ey devamı isteyen nefis! Daimî olan bir Zât’ın zikrine devam eyle ki, devam bulasın. Ondan nur al ki sönmeyesin. Onun cevherine sadef ve zarf ol ki kıymetli olasın. Onun nesim-i zikrine beden ol ki, hayatdar olasın. Esma-i İlahiyeden birisinin hayt-ı şuaıyla temessük et ki, adem deryasına düşmeyesin. Ms: 184</item>
+        <item>Ceberutiyet ve istiklaliyetin izzeti ve kendini sevdirmek ve tanıttırmak muhabbeti, gayre müsaade etmiyor ki, arada ibadullahın enzarını kendine celbeden ismî bir vasıta bulunsun. Ms: 184</item>
+        <item>Nasıl ki şemsin nurundan, katre ve kabarcıklara varıncaya kadar hiç bir şey hariç kalmıyor. Bütün eşya o nur ile tenevvür ediyor. Kezalik bütün tasarrufat, kudret-i ezeliyeye aittir. Başka bir şeyin müdahalesi yoktur. Küreden zerreye varıncaya kadar o kudretin tasarrufundan hariç değildir. Ms: 187</item>
+        <item>Yarın seni zillet ve rezaletlere maruz bırakmakla terk edecek olan dünyanın sefahetini bugün kemal-i izzet ve şerefle terk edersen pek aziz ve yüksek olursun. Ms: 188</item>
+        <item>Hevam, balık gibi küçük hayvanların yumurtalarını, haşerat ve nebatatın tohumlarını, pek büyük bir rahmetle, bir lütuf ile, bir hikmetle hıfzeden Sâni’-i Hakîm’in hâfiziyetine lâyık mıdır ki, âhirette semere veren ağaçlara çekirdek olacak a’malinizi hıfzetmesin, ihmal etsin? Hâlbuki sen hâmil-i emanet, halife-i arzsın. Ms: 193</item>
+        <item>Bir incir tohumunu tavırdan tavıra hıfzeden, devirden devire himaye eden, inhilâlden vikaye eden ve o tohumda incir ağacının teşkilâtına lâzım olan esasları kemal-i ihtimam ile muhafaza eden, elbette ve elbette, halife-i arz ünvanını alan nev’-i beşerin a’malini ihmal etmez, hıfzeder. Ms: 193</item>
+        <item>Âyetler, necimler gibi ülfet perdesini deler atar. İnsanın kulağından tutar, başını eğdirir. O ülfetin altındaki havarik-ul âdât mu’cizeleri o âdiyat içerisinde gösterir. Ms: 197</item>
+        <item>Ruh zâten zaman ile mukayyed değildir. Ruhu cismaniyetine galib olan evliyanın işleri, fiilleri sür’at-ı ruh mizanıyla cereyan eder. Ms: 198</item>
+        <item>Hal ile mazi arasında öyle ince bir perde vardır ki, ruhun mazi cihetine geçmesine mani değildir. Cesede nispeten bitmez bir mesafedir. Ms: 198-199</item>
+        <item>Harf, gayrın manasını izah için bir âlet, bir hâdim olduğu gibi: şu mevcudat da, esma-i hüsnanın tecelliyatını izhar, ifham, izah için bir takım İlahî mektublardır ki, içlerinde yazılı delail, berahin, havarık mu’cize-i kudrettir. Mevcudat bu vecihle nazara alınması: ilim, iman, hikmettir. Ms: 214</item>
+        <item>Bu kadar elîm firak ve ayrılıklara maruz kalmakla çektiğin elemlerin sebebi ve kabahati sendedir. Çünkü o muhabbetleri gayr yerinde sarf ediyorsun. Eğer o muhabbetleri cem’ edip Vâhid-i Ehad’e tevcih ve Onun hesabıyla, izniyle sarf edersen, bütün mahbubların ile beraber bir anda birleşip sevinçlere, memnuniyetlere mazhar olacaksın. Ms: 215</item>
+        <item>İfrat ve tefritten kurtulmak için istikamet mizanına müracaat edilmeli. Ms: 227</item>
+        <item>Âyâtın yıldızlarına, hikmet-i hakikiyenin mi’racıyla ve iman ve İslâmiyetin kanatlarıyla çıkılabilir. 12.L: 69</item>
+        <item>Hırs ihlası kırar, amel-i uhreviyeyi zedeler. Çünkü bir ehl-i takvanın hırsı varsa, teveccüh-ü nâsı ister. Teveccüh-ü nâsı müraat eden, ihlas-ı tâmmı bulamaz. Bu netice çok ehemmiyetli, çok cây-ı dikkattir. 19.L: 146</item>
+        <item>Kanaat, bir define-i hüsn-ü maişet ve rahat-ı hayattır. Hırs ise, bir maden-i hasaret ve sefalettir. 19.L: 146</item>
+        <item>İsraf, kanaatsızlığı intac eder. Kanaatsızlık ise çalışmanın şevkini kırar, tenbelliğe atar: hayatından şekva kapısını açar, mütemadiyen şekva ettirir. 19.L: 146</item>
+        <item>İktisaddan gelen kanaat: şükür kapısını açar, şekva kapısını kapatır. Hayatında daima şâkir olur. Hem kanaat vasıtasıyla insanlardan istiğna etmek cihetinde teveccühlerini aramaz. İhlas kapısı açılır, riya kapısı kapanır. 19.L: 146</item>
+        <item>Evet bir vâlide veledini tehlikeden kurtarmak için hiçbir ücret istemeden ruhunu feda etmesi ve hakikî bir ihlas ile vazife-i fıtriyesi itibariyle kendini evlâdına kurban etmesi gösteriyor ki: hanımlarda gayet yüksek bir kahramanlık var. Bu kahramanlığın inkişafı ile: hem hayat-ı dünyeviyesini, hem hayat-ı ebediyesini onunla kurtarabilir. 24.L: 199-200</item>
+        <item>Şimdi terbiye-i İslâmiyeden ve a’mal-i uhreviyeden en kıymetli ve en lüzumlu esas, ihlastır. 24.L: 201</item>
+        <item>Ömür durmuyor, çabuk gidiyor. Lezzetle, ferahla gitse, lezzetin zevali elem olmasından, hem teessüf, hem şükürsüzlükle, gafletle, bazı günahları yerinde bırakır, fâni olur gider. 26.L: 263</item>
+        <item>Evet bir arının küçük kafasında kâinat bahçesindeki çiçekleri tanıyacak ve ekser enva’ıyla münasebetdar olacak ve bal gibi bir hediye-i rahmeti getirecek ve dünyaya geldiği günde şerait-i hayatı bilecek derecede bir istidadı, bir kabiliyeti, bir cihazı derceden zât: elbette bütün kâinatın Hâlıkı olabilir. 30.L: 339</item>
+        <item>Saadet-i ebediyenin anahtarı olan imanın kuvvetleşmesi ehemmiyeti çok azîmdir. İmanın bir zerre kadar kuvveti ziyade olması, bir hazinedir.30.L: 341</item>
+        <item>Hamd ise, ibadetin icmalî bir sureti ve küçük bir nüshasıdır. İ: 17</item>
+        <item>Cenab-ı Hak insanı kâinata câmi’ bir nüsha ve onsekiz bin âlemi hâvi şu büyük âlemin kitabına bir fihrist olarak yaratmıştır. Ve esma-i hüsnadan her birisinin tecelligâhı olan herbir âlemden bir örnek, bir nümune, insanın cevherinde vedîa bırakmıştır. İ:17</item>
+        <item>Kur’an heyet-i mecmuasıyla kalblere kut ve kuvvet olup, tekrarı usanç değil, halâvet ve lezzet verdiği gibi, Kur’anın âyetlerinde de öyle bir kısım vardır ki, o kuvvetin ruhu hükmünde olup tekerrür ettikçe daha ziyade parlar, hak ve hakikat nurlarını saçar. İ:30</item>
+        <item>En büyük hidayet, hicabın kaldırılmasıyla hakkı hak, bâtılı bâtıl göstermektir. İ:22</item>
+        <item>Madem muntazam bir fiil, fâilsiz olmaz. Manidar bir kitab, kâtibsiz olmaz. San’atlı bir nakış, nakkaşsız olmaz. Elbette şu kâinatı dolduran ef’al-i hakîmanenin bir fâili ve yeryüzünün mevsim-be-mevsim tazelenen hayretfeza nukuşlarının, manidar mektubatının bir kâtibi, bir nakkaşı vardır. 31.S: 566</item>
+        <item>Evet Hazret-i Muhammed Aleyhissalâtü Vesselâm‘ın getirdiği şeriatın hakaikı, fıtratın kanunlarındaki müvazeneyi muhafaza etmiştir. İçtimaiyatın rabıtalarına lâzım gelen münasebetleri ihlâl etmemiştir. Zaman uzadıkça, aralarında ittisal peyda olmuştur. Bundan anlaşılır ki: İslâmiyet, nev-i beşer için fıtrî bir dindir ve içtimaiyatı tezelzülden vikaye eden yegâne bir âmildir. İ:111</item>
+        <item>Surelerin başlarındaki huruf-u mukattaa, İlahî bir şifredir. Beşer fikri ona yetişemiyor. Anahtarı, ancak Hazret-i Muhammed Aleyhissalâtü Vesselâm’dadır. İ:33</item>
+        <item>Bu zamanda vesait, âlât u edevat, sanayiin tekemmülüyle çocukların oyuncakları gibi âdileşmiş olan çok şeyler vardır ki, eğer onlar bundan iki-üç asır evvel vücuda gelmiş olsaydılar, hârikalardan addedilecekti. Kezalik kelâmlarda, sözlerde de zamanın tesiri vardır. Meselâ bir zamanda kıymetli bir sözün, başka bir zamanda kıymeti kalmaz. Binaenaleyh şu kadar uzun zamanlar, asırlar boyunca gençliğini, güzelliğini, tatlılığını, garabetini muhafaza eden Kur’an, elbette ve elbette hârikadır. İ:111-112</item>
+        <item>İman, Resul-i Ekrem Aleyhissalâtü Vesselâm’ın tebliğ ettiği zaruriyat-ı diniyeyi tafsilen ve zaruriyatın gayrisini icmalen tasdik etmekten hasıl olan bir nurdur. İ:41</item>
+        <item>İman, Şems-i Ezelî’den ihsan edilmiş bir nur olduğu gibi: saadet-i ebediyeden de bir parıltıdır. Ve o parıltı ile, vicdanında bulunan bütün emel ve istidadlarının tohumları, bir şecere-i tûbâ gibi neşv ü nemaya başlar, ebed memleketine doğru hareket eder, gider. İ: 42</item>
+        <item>Nasıl ki Fatiha Kur’ana, insan kâinata fihristedir: namaz da hasenata fihristedir. Çünkü namaz: savm, hac, zekat ve sair hakikaları hâvi olduğu gibi, idrakli ve idraksiz mahlukatın ihtiyarî ve fıtrî ibadetlerinin nümunelerine de şamildir. Meselâ: Secdede, rükû’da, kıyamda olan melaikenin ibadetlerini, hem taş, ağaç ve hayvanların o ibadetlere benzeyen durumlarını andıran bir ibadettir. İ: 42</item>
+        <item>Namaz, kalblerde azamet-i İlahiyeyi tesbit ve idame ve akılları ona tevcih ettirmekle adalet-i İlahiyenin kanununa itaat ve nizam-ı Rabbanîye imtisal ettirmek için yegâne İlahî bir vesiledir. İ:43</item>
+        <item>Âlem-i beşerde hayat-ı içtimaiyenin hayatı, muavenetten doğar. İnsanların terakkiyatına engel olan isyanlardan, ihtilâllerden, ihtilaflardan meydana gelen felâketlerin tiryakı, ilâcı muavenettir. İ: 45</item>
+        <item>Tahkike göre, nebatatın tohumları gibi “Acb-üz zeneb” tabir edilen bir kısım zerreler, insanın tohumu hükmünde olup, haşirde o zerreler üzerine beden-i insanî neşv ü nema ile teşekkül eder. İ:58</item>
+        <item>Gözün nuru, nur-u imanla ışıklanırsa ve kavîleşirse, bütün kâinat gül ve reyhanlar ile müzeyyen bir Cennet şeklinde görünür. Gözün gözbebeği de, bal arısı gibi, bütün kâinat safhalarında menkuş gül ve çiçek gibi delillerinden, bürhanlarından alacağı ibret, fikret, ünsiyet gibi üsare ve şiralarından vicdanda o tatlı, iman balları yapar. İ:70-71</item>
+        <item>İnsanın kıymetini tayin eden, mahiyetidir. Mahiyetin değeri ise, himmeti nisbetindedir. Himmeti ise, hedef ittihaz ettiği maksadın derece-i ehemmiyetine bakar. İ:75</item>
+        <item>Cenab-ı Hakk’ın kudret, ilim, iradesi: şemsin ziyası gibi bütün mevcudata âmm ve şamil olup, hiçbir şeyle müvazene edilemez. Arş-ı A’zam’a taalluk ettikleri gibi, zerrelere de taalluk ederler. Cenab-ı Hak şems ve kameri halkettiği gibi, sineğin gözünü de o halk etmiştir. İ:75</item>
+        <item>Kur’an-ı Kerim’de takib edilen maksad-ı aslî: isbat-ı Sâni’, nübüvvet, haşir, adalet ile ibadet esaslarına cumhur-u nâsı irşad ve îsal etmektir. İ:118</item>
+        <item>Kur’an-ı Kerim Cenab-ı Hakk’ın vücud, vahdet ve azametine istidlal suretiyle kâinattan bahsetmiştir. Yoksa kâinatın bizzât keyfiyetini izah etmek için değildir. Çünkü Kur’an-ı Kerim coğrafya, kozmografya gibi kasden kâinatın keyfiyetinden mana-yı ismiyle bahseden bir fen, bir kitab değildir. İ:118</item>
+        <item>Kur’an’ın üslûb-u hakîmanesine yemin ederim ki: Nasara’yı ve emsalini havalandırarak dalalet derelerine atan, yalnız aklı azl ve bürhanı tard ve ruhbanı taklid etmektir. Mu: 39</item>
+        <item>Evet bu dar dünya, beşerin cevherinde mündemiç olan istidadat-ı gayr-ı mahdude ve ebed için mahlûk olan müyulat ve arzularının sünbüllenmesine müsaid değildir. Beslemek ve terbiye için başka âleme gönderilecektir. Mu: 42</item>
+        <item>İnsanın cevheri büyüktür, mahiyeti âliyedir, cinayeti dahi azîmdir. İntizamı da mühimdir, sair kâinata benzemez; intizamsız olamaz. Evet, ebede namzet olan büyüktür; mühmel kalamaz, abes olamaz. Fena-i mutlak ile mahkûm olamaz. Adem-i sırfa kaçamaz. Cehennem ağzını, Cennet dahi ağuş-u nazendaranesini açıp bekliyorlar. Mu: 42</item>
+        <item>Bir adam müstaid ve kabil olduğu şeyi terk ve ehil olmayan şeye teşebbüs etmek, şeriat-ı hilkate büyük bir itaatsizliktir. Zira şanı odur ki; istidadı san’atta intişar ve tedahül ve san’atın mekayisine ihtiram ve muhabbet ve nevamisine temessül ve imtisal.. Elhasıl, fena fi-s san’at olmaktır. Mu: 53</item>
+        <item>Malûmdur, bir şeyin mahiyetinin keyfiyetini bilmek başkadır, o şeyin vücudunu tasdik etmek yine başkadır. Bu iki noktayı temyiz etmek lâzımdır. Zira çok şeylerin asıl vücudu yakîn iken, vehim onda tasarruf ederek tâ imkândan imtina’ derecesine çıkarıyor. Mu: 63</item>
+        <item>İfrat gibi tefrit de muzırdır, belki daha ziyade. Fakat ifrat, tefrite sebeb olduğundan daha kabahatlidir. Mu: 22</item>
+        <item>Teşekki, kaderi tenkid ve teşekkür, kadere teslimdir. Şualar: 310</item>
+        <item>Kâinatı elinde tutamayan, zerreyi halk edemez. Lemeat: 700</item>
     </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

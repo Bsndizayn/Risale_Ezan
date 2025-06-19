@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_burgundy"
+    tools:context=".BildirimAyarlariFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vakitler İçin Ses Seçimi"
+            android:textColor="@color/light_gold"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <RelativeLayout
+            android:id="@+id/layoutImsak"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="İmsak"
+                android:textColor="@color/off_white"
+                android:textSize="18sp"
+                android:layout_centerVertical="true"/>
+            <TextView
+                android:id="@+id/textViewImsakSound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:textColor="@color/light_gold"
+                android:textSize="16sp"
+                tools:text="Ezan Sesi"/>
+        </RelativeLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
+
+        <RelativeLayout
+            android:id="@+id/layoutOgle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Öğle"
+                android:textColor="@color/off_white"
+                android:textSize="18sp"
+                android:layout_centerVertical="true"/>
+            <TextView
+                android:id="@+id/textViewOgleSound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:textColor="@color/light_gold"
+                android:textSize="16sp"
+                tools:text="Sessiz"/>
+        </RelativeLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
+
+        <RelativeLayout
+            android:id="@+id/layoutIkindi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="İkindi"
+                android:textColor="@color/off_white"
+                android:textSize="18sp"
+                android:layout_centerVertical="true"/>
+            <TextView
+                android:id="@+id/textViewIkindiSound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:textColor="@color/light_gold"
+                android:textSize="16sp"
+                tools:text="Kuş Sesi"/>
+        </RelativeLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
+
+        <RelativeLayout
+            android:id="@+id/layoutAksam"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Akşam"
+                android:textColor="@color/off_white"
+                android:textSize="18sp"
+                android:layout_centerVertical="true"/>
+            <TextView
+                android:id="@+id/textViewAksamSound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:textColor="@color/light_gold"
+                android:textSize="16sp"
+                tools:text="Ali Tel (Turkiye)"/>
+        </RelativeLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
+
+        <RelativeLayout
+            android:id="@+id/layoutYatsi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Yatsı"
+                android:textColor="@color/off_white"
+                android:textSize="18sp"
+                android:layout_centerVertical="true"/>
+            <TextView
+                android:id="@+id/textViewYatsiSound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:textColor="@color/light_gold"
+                android:textSize="16sp"
+                tools:text="Mishary Rashid Alafasy"/>
+        </RelativeLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,105 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/activity_background"
+    android:fillViewport="true"
     tools:context=".NamazFragment">
 
-    <LinearLayout
-        android:id="@+id/layout_header"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:layout_marginTop="80dp">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/textViewCityName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/off_white"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            tools:text="İzmir"/>
-
-        <TextView
-            android:id="@+id/textViewDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/off_white"
-            android:textSize="16sp"
-            tools:text="16 Haziran 2025 Pazartesi"/>
-    </LinearLayout>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/main_prayer_card"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/layout_header"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        app:cardBackgroundColor="@color/card_background"
-        app:cardCornerRadius="20dp">
-
-        <RelativeLayout
+        <LinearLayout
+            android:id="@+id/layout_header"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/textViewCityName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/light_gold"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                tools:text="İzmir"/>
+
+            <TextView
+                android:id="@+id/textViewDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/off_white"
+                android:textSize="14sp"
+                android:gravity="center"
+                tools:text="19 Haziran 2025\n23 Zilhicce 1446"/>
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/main_prayer_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/layout_header"
+            android:layout_marginHorizontal="16dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardElevation="0dp"
+            app:cardCornerRadius="20dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:id="@+id/prayer_info_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="invisible"
+                    tools:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:padding="4dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sıradaki Vakit"
+                            android:textColor="@color/light_gold"
+                            android:textSize="20sp" />
+                        <TextView
+                            android:id="@+id/textViewNextPrayerName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/off_white"
+                            android:textSize="44sp"
+                            android:textStyle="bold"
+                            tools:text="ÖĞLE" />
+                        <TextView
+                            android:id="@+id/textViewCountdown"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/off_white"
+                            android:textSize="30sp"
+                            tools:text="-01:23:45" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerViewPrayerTimes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"/>
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/homeProgressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_margin="48dp"
+                    android:visibility="visible"/>
+            </RelativeLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_vecize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/main_prayer_card"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="120dp"
+            android:layout_marginHorizontal="16dp"
+            app:cardBackgroundColor="#66000000"
+            app:cardCornerRadius="16dp">
 
             <LinearLayout
-                android:id="@+id/prayer_info_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="invisible"
-                tools:visibility="visible">
+                android:padding="12dp">
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/textViewVecize"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sıradaki Vakit"
-                        android:textColor="@color/light_gold"
-                        android:textSize="18sp" />
-                    <TextView
-                        android:id="@+id/textViewNextPrayerName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/off_white"
-                        android:textSize="36sp"
-                        android:textStyle="bold"
-                        tools:text="ÖĞLE" />
-                    <TextView
-                        android:id="@+id/textViewCountdown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/off_white"
-                        android:textSize="28sp"
-                        tools:text="-01:23:45" />
-                </LinearLayout>
+                    android:gravity="center"
+                    android:textColor="@color/off_white"
+                    android:textSize="15sp"
+                    android:textStyle="italic"
+                    android:text="Güzel gören, güzel düşünür. Güzel düşünen, hayatından lezzet alır."/>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerViewPrayerTimes"
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:id="@+id/imageViewShare"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"/>
+                    android:src="@android:drawable/ic_menu_share"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="8dp"
+                    app:tint="@color/light_gold" />
             </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/homeProgressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_margin="48dp"
-                android:visibility="visible"/>
-
-        </RelativeLayout>
-    </androidx.cardview.widget.CardView>
-
-</RelativeLayout>
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+</ScrollView>

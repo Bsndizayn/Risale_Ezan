@@ -1,27 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:paddingVertical="12dp"
-    android:paddingHorizontal="16dp">
-
+    android:paddingVertical="6dp"
+    android:paddingHorizontal="16dp"
+    android:gravity="center_vertical">
     <TextView
         android:id="@+id/textViewPrayerNameItem"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
         android:text="İMSAK"
         android:textColor="@color/off_white"
-        android:textSize="18sp"
+        android:textSize="17sp"
         android:textStyle="bold" />
-
     <TextView
         android:id="@+id/textViewPrayerTimeItem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
         android:text="03:39"
         android:textColor="@color/light_gold"
-        android:textSize="18sp"
+        android:textSize="17sp"
         android:textStyle="bold" />
-</LinearLayout>
+    <ImageView
+        android:id="@+id/imageViewNotificationToggle"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_toStartOf="@id/textViewPrayerTimeItem"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="16dp"
+        android:src="@android:drawable/ic_lock_idle_alarm"
+        android:padding="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"/>
+
+</RelativeLayout>
