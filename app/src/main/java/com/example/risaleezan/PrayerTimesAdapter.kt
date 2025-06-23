@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import java.util.Locale
 
 data class PrayerTime(val name: String, val time: String)
 
@@ -25,7 +26,6 @@ class PrayerTimesAdapter(private var prayerTimes: List<PrayerTime>) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        // SharedPreferences'i burada başlat
         prefs = parent.context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         val view = LayoutInflater.from(parent.context)
@@ -38,31 +38,23 @@ class PrayerTimesAdapter(private var prayerTimes: List<PrayerTime>) :
         holder.prayerName.text = prayer.name
         holder.prayerTime.text = prayer.time
 
-        // Vakit ismine göre ayar anahtarını belirle (örn: "alarm_Ogle_enabled")
         val preferenceKey = "alarm_${prayer.name.capitalizeAsCustom()}_enabled"
 
-        // Mevcut ayarı yükle ve ikonu ayarla
-        val isEnabled = prefs.getBoolean(preferenceKey, true) // Varsayılan: açık
+        val isEnabled = prefs.getBoolean(preferenceKey, true)
         updateIcon(holder.notificationIcon, isEnabled)
 
-        // İkona tıklama olayını ayarla
         holder.notificationIcon.setOnClickListener {
-            // Mevcut durumu tersine çevir
             val newState = !prefs.getBoolean(preferenceKey, true)
-            // Yeni durumu kaydet
             prefs.edit().putBoolean(preferenceKey, newState).apply()
-            // İkonu anında güncelle
             updateIcon(holder.notificationIcon, newState)
         }
     }
 
     private fun updateIcon(imageView: ImageView, isEnabled: Boolean) {
         if (isEnabled) {
-            // Android'in standart alarm ikonunu kullan
             imageView.setImageResource(android.R.drawable.ic_lock_idle_alarm)
             imageView.setColorFilter(ContextCompat.getColor(imageView.context, R.color.light_gold))
         } else {
-            // Android'in standart "bildirimi temizle" ikonunu (sessiz anlamında) kullan
             imageView.setImageResource(android.R.drawable.ic_notification_clear_all)
             imageView.setColorFilter(ContextCompat.getColor(imageView.context, R.color.off_white))
         }
@@ -76,12 +68,12 @@ class PrayerTimesAdapter(private var prayerTimes: List<PrayerTime>) :
         notifyDataSetChanged()
     }
 
-    // Türkçe karakterleri (İ,Ğ,Ş) doğru şekilde işlemek için yardımcı fonksiyon
+    // GÜNCELLENMİŞ FONKSİYON
     private fun String.capitalizeAsCustom(): String {
         return this.replace("İ", "I")
             .replace("Ğ", "G")
             .replace("Ş", "S")
-            .toLowerCase(java.util.Locale.ROOT)
-            .capitalize(java.util.Locale.ROOT)
+            .lowercase(Locale.getDefault())
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     }
 }

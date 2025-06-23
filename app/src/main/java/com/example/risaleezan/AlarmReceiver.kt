@@ -1,4 +1,4 @@
-package com.example.risaleezan // Paket adını kontrol et
+package com.example.risaleezan
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,8 +9,10 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import java.util.Locale
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -18,37 +20,36 @@ class AlarmReceiver : BroadcastReceiver() {
         val prayerName = intent.getStringExtra("PRAYER_NAME") ?: "Vakit Girdi"
         Log.d("AlarmReceiver", "$prayerName için alarm alındı.")
 
-        val prefs = context.getSharedPreferences("PrayerTimeSettings", Context.MODE_PRIVATE)
+        // Telefonu uyandırmak için WakeLock al
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "RisaleEzan::AlarmWakeLock")
+        wakeLock.acquire(10*60*1000L /* 10 dakika zaman aşımı */)
 
-        // 1. ADIM: Bu vaktin bildirimi ana ekrandan açılmış mı? KONTROL ET.
-        val enabledPreferenceKey = "alarm_${prayerName.capitalizeAsCustom()}_enabled"
-        val isEnabled = prefs.getBoolean(enabledPreferenceKey, true) // Varsayılan: açık
-
-        if (!isEnabled) {
-            // Bildirim kapalıysa hiçbir şey yapma.
-            Log.d("AlarmReceiver", "$prayerName için bildirim kapalı, işlem yapılmadı.")
-            return
+        try {
+            // Sesi Çal ve Bildirimi Göster
+            playSound(context, prayerName) {
+                // İşlem bittiğinde WakeLock'u serbest bırak
+                if (wakeLock.isHeld) {
+                    wakeLock.release()
+                    Log.d("AlarmReceiver", "WakeLock serbest bırakıldı.")
+                }
+            }
+            showNotification(context, prayerName)
+        } catch (e: Exception) {
+            if (wakeLock.isHeld) {
+                wakeLock.release()
+            }
         }
-
-        // 2. ADIM: Bildirim açıksa, hangi sesin çalacağını KONTROL ET.
-        playSound(context, prayerName)
-
-        // 3. ADIM: Bildirimi göster.
-        showNotification(context, prayerName)
     }
 
-    private fun playSound(context: Context, prayerName: String) {
+    private fun playSound(context: Context, prayerName: String, onCompletion: () -> Unit) {
         val prefs = context.getSharedPreferences("PrayerTimeSettings", Context.MODE_PRIVATE)
-
-        // Vakit ismine göre ses ayarı anahtarını oluştur
         val soundPreferenceKey = "sound_res_id_${prayerName.capitalizeAsCustom()}"
-
-        // O vakit için kaydedilmiş sesin ID'sini al. Varsayılan olarak Ezan.
         val soundResId = prefs.getInt(soundPreferenceKey, R.raw.ezan)
 
-        // Eğer ses "Sessiz" olarak ayarlandıysa (-1), hiçbir şey çalma.
         if (soundResId == -1) {
             Log.d("AlarmReceiver", "$prayerName için ses 'Sessiz' olarak ayarlı.")
+            onCompletion() // Sessizse bile tamamlandığını bildir
             return
         }
 
@@ -63,11 +64,18 @@ class AlarmReceiver : BroadcastReceiver() {
                 setAudioAttributes(audioAttributes)
                 prepare()
                 start()
-                setOnCompletionListener { mp -> mp.release() }
+                setOnCompletionListener { mp ->
+                    mp.release()
+                    onCompletion() // Ses bittiğinde tamamlandığını bildir
+                }
+                setOnErrorListener { _, _, _ ->
+                    onCompletion() // Hata olursa da tamamlandığını bildir
+                    true
+                }
             }
         } catch (e: Exception) {
             Log.e("AlarmReceiver", "MediaPlayer hatası", e)
-            e.printStackTrace()
+            onCompletion() // Hata olursa da tamamlandığını bildir
         }
     }
 
@@ -86,22 +94,20 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("Vakit Girdi")
-            .setContentText("$prayerName vakti")
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("$prayerName Vakti")
+            .setContentText("Hayırlı namazlar dileriz. ⏰")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
 
         notificationManager.notify(prayerName.hashCode(), builder.build())
     }
 
-    // Türkçe karakterleri (İ,Ğ,Ş) doğru şekilde işlemek için yardımcı fonksiyon
     private fun String.capitalizeAsCustom(): String {
         return this.replace("İ", "I")
             .replace("Ğ", "G")
             .replace("Ş", "S")
-            .toLowerCase(java.util.Locale.ROOT)
-            .capitalize(java.util.Locale.ROOT)
+            .lowercase(Locale.ROOT)
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
     }
 }
