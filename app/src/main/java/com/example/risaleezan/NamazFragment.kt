@@ -51,8 +51,6 @@ class NamazFragment : Fragment() {
     private var countDownTimer: CountDownTimer? = null
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
-    // lastFetchedCity değişkeni kaldırıldı.
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -64,15 +62,12 @@ class NamazFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initializeViews(view)
 
-        // ViewModel'i dinleme mantığı sadeleştirildi.
         sharedViewModel.selectedLocation.observe(viewLifecycleOwner) { location ->
             location?.let {
-                // Konum her değiştiğinde veriyi çek.
                 fetchPrayerTimes(it)
             }
         }
 
-        // Eğer başlangıçta bir şehir seçilmemişse, varsayılanı ayarla.
         if (sharedViewModel.selectedLocation.value == null) {
             sharedViewModel.selectLocation(SelectedLocation("İzmir", "Turkey"))
         }
@@ -133,7 +128,6 @@ class NamazFragment : Fragment() {
                     val latitude = meta.getDouble("latitude")
                     val longitude = meta.getDouble("longitude")
 
-                    // ViewModel'deki konumu koordinatlarla güncelle (Kıble için)
                     val updatedLocation = location.copy(latitude = latitude, longitude = longitude)
                     sharedViewModel.selectLocation(updatedLocation)
 
@@ -174,15 +168,7 @@ class NamazFragment : Fragment() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
-                AlertDialog.Builder(context)
-                    .setTitle("Alarm İzni Gerekli")
-                    .setMessage("Bildirimlerin zamanında gelmesi için lütfen 'Alarmlar ve hatırlatıcılar' iznini verin.")
-                    .setPositiveButton("Ayarlara Git") { _, _ ->
-                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                        startActivity(intent)
-                    }
-                    .setNegativeButton("İptal", null)
-                    .show()
+                Log.w(TAG, "SCHEDULE_EXACT_ALARM izni verilmemiş. Alarmlar kurulamıyor.")
                 return
             }
         }
@@ -228,7 +214,6 @@ class NamazFragment : Fragment() {
         }
     }
 
-    // Diğer fonksiyonlarınız aynı kalacak...
     private fun formatToTurkishDate(day: String, month: String, year: String): String {
         val monthMap = mapOf("January" to "Ocak", "February" to "Şubat", "March" to "Mart", "April" to "Nisan", "May" to "Mayıs", "June" to "Haziran", "July" to "Temmuz", "August" to "Ağustos", "September" to "Eylül", "October" to "Ekim", "November" to "Kasım", "December" to "Aralık")
         val turkishMonth = monthMap[month] ?: month

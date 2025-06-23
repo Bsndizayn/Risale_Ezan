@@ -6,6 +6,18 @@
     app:startDestination="@id/namazFragment">
 
     <fragment
+        android:id="@+id/permissionSetupFragment"
+        android:name="com.example.risaleezan.PermissionSetupFragment"
+        android:label="fragment_permission_setup"
+        tools:layout="@layout/fragment_permission_setup" >
+        <action
+            android:id="@+id/action_permissionSetupFragment_to_bildirimAyarlariFragment"
+            app:destination="@id/bildirimAyarlariFragment"
+            app:popUpTo="@id/permissionSetupFragment"
+            app:popUpToInclusive="true"/>
+    </fragment>
+
+    <fragment
         android:id="@+id/namazFragment"
         android:name="com.example.risaleezan.NamazFragment"
         android:label="fragment_namaz"
@@ -31,6 +43,9 @@
         <action
             android:id="@+id/action_ayarlarFragment_to_bildirimAyarlariFragment"
             app:destination="@id/bildirimAyarlariFragment" />
+        <action
+            android:id="@+id/action_ayarlarFragment_to_permissionSetupFragment"
+            app:destination="@id/permissionSetupFragment" />
     </fragment>
 
     <fragment

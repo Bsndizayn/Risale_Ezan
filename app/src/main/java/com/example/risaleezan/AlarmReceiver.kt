@@ -2,12 +2,11 @@ package com.example.risaleezan
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
-import android.media.MediaPlayer
-import android.net.Uri
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.PowerManager
 import android.util.Log
@@ -20,15 +19,12 @@ class AlarmReceiver : BroadcastReceiver() {
         val prayerName = intent.getStringExtra("PRAYER_NAME") ?: "Vakit Girdi"
         Log.d("AlarmReceiver", "$prayerName için alarm alındı.")
 
-        // Telefonu uyandırmak için WakeLock al
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "RisaleEzan::AlarmWakeLock")
-        wakeLock.acquire(10*60*1000L /* 10 dakika zaman aşımı */)
+        wakeLock.acquire(10 * 60 * 1000L /* 10 dakika zaman aşımı */)
 
         try {
-            // Sesi Çal ve Bildirimi Göster
             playSound(context, prayerName) {
-                // İşlem bittiğinde WakeLock'u serbest bırak
                 if (wakeLock.isHeld) {
                     wakeLock.release()
                     Log.d("AlarmReceiver", "WakeLock serbest bırakıldı.")
@@ -44,39 +40,12 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private fun playSound(context: Context, prayerName: String, onCompletion: () -> Unit) {
         val prefs = context.getSharedPreferences("PrayerTimeSettings", Context.MODE_PRIVATE)
+        // İsimdeki Türkçe karakterleri API'den gelen isme benzetiyoruz (Imsak, Ogle vb.)
         val soundPreferenceKey = "sound_res_id_${prayerName.capitalizeAsCustom()}"
         val soundResId = prefs.getInt(soundPreferenceKey, R.raw.ezan)
 
-        if (soundResId == -1) {
-            Log.d("AlarmReceiver", "$prayerName için ses 'Sessiz' olarak ayarlı.")
-            onCompletion() // Sessizse bile tamamlandığını bildir
-            return
-        }
-
-        try {
-            val soundUri = Uri.parse("android.resource://${context.packageName}/$soundResId")
-            val mediaPlayer = MediaPlayer().apply {
-                setDataSource(context, soundUri)
-                val audioAttributes = AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .build()
-                setAudioAttributes(audioAttributes)
-                prepare()
-                start()
-                setOnCompletionListener { mp ->
-                    mp.release()
-                    onCompletion() // Ses bittiğinde tamamlandığını bildir
-                }
-                setOnErrorListener { _, _, _ ->
-                    onCompletion() // Hata olursa da tamamlandığını bildir
-                    true
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("AlarmReceiver", "MediaPlayer hatası", e)
-            onCompletion() // Hata olursa da tamamlandığını bildir
-        }
+        // Yeni merkezi ses yöneticimizi kullanıyoruz
+        SoundPlayerManager.play(context, soundResId, onCompletion)
     }
 
     private fun showNotification(context: Context, prayerName: String) {
@@ -93,12 +62,29 @@ class AlarmReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        // 1. Sustur butonu için Intent ve PendingIntent oluştur
+        val muteIntent = Intent(context, MuteActionReceiver::class.java).apply {
+            action = "ACTION_MUTE_SOUND"
+        }
+        val mutePendingIntent = PendingIntent.getBroadcast(
+            context,
+            0,
+            muteIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // 2. Bildirimi yeni özelliklerle oluştur
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
+            // YENİ: Büyük ikonu (resmi) ekle
+            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.ic_risale))
             .setContentTitle("$prayerName Vakti")
-            .setContentText("Hayırlı namazlar dileriz. ⏰")
+            // YENİ: Bildirim metnini değiştir (bu metni istediğiniz gibi güncelleyebilirsiniz)
+            .setContentText("Vakit girdi. Allah kabul etsin.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            // YENİ: "Sustur" butonunu (Action) ekle
+            .addAction(R.drawable.ic_risale, "Sustur", mutePendingIntent)
 
         notificationManager.notify(prayerName.hashCode(), builder.build())
     }
