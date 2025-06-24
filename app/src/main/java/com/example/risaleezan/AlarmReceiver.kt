@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.PowerManager
 import android.util.Log
@@ -40,11 +39,9 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private fun playSound(context: Context, prayerName: String, onCompletion: () -> Unit) {
         val prefs = context.getSharedPreferences("PrayerTimeSettings", Context.MODE_PRIVATE)
-        // İsimdeki Türkçe karakterleri API'den gelen isme benzetiyoruz (Imsak, Ogle vb.)
         val soundPreferenceKey = "sound_res_id_${prayerName.capitalizeAsCustom()}"
         val soundResId = prefs.getInt(soundPreferenceKey, R.raw.ezan)
 
-        // Yeni merkezi ses yöneticimizi kullanıyoruz
         SoundPlayerManager.play(context, soundResId, onCompletion)
     }
 
@@ -62,29 +59,47 @@ class AlarmReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // 1. Sustur butonu için Intent ve PendingIntent oluştur
+        // --- Sustur Butonu için ---
         val muteIntent = Intent(context, MuteActionReceiver::class.java).apply {
             action = "ACTION_MUTE_SOUND"
         }
         val mutePendingIntent = PendingIntent.getBroadcast(
             context,
-            0,
+            prayerName.hashCode(), // Her bildirim için farklı bir request code
             muteIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // 2. Bildirimi yeni özelliklerle oluştur
+        // --- Rastgele Vecize Seçimi ---
+        val quotes = context.resources.getStringArray(R.array.notification_quotes)
+        val randomQuote = quotes.random()
+
+        // --- YENİ: Paylaş Butonu için ---
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, randomQuote)
+        }
+        val chooser = Intent.createChooser(shareIntent, "Vecizeyi Paylaş")
+        val sharePendingIntent = PendingIntent.getActivity(
+            context,
+            randomQuote.hashCode(), // Her vecize için farklı bir request code
+            chooser,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // --- Bildirimi Oluşturma ---
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
-            // YENİ: Büyük ikonu (resmi) ekle
-            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.ic_risale))
             .setContentTitle("$prayerName Vakti")
-            // YENİ: Bildirim metnini değiştir (bu metni istediğiniz gibi güncelleyebilirsiniz)
-            .setContentText("Vakit girdi. Allah kabul etsin.")
+            .setContentText(randomQuote)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(randomQuote))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            // YENİ: "Sustur" butonunu (Action) ekle
-            .addAction(R.drawable.ic_risale, "Sustur", mutePendingIntent)
+            // YENİ: Paylaş butonunu ekle
+            .addAction(android.R.drawable.ic_menu_share, "Vecizeyi Paylaş", sharePendingIntent)
+            // Mevcut Sustur butonunu ekle
+            .addAction(android.R.drawable.ic_notification_clear_all, "Sustur", mutePendingIntent)
+
 
         notificationManager.notify(prayerName.hashCode(), builder.build())
     }

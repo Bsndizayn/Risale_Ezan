@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="dark_burgundy">#5D001E</color>
+    <color name="dark_burgundy">#5a0908</color>
+
     <color name="light_gold">#E3AF4D</color>
     <color name="off_white">#F4F4F4</color>
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="card_background">#A65D001E</color>
+
+    <color name="card_background">#A65a0908</color>
 </resources>
