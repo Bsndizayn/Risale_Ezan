@@ -6,18 +6,6 @@
     app:startDestination="@id/namazFragment">
 
     <fragment
-        android:id="@+id/permissionSetupFragment"
-        android:name="com.example.risaleezan.PermissionSetupFragment"
-        android:label="fragment_permission_setup"
-        tools:layout="@layout/fragment_permission_setup" >
-        <action
-            android:id="@+id/action_permissionSetupFragment_to_bildirimAyarlariFragment"
-            app:destination="@id/bildirimAyarlariFragment"
-            app:popUpTo="@id/permissionSetupFragment"
-            app:popUpToInclusive="true"/>
-    </fragment>
-
-    <fragment
         android:id="@+id/namazFragment"
         android:name="com.example.risaleezan.NamazFragment"
         android:label="fragment_namaz"
@@ -47,7 +35,6 @@
             android:id="@+id/action_ayarlarFragment_to_permissionSetupFragment"
             app:destination="@id/permissionSetupFragment" />
     </fragment>
-
     <fragment
         android:id="@+id/citiesFragment"
         android:name="com.example.risaleezan.CitiesFragment"
@@ -63,14 +50,26 @@
         android:label="fragment_city_list"
         tools:layout="@layout/fragment_city_list">
         <argument
+            android:name="countryCode"
+            app:argType="string" />
+        <argument
             android:name="countryName"
             app:argType="string" />
     </fragment>
-
+    <fragment
+        android:id="@+id/permissionSetupFragment"
+        android:name="com.example.risaleezan.PermissionSetupFragment"
+        android:label="PermissionSetupFragment"
+        tools:layout="@layout/fragment_permission_setup" >
+        <action
+            android:id="@+id/action_permissionSetupFragment_to_bildirimAyarlariFragment"
+            app:destination="@id/bildirimAyarlariFragment"
+            app:popUpTo="@id/permissionSetupFragment"
+            app:popUpToInclusive="true"/>
+    </fragment>
     <fragment
         android:id="@+id/bildirimAyarlariFragment"
         android:name="com.example.risaleezan.BildirimAyarlariFragment"
         android:label="fragment_bildirim_ayarlari"
         tools:layout="@layout/fragment_bildirim_ayarlari" />
-
 </navigation>

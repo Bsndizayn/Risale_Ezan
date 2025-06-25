@@ -1,4 +1,4 @@
-package com.example.risaleezan // Paket adını kontrol et
+package com.example.risaleezan
 
 import android.os.Bundle
 import android.text.Editable
@@ -12,14 +12,12 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.Request
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
-import org.json.JSONObject
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 class CityListFragment : Fragment() {
@@ -28,6 +26,7 @@ class CityListFragment : Fragment() {
     private val args: CityListFragmentArgs by navArgs()
     private lateinit var cityListAdapter: CityListAdapter
     private var originalItemList: List<ListItem> = listOf()
+    private var allCitiesForCountry: List<CityInfo> = listOf()
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
@@ -43,80 +42,64 @@ class CityListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d(TAG, "onViewCreated çağrıldı. Gelen ülke: ${args.countryName}")
+        Log.d(TAG, "onViewCreated çağrıldı. Gelen ülke kodu: ${args.countryCode}")
 
         recyclerView = view.findViewById(R.id.recyclerViewCitiesList)
         progressBar = view.findViewById(R.id.progressBar)
         editTextSearch = view.findViewById(R.id.editTextSearchCities)
 
         setupRecyclerView()
-        setupSearch() // Artık bu fonksiyon aşağıda tanımlı olduğu için hata vermeyecek
-        fetchCitiesForCountry(args.countryName)
+        setupSearch()
+        loadCitiesFromAsset()
     }
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        cityListAdapter = CityListAdapter(emptyList()) { selectedCity ->
-            sharedViewModel.selectLocation(SelectedLocation(selectedCity, args.countryName))
-            Toast.makeText(requireContext(), "$selectedCity, ${args.countryName} seçildi", Toast.LENGTH_SHORT).show()
-
-            // --- DÜZELTİLEN SATIR ---
-            // "Namaz" ekranına kadar aradaki tüm ekranları kapatarak geri dön.
-            findNavController().popBackStack(R.id.namazFragment, false)
+        cityListAdapter = CityListAdapter(emptyList()) { selectedCityName ->
+            // Seçilen şehrin tüm bilgilerini bul
+            val selectedCityInfo = allCitiesForCountry.find { it.name == selectedCityName }
+            if (selectedCityInfo != null) {
+                // ViewModel'i koordinatlarla birlikte güncelle
+                sharedViewModel.selectLocation(
+                    SelectedLocation(
+                        city = selectedCityInfo.name,
+                        country = args.countryName, // Türkçe ismi kullanmaya devam et
+                        latitude = selectedCityInfo.latitude,
+                        longitude = selectedCityInfo.longitude
+                    )
+                )
+                Toast.makeText(requireContext(), "${selectedCityInfo.name} seçildi", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack(R.id.namazFragment, false)
+            } else {
+                Toast.makeText(requireContext(), "$selectedCityName için detay bulunamadı.", Toast.LENGTH_SHORT).show()
+            }
         }
         recyclerView.adapter = cityListAdapter
     }
 
-    private fun fetchCitiesForCountry(countryNameInTurkish: String) {
-        cityListAdapter.filterList(emptyList())
+    private fun loadCitiesFromAsset() {
         progressBar.visibility = View.VISIBLE
         recyclerView.visibility = View.GONE
-        editTextSearch.setText("")
 
-        val apiCountryName = when (countryNameInTurkish) {
-            "Türkiye" -> "Turkey"
-            "Almanya" -> "Germany"
-            "Fransa" -> "France"
-            "İngiltere" -> "United Kingdom"
-            "Suudi Arabistan" -> "Saudi Arabia"
-            else -> countryNameInTurkish
-        }
-        Log.d(TAG, "API'ye gönderilen ülke: '$apiCountryName'")
+        lifecycleScope.launch {
+            // Veri sağlayıcısını yükle (eğer yüklenmediyse)
+            CityDataProvider.loadCities(requireContext())
+            // Ülkeye göre şehirleri al
+            allCitiesForCountry = CityDataProvider.getCitiesByCountry(args.countryCode)
 
-        val url = "https://countriesnow.space/api/v0.1/countries/cities"
-        val requestBody = JSONObject().apply {
-            put("country", apiCountryName)
-        }
-        val queue = Volley.newRequestQueue(requireContext())
-
-        val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, url, requestBody,
-            { response ->
-                if (response.getBoolean("error")) {
-                    Toast.makeText(requireContext(), response.getString("msg"), Toast.LENGTH_SHORT).show()
-                    progressBar.visibility = View.GONE
-                    return@JsonObjectRequest
-                }
-
-                val cities = response.getJSONArray("data")
-                val cityList = mutableListOf<String>()
-                for (i in 0 until cities.length()) {
-                    cityList.add(cities.getString(i))
-                }
-
-                originalItemList = createGroupedList(cityList.sorted())
+            if (allCitiesForCountry.isNotEmpty()) {
+                val cityNames = allCitiesForCountry.map { it.name }.distinct().sorted()
+                originalItemList = createGroupedList(cityNames)
                 cityListAdapter.filterList(originalItemList)
-
                 progressBar.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
-            },
-            { error ->
-                Toast.makeText(requireContext(), "$countryNameInTurkish için şehirler bulunamadı.", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "${args.countryName} için şehir bulunamadı.", Toast.LENGTH_SHORT).show()
                 progressBar.visibility = View.GONE
             }
-        )
-        jsonObjectRequest.setShouldCache(false)
-        queue.add(jsonObjectRequest)
+        }
     }
+
 
     private fun createGroupedList(cities: List<String>): List<ListItem> {
         val groupedList = mutableListOf<ListItem>()
@@ -133,7 +116,6 @@ class CityListFragment : Fragment() {
         return groupedList
     }
 
-    // --- EKSİK OLAN FONKSİYON 1 ---
     private fun setupSearch() {
         editTextSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -144,7 +126,6 @@ class CityListFragment : Fragment() {
         })
     }
 
-    // --- EKSİK OLAN FONKSİYON 2 ---
     private fun filter(text: String?) {
         val filteredItems = mutableListOf<ListItem>()
         if (text.isNullOrEmpty()) {
