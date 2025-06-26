@@ -1,28 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
     android:background="@color/dark_burgundy"
+    android:padding="8dp"
     tools:context=".AyarlarFragment">
 
-    <Button
-        android:id="@+id/buttonSelectCity"
+    <TextView
+        android:id="@+id/textViewTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Şehir Değiştir"
-        android:backgroundTint="@color/card_background"
-        android:textColor="@color/white"/>
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="Ayarlar"
+        android:textColor="@color/light_gold"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/buttonNotificationSettings"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardCitySettings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Bildirim Sesleri Ayarları"
-        android:backgroundTint="@color/card_background"
-        android:textColor="@color/white"/>
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="#4DE3AF4D"
+        app:strokeColor="@color/light_gold"
+        app:strokeWidth="1dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Şehir Değiştir"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Namaz vakitlerinin doğru hesaplanması için MUTLAKA şehir seçmelisiniz."
+                android:textColor="@color/off_white"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardNotificationSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="#4DE3AF4D"
+        app:strokeColor="@color/light_gold"
+        app:strokeWidth="1dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bildirim Ayarlarını Açınız (ÖNEMLİ)"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Vakti geldiğinde EZAN okunması için gerekli izinleri vermelisiniz.\n\n(Eğer izinleri verdiyseniz Ezan okuyacak kişiyi seçme ekranı açılacaktır)"
+                android:textColor="@color/off_white"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>

@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -29,7 +30,9 @@ class PermissionSetupFragment : Fragment() {
     private lateinit var buttonComplete: Button
 
     private val notificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { updateUi() }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            updateUi()
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,6 +43,7 @@ class PermissionSetupFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         switchNotification = view.findViewById(R.id.switchNotification)
         switchAlarms = view.findViewById(R.id.switchAlarms)
         switchBattery = view.findViewById(R.id.switchBattery)
@@ -76,36 +80,74 @@ class PermissionSetupFragment : Fragment() {
             }
         }
 
-        switchAutostart.setOnClickListener { openAutostartSettings() }
+        switchAutostart.setOnClickListener {
+            openAutostartSettings()
+            Toast.makeText(requireContext(), "Otomatik başlatmayı açtıysanız kutucuğu işaretleyin.", Toast.LENGTH_LONG).show()
+        }
 
         buttonComplete.setOnClickListener {
-            findNavController().navigate(R.id.action_permissionSetupFragment_to_bildirimAyarlariFragment)
+            if (checkAllPermissionsGranted()) {
+                findNavController().navigate(R.id.action_permissionSetupFragment_to_bildirimAyarlariFragment)
+            } else {
+                Toast.makeText(requireContext(), "Lütfen tüm izinleri verdikten sonra tekrar deneyin.", Toast.LENGTH_SHORT).show()
+                updateUi()
+            }
         }
     }
 
     private fun updateUi() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            switchNotification.isChecked = ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-        } else {
-            switchNotification.isChecked = true
-            switchNotification.isEnabled = false
-        }
+        val context = requireContext()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            switchAlarms.isChecked = alarmManager.canScheduleExactAlarms()
-        } else {
-            switchAlarms.isChecked = true
-            switchAlarms.isEnabled = false
-        }
+        // Bildirim izni
+        val isNotificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else true
+        switchNotification.isChecked = isNotificationGranted
+        switchNotification.isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val powerManager = requireContext().getSystemService(Context.POWER_SERVICE) as PowerManager
-            switchBattery.isChecked = powerManager.isIgnoringBatteryOptimizations(requireContext().packageName)
-        } else {
-            switchBattery.isChecked = true
-            switchBattery.isEnabled = false
-        }
+        // Alarm izni
+        val isAlarmGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.canScheduleExactAlarms()
+        } else true
+        switchAlarms.isChecked = isAlarmGranted
+        switchAlarms.isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+        // Batarya optimizasyonu
+        val isBatteryOk = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            powerManager.isIgnoringBatteryOptimizations(context.packageName)
+        } else true
+        switchBattery.isChecked = isBatteryOk
+        switchBattery.isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+
+        // Autostart: elle kontrol
+        // switchAutostart elle işaretlenecek
+
+        // Tüm izinler verilmişse butonu aktif et
+        buttonComplete.isEnabled = checkAllPermissionsGranted()
+    }
+
+    private fun checkAllPermissionsGranted(): Boolean {
+        val context = requireContext()
+
+        val isNotificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else true
+
+        val isAlarmGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.canScheduleExactAlarms()
+        } else true
+
+        val isBatteryOptimizationIgnored = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            powerManager.isIgnoringBatteryOptimizations(context.packageName)
+        } else true
+
+        val isAutostartAccepted = switchAutostart.isChecked // elle işaretlenir
+
+        return isNotificationGranted && isAlarmGranted && isBatteryOptimizationIgnored && isAutostartAccepted
     }
 
     private fun openAutostartSettings() {
