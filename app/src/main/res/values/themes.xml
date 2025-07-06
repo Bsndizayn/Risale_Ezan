@@ -15,10 +15,50 @@
         <item name="android:textSize">14sp</item>
     </style>
 
-    <style name="CustomBottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
-        <item name="itemIconSize">34dp</item>
-        <item name="itemTextAppearanceActive">@style/BottomNavTextStyle</item>
-        <item name="itemTextAppearanceInactive">@style/BottomNavTextStyle</item>
+    <style name="CustomBottomNavigationView">
+        <item name="android:background">@color/transparent</item>
+        <item name="itemIconTint">@color/bottom_nav_selector</item>
+        <item name="itemTextColor">@color/bottom_nav_selector</item>
+        <item name="itemBackground">@android:color/transparent</item>
+        <item name="itemActiveIndicatorStyle">@null</item>
+        <item name="labelVisibilityMode">selected</item>
+        <item name="itemPaddingTop">4dp</item>
+        <item name="itemPaddingBottom">4dp</item>
+        <item name="itemIconSize">22dp</item>
+        <item name="itemTextAppearanceActive">@style/BottomNavTextActive</item>
+        <item name="itemTextAppearanceInactive">@style/BottomNavTextInactive</item>
     </style>
+
+    <style name="BottomNavTextActive" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="BottomNavTextInactive" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+
+    <!-- Text Styles -->
+    <style name="TextAppearance.RisaleEzan.Headline" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.RisaleEzan.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.RisaleEzan.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="Widget.RisaleEzan.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">2dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">?attr/colorOutlineVariant</item>
+    </style>
+
 
 </resources>

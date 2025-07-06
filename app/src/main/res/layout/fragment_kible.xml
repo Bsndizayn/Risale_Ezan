@@ -1,34 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_burgundy"
+    android:background="@color/transparent"
     tools:context=".KibleFragment">
 
-    <TextView
-        android:id="@+id/textViewQiblaInfo"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/topInfoLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="48dp"
-        android:text="Pusulayı yatay tutun"
-        android:textColor="@color/light_gold"
-        android:textSize="18sp" />
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <ImageView
-        android:id="@+id/imageViewCompass"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_centerInParent="true"
-        android:src="@drawable/compass_background" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="KIBLE PUSULA"
+            android:textAppearance="@style/TextAppearance.RisaleEzan.Headline"
+            android:textSize="24sp" />
 
-    <ImageView
-        android:id="@+id/imageViewQiblaArrow"
-        android:layout_width="100dp"
-        android:layout_height="300dp"
+        <TextView
+            android:id="@+id/textViewQiblaInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:text="Pusulayı yatay tutun"
+            android:textAppearance="@style/TextAppearance.RisaleEzan.Body"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/textViewQiblaAccuracy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Doğruluk: Bekleniyor..."
+            android:textAppearance="@style/TextAppearance.RisaleEzan.Body"
+            android:textSize="14sp"
+            android:visibility="invisible" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/compassLayout"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        android:layout_below="@id/topInfoLayout"
         android:layout_centerInParent="true"
-        android:src="@drawable/qibla_arrow"
-        android:scaleType="fitCenter"/>
+        android:layout_marginTop="32dp">
+
+        <ImageView
+            android:id="@+id/imageViewCompass"
+            android:layout_width="320dp"
+            android:layout_height="320dp"
+            android:layout_centerInParent="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/compass_background" />
+
+        <ImageView
+            android:id="@+id/imageViewQiblaArrow"
+            android:layout_width="120dp"
+            android:layout_height="320dp"
+            android:layout_centerInParent="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/qibla_arrow"
+            android:visibility="invisible" />
+
+        <View
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/compass_center"
+            android:elevation="4dp" />
+
+    </RelativeLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.RisaleEzan.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/compassLayout"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="24dp"
+        app:cardBackgroundColor="@color/transparent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="Telefonu yatay tutun"
+                android:textColor="@color/white"
+                android:textAppearance="@style/TextAppearance.RisaleEzan.Body"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:textColor="@color/white"
+                android:text="Yeşil ok Kıble yönünü gösterir"
+                android:textAppearance="@style/TextAppearance.RisaleEzan.Body"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:text="Doğruluk için telefonu 8 şeklinde hareket ettirin"
+                android:textAppearance="@style/TextAppearance.RisaleEzan.Body"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </RelativeLayout>

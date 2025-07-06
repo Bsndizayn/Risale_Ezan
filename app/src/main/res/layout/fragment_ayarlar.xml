@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/transparent"
     android:orientation="vertical"
-    android:background="@color/dark_burgundy"
     android:padding="8dp"
     tools:context=".AyarlarFragment">
 
@@ -26,12 +26,12 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
         android:layout_marginBottom="12dp"
-        app:cardCornerRadius="12dp"
-        app:cardBackgroundColor="#4DE3AF4D"
-        app:strokeColor="@color/light_gold"
-        app:strokeWidth="1dp"
         android:clickable="true"
-        android:focusable="true">
+        android:focusable="true"
+        app:cardBackgroundColor="#4DE3AF4D"
+        app:cardCornerRadius="12dp"
+        app:strokeColor="@color/light_gold"
+        app:strokeWidth="1dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -64,12 +64,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
-        app:cardCornerRadius="12dp"
-        app:cardBackgroundColor="#4DE3AF4D"
-        app:strokeColor="@color/light_gold"
-        app:strokeWidth="1dp"
         android:clickable="true"
-        android:focusable="true">
+        android:focusable="true"
+        app:cardBackgroundColor="#4DE3AF4D"
+        app:cardCornerRadius="12dp"
+        app:strokeColor="@color/light_gold"
+        app:strokeWidth="1dp">
 
         <LinearLayout
             android:layout_width="match_parent"

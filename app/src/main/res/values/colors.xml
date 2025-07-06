@@ -9,4 +9,10 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="card_background">#A65a0908</color>
+
+    <color name="transparent">#00000000</color>
+    <color name="success_green">#4CAF50</color>
+    <color name="error_red">#F44336</color>
+
+
 </resources>

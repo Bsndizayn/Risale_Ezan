@@ -3,17 +3,21 @@
     <item
         android:id="@+id/namazFragment"
         android:icon="@drawable/ic_namaz"
-        android:title="Namaz" />
+        android:title="Namaz"
+        android:enabled="true" />
     <item
         android:id="@+id/kibleFragment"
         android:icon="@drawable/ic_kible"
-        android:title="Kıble" />
+        android:title="Kıble"
+        android:enabled="true" />
     <item
         android:id="@+id/risaleFragment"
         android:icon="@drawable/ic_risale"
-        android:title="Risale" />
+        android:title="Risale"
+        android:enabled="true" />
     <item
         android:id="@+id/ayarlarFragment"
         android:icon="@drawable/ic_ayarlar"
-        android:title="Ayarlar" />
+        android:title="Ayarlar"
+        android:enabled="true" />
 </menu>
