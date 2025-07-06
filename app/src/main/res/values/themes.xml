@@ -16,10 +16,11 @@
     </style>
 
     <style name="CustomBottomNavigationView">
-        <item name="android:background">@color/transparent</item>
+        <item name="android:background">@drawable/custom_bottom_nav_background</item>
         <item name="itemIconTint">@color/bottom_nav_selector</item>
         <item name="itemTextColor">@color/bottom_nav_selector</item>
         <item name="itemBackground">@android:color/transparent</item>
+        <item name="cornerRadius">16dp</item>
         <item name="itemActiveIndicatorStyle">@null</item>
         <item name="itemPaddingTop">2dp</item>
         <item name="itemPaddingBottom">2dp</item>

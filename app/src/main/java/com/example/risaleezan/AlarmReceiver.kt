@@ -19,7 +19,8 @@ class AlarmReceiver : BroadcastReceiver() {
         Log.d("AlarmReceiver", "$prayerName için alarm alındı.")
 
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-        val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "RisaleEzan::AlarmWakeLock")
+        val wakeLock =
+            powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "RisaleEzan::AlarmWakeLock")
         wakeLock.acquire(10 * 60 * 1000L /* 10 dakika zaman aşımı */)
 
         try {
@@ -46,12 +47,17 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun showNotification(context: Context, prayerName: String) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "prayer_time_channel"
         val channelName = "Namaz Vakti Bildirimleri"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
                 description = "Namaz vakitleri girdiğinde bildirim gönderir."
                 enableVibration(true)
                 vibrationPattern = longArrayOf(100, 200, 300, 400, 500)
@@ -98,7 +104,11 @@ class AlarmReceiver : BroadcastReceiver() {
             // YENİ: Paylaş butonunu ekle
             .addAction(android.R.drawable.ic_menu_share, "Vecizeyi Paylaş", sharePendingIntent)
             // Mevcut Sustur butonunu ekle
-            .addAction(android.R.drawable.ic_notification_clear_all, "Sustur", mutePendingIntent)
+            .addAction(
+                android.R.drawable.ic_notification_clear_all,
+                "Sessize Al",
+                mutePendingIntent
+            )
 
 
         notificationManager.notify(prayerName.hashCode(), builder.build())
