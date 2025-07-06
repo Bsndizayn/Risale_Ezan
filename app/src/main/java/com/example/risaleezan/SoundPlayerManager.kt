@@ -7,12 +7,10 @@ import android.net.Uri
 import android.util.Log
 
 object SoundPlayerManager {
-
     private var mediaPlayer: MediaPlayer? = null
 
     fun play(context: Context, soundResId: Int, onCompletion: () -> Unit) {
-        // Eğer başka bir ses çalıyorsa önce onu durdur
-        stop()
+        stop() // Mevcut sesi durdur
 
         if (soundResId == -1) {
             Log.d("SoundPlayerManager", "Ses 'Sessiz' olarak ayarlı, çalınmayacak.")
@@ -21,41 +19,55 @@ object SoundPlayerManager {
         }
 
         try {
-            val soundUri = Uri.parse("android.resource://${context.packageName}/$soundResId")
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(context, soundUri)
-                val audioAttributes = AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .build()
-                setAudioAttributes(audioAttributes)
-                prepare()
-                start()
-                setOnCompletionListener {
-                    Log.d("SoundPlayerManager", "Ses çalması bitti.")
-                    stop() // İş bitince kaynakları temizle
-                    onCompletion()
-                }
-                setOnErrorListener { _, _, _ ->
-                    Log.e("SoundPlayerManager", "MediaPlayer hata verdi.")
-                    stop() // Hata durumunda da kaynakları temizle
-                    onCompletion()
-                    true
-                }
+            // Raw resource'dan doğrudan MediaPlayer oluştur
+            mediaPlayer = MediaPlayer.create(context, soundResId)
+
+            if (mediaPlayer == null) {
+                Log.e("SoundPlayerManager", "MediaPlayer oluşturulamadı: $soundResId")
+                onCompletion()
+                return
             }
+
+            val audioAttributes = AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .build()
+            mediaPlayer?.setAudioAttributes(audioAttributes)
+
+            mediaPlayer?.setOnCompletionListener {
+                Log.d("SoundPlayerManager", "Ses çalması bitti.")
+                stop()
+                onCompletion()
+            }
+
+            mediaPlayer?.setOnErrorListener { _, what, extra ->
+                Log.e("SoundPlayerManager", "MediaPlayer hata: what=$what, extra=$extra")
+                stop()
+                onCompletion()
+                true
+            }
+
+            mediaPlayer?.start()
+            Log.d("SoundPlayerManager", "Ses çalmaya başladı: $soundResId")
+
         } catch (e: Exception) {
             Log.e("SoundPlayerManager", "MediaPlayer başlatılamadı.", e)
+            stop()
             onCompletion()
         }
     }
 
     fun stop() {
         mediaPlayer?.let {
-            if (it.isPlaying) {
-                it.stop()
+            try {
+                if (it.isPlaying) {
+                    it.stop()
+                }
+                it.release()
+                Log.d("SoundPlayerManager", "MediaPlayer durduruldu ve kaynaklar serbest bırakıldı.")
+            } catch (e: Exception) {
+                Log.e("SoundPlayerManager", "MediaPlayer durdurulurken hata.", e)
             }
-            it.release()
-            Log.d("SoundPlayerManager", "MediaPlayer durduruldu ve kaynaklar serbest bırakıldı.")
         }
         mediaPlayer = null
     }

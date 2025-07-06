@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="Theme.RisaleEzan" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/light_gold</item>
@@ -21,24 +21,20 @@
         <item name="itemTextColor">@color/bottom_nav_selector</item>
         <item name="itemBackground">@android:color/transparent</item>
         <item name="itemActiveIndicatorStyle">@null</item>
-        <item name="labelVisibilityMode">selected</item>
-        <item name="itemPaddingTop">4dp</item>
-        <item name="itemPaddingBottom">4dp</item>
-        <item name="itemIconSize">22dp</item>
-        <item name="itemTextAppearanceActive">@style/BottomNavTextActive</item>
-        <item name="itemTextAppearanceInactive">@style/BottomNavTextInactive</item>
+        <item name="itemPaddingTop">2dp</item>
+        <item name="itemPaddingBottom">2dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="itemTextAppearanceActive">@style/BottomNavTextCompact</item>
+        <item name="itemTextAppearanceInactive">@style/BottomNavTextCompact</item>
     </style>
 
-    <style name="BottomNavTextActive" parent="TextAppearance.AppCompat.Caption">
-        <item name="android:textSize">12sp</item>
-    </style>
-
-    <style name="BottomNavTextInactive" parent="TextAppearance.AppCompat.Caption">
-        <item name="android:textSize">12sp</item>
+    <style name="BottomNavTextCompact" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">10sp</item>
+        <item name="android:layout_marginTop">1dp</item>
     </style>
 
 
-    <!-- Text Styles -->
     <style name="TextAppearance.RisaleEzan.Headline" parent="TextAppearance.Material3.HeadlineSmall">
         <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:fontFamily">sans-serif-medium</item>
