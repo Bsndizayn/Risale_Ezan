@@ -23,18 +23,18 @@ class BildirimAyarlariFragment : Fragment() {
         "Sessiz" to -1,
         "Bip" to R.raw.bip,
         "Kuş Sesi" to R.raw.kus_sesi,
-        "Cami Ezanı" to R.raw.ezan,
-        "İsmail Coşar (Türkiye)" to R.raw.ismail_cosar_turkiye,
-        "Ali Tel (Türkiye)" to R.raw.ali_tel_turkiye,
-        "Azzam Dweik (Palestine)" to R.raw.azzam_dweik_palestine,
-        "Buttaev Muhammad Nabi (Dagistan)" to R.raw.buttaev_muhammad_nabi,
-        "Ghofar Zaen (Indonesia)" to R.raw.ghofar_zaen_indonesia,
-        "Mansor Az-Zahrani (Mekke)" to R.raw.mansor_az_zahrani_mekke,
-        "Mehdi Yarrahi (Iran)" to R.raw.mehdi_yarrahi_iran,
-        "Mishary Rashid Alafasy (Kuveyt)" to R.raw.mishary_rashid_kuveyt,
-        "Muhammad Majid Hakim (Medine)" to R.raw.muhammad_majid_hakim_medine,
-        "Ruli Maroya (Indonesia)" to R.raw.ruli_maroya_indonesia,
-        "Salim Bahanan (Endenozya)" to R.raw.salim_bahanan_endonezya
+        "Cami Ezanı (YÜKSEK SES)" to R.raw.ezan,
+        "İsmail Coşar (Sabah)" to R.raw.ismail_cosar_turkiye,
+        "Ali Tel (Akşam)" to R.raw.ali_tel_turkiye,
+        "Azzam Dweik  Mescidi Aksa (Öğle)" to R.raw.azzam_dweik_palestine,
+        "Egzon İbrahimi Kosava (Akşam)" to R.raw.egzon_ibrahimi_kosova,
+        "Ghofar Zaen Endenozya (İkindi)" to R.raw.ghofar_zaen_indonesia,
+        "Mansor Az Zahrani Mekke (Sabah)" to R.raw.mansor_az_zahrani_mekke,
+        "Mehdi Yarrahi İran (Sabah)" to R.raw.mehdi_yarrahi_iran,
+        "Mishary Rashid Alafasy Kuveyt (Yatsı)" to R.raw.mishary_rashid_kuveyt,
+        "Muhammad Majid Hakim Medine (Yatsı)" to R.raw.muhammad_majid_hakim_medine,
+        "Ruli Maroya Endenozya (Akşam)" to R.raw.ruli_maroya_indonesia,
+        "Salim Bahanan Kamerun (Öğle)" to R.raw.salim_bahanan_endonezya
     )
 
     override fun onCreateView(
