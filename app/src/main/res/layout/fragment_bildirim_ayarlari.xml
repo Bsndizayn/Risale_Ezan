@@ -13,13 +13,16 @@
         android:padding="16dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Vakitler İçin Ses Seçimi"
-            android:textColor="@color/light_gold"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"/>
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"
+        android:text="EZAN SESİ SEÇİMİ"
+        android:textColor="@color/light_gold"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
 
         <RelativeLayout
             android:id="@+id/layoutImsak"
