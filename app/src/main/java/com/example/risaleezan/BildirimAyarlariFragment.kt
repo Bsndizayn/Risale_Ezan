@@ -49,6 +49,7 @@ class BildirimAyarlariFragment : Fragment() {
         prefs = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         setupPrayerTime(view, "Imsak", R.id.layoutImsak, R.id.textViewImsakSound)
+        setupPrayerTime(view, "Gunes", R.id.layoutGunes, R.id.textViewGunesSound)
         setupPrayerTime(view, "Ogle", R.id.layoutOgle, R.id.textViewOgleSound)
         setupPrayerTime(view, "Ikindi", R.id.layoutIkindi, R.id.textViewIkindiSound)
         setupPrayerTime(view, "Aksam", R.id.layoutAksam, R.id.textViewAksamSound)
