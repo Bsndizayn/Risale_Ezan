@@ -308,17 +308,17 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-    </LinearLayout>
+        <Button
+            android:id="@+id/buttonComplete"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/light_gold"
+            android:text="İzinleri Tamamlayın"
+            android:textColor="@color/dark_burgundy"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/buttonComplete"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="@color/light_gold"
-        android:text="İzinleri Tamamlayın"
-        android:textColor="@color/dark_burgundy"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+    </LinearLayout>
 
 </LinearLayout>
