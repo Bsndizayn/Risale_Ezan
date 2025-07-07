@@ -21,10 +21,13 @@
         style="@style/CustomBottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="64dp"
         android:layout_alignParentBottom="true"
         android:elevation="8dp"
-        app:itemTextAppearance="@style/TextAppearance.MaterialComponents.Caption"
-        app:labelVisibilityMode="selected"
+        android:background="#005a0908"
+        app:itemIconSize="35dp"
+        app:itemTextAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        app:labelVisibilityMode="unlabeled"
         app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>
