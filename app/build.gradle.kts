@@ -54,4 +54,6 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.1")
     implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
+
 }
