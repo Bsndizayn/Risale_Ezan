@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Bottom Navigation -->
     <dimen name="bottom_nav_height">56dp</dimen>
     <dimen name="bottom_nav_margin">12dp</dimen>
     <dimen name="bottom_nav_corner_radius">24dp</dimen>
     <dimen name="bottom_nav_elevation">8dp</dimen>
     <dimen name="bottom_nav_icon_size">22dp</dimen>
     <dimen name="bottom_nav_padding_vertical">4dp</dimen>
+
+    <dimen name="book_image_width">90dp</dimen>
+    <dimen name="book_image_height">120dp</dimen>
+    <dimen name="book_margin_end">12dp</dimen>
+    <dimen name="category_title_margin_start">16dp</dimen>
 </resources>

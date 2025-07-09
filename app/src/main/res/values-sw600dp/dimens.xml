@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="book_image_width">100dp</dimen>
+    <dimen name="book_image_height">135dp</dimen>
+    <dimen name="book_margin_end">16dp</dimen>
+    <dimen name="category_title_margin_start">20dp</dimen>
+
     <dimen name="bottom_nav_height">64dp</dimen>
-    <dimen name="bottom_nav_margin">20dp</dimen>
-    <dimen name="bottom_nav_corner_radius">28dp</dimen>
-    <dimen name="bottom_nav_icon_size">26dp</dimen>
+    <dimen name="bottom_nav_margin">16dp</dimen>
+    <dimen name="bottom_nav_corner_radius">32dp</dimen>
+    <dimen name="bottom_nav_elevation">12dp</dimen>
+    <dimen name="bottom_nav_icon_size">28dp</dimen>
     <dimen name="bottom_nav_padding_vertical">6dp</dimen>
 </resources>
