@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
+// import android.widget.TextView // TextView artık kullanılmadığı için bu import'u kaldırabiliriz
 import androidx.recyclerview.widget.RecyclerView
 
 class BookAdapter(private val books: List<Book>) :
@@ -12,7 +12,7 @@ class BookAdapter(private val books: List<Book>) :
 
     class BookViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val image: ImageView = view.findViewById(R.id.bookImage)
-        val title: TextView = view.findViewById(R.id.bookTitle)
+        // val title: TextView = view.findViewById(R.id.bookTitle) // Bu satırı kaldırıyoruz
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
@@ -26,6 +26,6 @@ class BookAdapter(private val books: List<Book>) :
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         val book = books[position]
         holder.image.setImageResource(book.imageResId)
-        holder.title.text = book.title
+        // holder.title.text = book.title // Bu satırı da kaldırıyoruz
     }
 }
