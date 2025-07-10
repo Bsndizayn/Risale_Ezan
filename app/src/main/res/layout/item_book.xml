@@ -11,10 +11,22 @@
     android:layout_marginTop="0dp"
     android:layout_marginBottom="0dp">
 
+    <TextView
+        android:id="@+id/bookTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kitap Adı"
+        android:textSize="12sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:layout_marginTop="4dp"
+        />
+
     <ImageView
         android:id="@+id/bookImage"
-        android:layout_width="@dimen/book_image_width"
-        android:layout_height="@dimen/book_image_height"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:scaleType="fitCenter"
         android:adjustViewBounds="true"
         android:contentDescription="@string/app_name" />

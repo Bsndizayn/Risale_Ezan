@@ -7,38 +7,38 @@
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideTop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.00" />
+        app:layout_constraintGuide_percent="0.00"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guide1Bottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.25" />
+        app:layout_constraintGuide_percent="0.25"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guide2Bottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.50" />
+        app:layout_constraintGuide_percent="0.50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guide3Bottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.75" />
+        app:layout_constraintGuide_percent="0.75"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideBottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="1.00" />
+        app:layout_constraintGuide_percent="1.00"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 
     <LinearLayout
@@ -51,20 +51,6 @@
         app:layout_constraintBottom_toTopOf="@+id/guide1Bottom"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:id="@+id/categoryTitle1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Son Okunanlar"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:layout_marginStart="@dimen/category_title_margin_start"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/title_background_strip"
-            android:paddingVertical="4dp"
-            android:gravity="center_vertical" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/horizontalBookRecyclerView1"
@@ -88,20 +74,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/categoryTitle2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/category_title_margin_start"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/title_background_strip"
-            android:gravity="center_vertical"
-            android:paddingVertical="4dp"
-            android:text="Risale-i Nur Külliyatı"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/horizontalBookRecyclerView2"
             android:layout_width="match_parent"
@@ -124,20 +96,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/categoryTitle3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Evrad ve Kur'an"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:layout_marginStart="@dimen/category_title_margin_start"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/title_background_strip"
-            android:paddingVertical="4dp"
-            android:gravity="center_vertical" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/horizontalBookRecyclerView3"
             android:layout_width="match_parent"
@@ -159,20 +117,6 @@
         app:layout_constraintBottom_toTopOf="@+id/guideBottom"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:id="@+id/categoryTitle4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Küçük Kitaplar"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:layout_marginStart="@dimen/category_title_margin_start"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/title_background_strip"
-            android:paddingVertical="4dp"
-            android:gravity="center_vertical" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/horizontalBookRecyclerView4"

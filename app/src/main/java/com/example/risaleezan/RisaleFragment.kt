@@ -10,19 +10,18 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import com.google.android.material.bottomnavigation.BottomNavigationView // Bu import'u ekle
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class RisaleFragment : Fragment() {
 
-    // Raf arka planlarının üst ve altından bırakılacak DP boşlukları
-    private val SHELF_TOP_PADDING_DP = 5
-    private val SHELF_BOTTOM_PADDING_DP = 70
-    private val CATEGORY_TITLE_HEIGHT_DP = 18 // textSize=18sp'ye göre tahmini, gerçek TextView yüksekliği alınmalı
-    private val CATEGORY_TITLE_MARGIN_BOTTOM_DP = 8 // layout_marginBottom 8dp'ye göre
+    // KİTAPLARIN RAF İÇİNDEKİ DİKEY KONUMUNU BELİRLEYEN SABİTLER
+    // BU DEĞERLERİ DEĞİŞTİREREK KİTAPLARIN RAF ARKA PLANINA TAM OTURMASINI SAĞLAYIN!
+    // Pozitif değerler boşluk bırakır ve kitabı küçültür.
+    private val SHELF_TOP_PADDING_DP = 60    // Kitabın raf arka planının üst kenarından boşluk (daha büyük bir değer deneyin)
+    private val SHELF_BOTTOM_PADDING_DP = 23 // Kitabın raf arka planının alt kenarından boşluk (daha küçük bir değer deneyin)
 
-    private lateinit var bottomNavigationView: BottomNavigationView // BottomNavigationView referansını tutmak için
+    private lateinit var bottomNavigationView: BottomNavigationView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,68 +33,65 @@ class RisaleFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // MainActivity'deki BottomNavigationView'a erişim
         bottomNavigationView = (activity as MainActivity).findViewById(R.id.bottom_navigation)
 
         val allBooks = listOf(
             // Külliyat
+            Book("Asa-yı Musa", R.drawable.asa),
+            Book("Tarihçe-i Hayat", R.drawable.tarihce),
             Book("Sözler", R.drawable.sozler),
             Book("Mektûbat", R.drawable.mektubat),
             Book("Lem'alar", R.drawable.lemalar),
             Book("Şualar", R.drawable.sualar),
-            Book("Barla Lahikası", R.drawable.barla),
-            Book("Kastamonu Lahikası", R.drawable.kastamonu),
-            Book("Emirdağ Lahikası", R.drawable.emirdag),
-            Book("İşaratü-l İ'caz", R.drawable.isarat),
-            Book("Mesnevi-i Nuriye", R.drawable.mesnevi),
-            Book("Sikke-i Tasdik-i Gaybi", R.drawable.sikke),
-            Book("Asa-yı Musa", R.drawable.asa),
-            Book("Tarihçe-i Hayat", R.drawable.tarihce),
-            Book("İman ve Küfür Muvazeneleri", R.drawable.iman_kufur),
+            Book("Barla ", R.drawable.barla),
+            Book("Kastamonu ", R.drawable.kastamonu),
+            Book("Emirdağ ", R.drawable.emirdag),
+            Book("İ.İ'caz", R.drawable.isarat),
+            Book("M.Nuriye", R.drawable.mesnevi),
+            Book("S.T.Gaybi", R.drawable.sikke),
+            Book("İman ve Küfür M.", R.drawable.iman_kufur),
             Book("Muhakemat", R.drawable.muhakemat),
 
-            // Küçük Kitaplar (devam) - Görselleri eklediğinizden emin olun!
-            Book("MUCİZAT-I KUR'ANİYE", R.drawable.mucizat_i_kuraniye),
-            Book("MUCİZAT-I AHMEDİYE", R.drawable.mucizat_i_ahmediye),
-            Book("NUR ÇEŞMESİ", R.drawable.nur_cesmesi),
-            Book("BEDİ ÜZ.CEVAP VERİYOR", R.drawable.bedi_uz_cevap_veriyor),
-            Book("GENÇLİK REHBERİ", R.drawable.genclik_rehberi),
-            Book("HİZMET REHBERİ", R.drawable.hizmet_rehberi),
-            Book("NURUN İLK KAPISI", R.drawable.nurun_ilk_kapisi),
-            Book("AYET-ÜL KÜBRA", R.drawable.ayet_ul_kubra),
-            Book("MİRKAT-ÜS SÜNNET", R.drawable.mirkat_us_sunnet),
-            Book("ZÜHRETÜNNUR", R.drawable.zuhretunnur),
-            Book("MEYVE RİSALESİ", R.drawable.meyve_risalesi),
-            Book("HAŞİR RİSALESİ", R.drawable.hasir_risalesi),
-            Book("HAKİKAT NURLARI", R.drawable.hakikat_nurlari),
-            Book("HANIMLAR REHBERİ", R.drawable.hanimlar_rehberi),
-            Book("KONFERANS", R.drawable.konferans),
-            Book("EL-HÜCCET-ÜZ ZEHRA", R.drawable.el_huccet_uz_zehra),
-            Book("İMAN HAKİKATLARI", R.drawable.iman_hakikatlari),
-            Book("HUTBE-İ ŞAMİYE", R.drawable.hutbe_i_samiye),
-            Book("RAHMET ŞEFKAT İLAÇLARI", R.drawable.rahmet_sefkat_ilaclari),
-            Book("KÜÇÜK SÖZLER", R.drawable.kucuk_sozler),
-            Book("MÜNAZARAT", R.drawable.munazarat),
-            Book("MİRAC VE ŞAKKI KAMER", R.drawable.mirac_ve_sakki_kamer),
-            Book("RAMAZAN İKTİSAT ŞÜKÜR RİSALESİ", R.drawable.ramazan_iktisat_sukr_risalesi),
-            Book("MİFTAH-ÜL İMAN", R.drawable.miftah_ul_iman),
-            Book("SUNUHAT-TULUAT-İŞARAT", R.drawable.sunuhat_tuluat_isarat),
-            Book("İÇTİHAD RİSALESİ", R.drawable.ictihad_risalesi),
-            Book("YİRMİÜÇÜNCÜ SÖZ", R.drawable.yirmiucuncu_soz),
-            Book("HASTALAR RİSALESİ", R.drawable.hastalar_risalesi),
-            Book("OTUZÜÇ PENCERE", R.drawable.otuzuc_pencere),
-            Book("DİVAN-I HARBİ ÖRFİ", R.drawable.divan_i_harbi_orfi),
-            Book("İHLAS RİSALESİ", R.drawable.ihlas_risalesi),
-            Book("UHUVVET RİSALESİ", R.drawable.uhuvvet_risalesi),
-            Book("NUR ALEMİNİN BİR ANAHTARI", R.drawable.nur_aleminin_bir_anahtari),
-            Book("ENE VE ZERRE RİSALESİ", R.drawable.ene_ve_zerre_risalesi),
-            Book("TABİAT RİSALESİ", R.drawable.tabiat_risalesi),
-            Book("MÜNACAT", R.drawable.munacat),
-            Book("İHTİYARLAR RİSALESİ", R.drawable.ihtiyarlar_risalesi),
-            Book("OTUZUNCU LEM'A", R.drawable.otuzuncu_lem_a)
+            // Küçük Kitaplar (devam)
+            Book("Mucizat-ı Kur.", R.drawable.mucizat_i_kuraniye),
+            Book("Mucizat-ı Ah.", R.drawable.mucizat_i_ahmediye),
+            Book("Nur Çeşmesi", R.drawable.nur_cesmesi),
+            Book("Bedi Üz. Cvp.", R.drawable.bedi_uz_cevap_veriyor),
+            Book("Gençlik Reh.", R.drawable.genclik_rehberi),
+            Book("Hizmet Reh.", R.drawable.hizmet_rehberi),
+            Book("Nurun İlk Kap.", R.drawable.nurun_ilk_kapisi),
+            Book("Ayet-ül Kübra", R.drawable.ayet_ul_kubra),
+            Book("Mirkat-üs Sün.", R.drawable.mirkat_us_sunnet),
+            Book("Zuhretunnur", R.drawable.zuhretunnur),
+            Book("Meyve Risalesi", R.drawable.meyve_risalesi),
+            Book("Haşir Risalesi", R.drawable.hasir_risalesi),
+            Book("Hakikat Nur.", R.drawable.hakikat_nurlari),
+            Book("Hanımlar Reh.", R.drawable.hanimlar_rehberi),
+            Book("Konferans", R.drawable.konferans),
+            Book("El-Hüccet-üz Z.", R.drawable.el_huccet_uz_zehra),
+            Book("İman Hak.", R.drawable.iman_hakikatlari),
+            Book("Hutbe-i Şam.", R.drawable.hutbe_i_samiye),
+            Book("Rhmt. Şfkt. İlaç.", R.drawable.rahmet_sefkat_ilaclari),
+            Book("Küçük Sözler", R.drawable.kucuk_sozler),
+            Book("Münazarat", R.drawable.munazarat),
+            Book("Miraç & Ş. Kamer", R.drawable.mirac_ve_sakki_kamer),
+            Book("Rmzn. İkt. Şükür Ris.", R.drawable.ramazan_iktisat_sukr_risalesi),
+            Book("Miftah-ül İm.", R.drawable.miftah_ul_iman),
+            Book("Sunuhat-Tuluat-İş.", R.drawable.sunuhat_tuluat_isarat),
+            Book("İçtihad Risalesi", R.drawable.ictihad_risalesi),
+            Book("23. Söz", R.drawable.yirmiucuncu_soz),
+            Book("Hastalar Risalesi", R.drawable.hastalar_risalesi),
+            Book("33 Pencere", R.drawable.otuzuc_pencere),
+            Book("Divan-ı H. Örf.", R.drawable.divan_i_harbi_orfi),
+            Book("İhlas Risalesi", R.drawable.ihlas_risalesi),
+            Book("Uhuvvet Risalesi", R.drawable.uhuvvet_risalesi),
+            Book("Nur Alemi Anahtarı", R.drawable.nur_aleminin_bir_anahtari),
+            Book("Ene & Zerre Ris.", R.drawable.ene_ve_zerre_risalesi),
+            Book("Tabiat Risalesi", R.drawable.tabiat_risalesi),
+            Book("Münacat", R.drawable.munacat),
+            Book("İhtiyarlar Ris.", R.drawable.ihtiyarlar_risalesi),
+            Book("30. Lem'a", R.drawable.otuzuncu_lem_a)
         )
-
-        // RAF 3 için özel kitap listesi tanımlıyoruz
         val evradVeKuranBooks = listOf(
             Book("Kuran-ı Kerim", R.drawable.kuran_i_kerim),
             Book("Hizbü'l-Kuran", R.drawable.hizbul_kuran),
@@ -123,17 +119,15 @@ class RisaleFragment : Fragment() {
             val shelf3HeightPx = guide3BottomPx - guide2BottomPx
             val shelf4HeightPx = guideBottomPx - guide3BottomPx
 
-            val categoryTitleHeightPx = (CATEGORY_TITLE_HEIGHT_DP * density).toInt()
-            val categoryTitleMarginBottomPx = (CATEGORY_TITLE_MARGIN_BOTTOM_DP * density).toInt()
-
             val bookAreaPaddingTopPx = (SHELF_TOP_PADDING_DP * density).toInt()
             val bookAreaPaddingBottomPx = (SHELF_BOTTOM_PADDING_DP * density).toInt()
 
-            val bookHeightForShelf1 = shelf1HeightPx - categoryTitleHeightPx - categoryTitleMarginBottomPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
-            val bookHeightForShelf2 = shelf2HeightPx - categoryTitleHeightPx - categoryTitleMarginBottomPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
-            val bookHeightForShelf3 = shelf3HeightPx - categoryTitleHeightPx - categoryTitleMarginBottomPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
-            val bookHeightForShelf4 = shelf4HeightPx - categoryTitleHeightPx - categoryTitleMarginBottomPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
+            val bookHeightForShelf1 = shelf1HeightPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
+            val bookHeightForShelf2 = shelf2HeightPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
+            val bookHeightForShelf3 = shelf3HeightPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
+            val bookHeightForShelf4 = shelf4HeightPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
 
+            // Kitapların minimum bir yüksekliği olmalı, aksi takdirde çok küçük görünebilirler
             val minBookHeightPx = (70 * density).toInt()
 
             view.findViewById<RecyclerView>(R.id.horizontalBookRecyclerView1).apply {
@@ -169,7 +163,6 @@ class RisaleFragment : Fragment() {
         }
     }
 
-    // RisaleFragment görünür olduğunda BottomNavigationView'ı gizle
     override fun onResume() {
         super.onResume()
         if (::bottomNavigationView.isInitialized) {
@@ -177,8 +170,7 @@ class RisaleFragment : Fragment() {
         }
     }
 
-    // RisaleFragment görünümden ayrıldığında BottomNavigationView'ı tekrar göster
-    override fun onStop() { // onPause veya onStop kullanabiliriz, onStop daha güvenlidir
+    override fun onStop() {
         super.onStop()
         if (::bottomNavigationView.isInitialized) {
             bottomNavigationView.visibility = View.VISIBLE
