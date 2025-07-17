@@ -7,57 +7,29 @@ import android.net.Uri
 import android.util.Log
 
 object SoundPlayerManager {
-    private var mediaPlayer: MediaPlayer? = null
+    // Ezan çalma sorumluluğu EzanPlaybackService'e taşındığı için,
+    // bu obje artık alarm sesleri için doğrudan kullanılmayacak.
+    // Ancak başka yerlerde kullanılabileceği varsayılarak boş bir fonksiyon bırakılabilir.
+    // Eğer bu obje sadece alarm sesleri için kullanılıyorsa, bu dosya kaldırılabilir.
+
+    // Şu anki durumda, AlarmReceiver tarafından doğrudan çağrılmayacaktır.
+    // Diğer yerlerde kullanılıyorsa mevcut haliyle kalabilir.
+    // Bu versiyon, AlarmReceiver'dan çağrılmayacağını varsayarak basitleştirilmiştir.
+    private var mediaPlayer: MediaPlayer? = null // Eğer başka bir yerde kullanılmayacaksa kaldırılabilir
 
     fun play(context: Context, soundResId: Int, onCompletion: () -> Unit) {
-        stop() // Mevcut sesi durdur
-
-        if (soundResId == -1) {
-            Log.d("SoundPlayerManager", "Ses 'Sessiz' olarak ayarlı, çalınmayacak.")
-            onCompletion()
-            return
-        }
-
-        try {
-            // Raw resource'dan doğrudan MediaPlayer oluştur
-            mediaPlayer = MediaPlayer.create(context, soundResId)
-
-            if (mediaPlayer == null) {
-                Log.e("SoundPlayerManager", "MediaPlayer oluşturulamadı: $soundResId")
-                onCompletion()
-                return
-            }
-
-            val audioAttributes = AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setUsage(AudioAttributes.USAGE_ALARM)
-                .build()
-            mediaPlayer?.setAudioAttributes(audioAttributes)
-
-            mediaPlayer?.setOnCompletionListener {
-                Log.d("SoundPlayerManager", "Ses çalması bitti.")
-                stop()
-                onCompletion()
-            }
-
-            mediaPlayer?.setOnErrorListener { _, what, extra ->
-                Log.e("SoundPlayerManager", "MediaPlayer hata: what=$what, extra=$extra")
-                stop()
-                onCompletion()
-                true
-            }
-
-            mediaPlayer?.start()
-            Log.d("SoundPlayerManager", "Ses çalmaya başladı: $soundResId")
-
-        } catch (e: Exception) {
-            Log.e("SoundPlayerManager", "MediaPlayer başlatılamadı.", e)
-            stop()
-            onCompletion()
-        }
+        // Bu fonksiyon artık alarm çalma döngüsünde kullanılmıyor,
+        // EzanPlaybackService sorumluluğu üstlendi.
+        // Eğer bu obje başka yerlerde ses çalmak için hala kullanılıyorsa,
+        // eski içeriğini korumalısınız.
+        Log.d("SoundPlayerManager", "play() çağrıldı, ancak EzanPlaybackService sorumluluğu üstlendi.")
+        onCompletion() // Hemen tamamlandığını bildir
     }
 
     fun stop() {
+        // Bu fonksiyon da EzanPlaybackService tarafından yönetildiği için
+        // artık AlarmReceiver veya MuteActionReceiver tarafından çağrılmayacak.
+        // Eğer başka bir yerde kullanılıyorsa mevcut haliyle kalabilir.
         mediaPlayer?.let {
             try {
                 if (it.isPlaying) {

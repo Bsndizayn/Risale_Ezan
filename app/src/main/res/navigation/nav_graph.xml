@@ -10,16 +10,19 @@
         android:name="com.example.risaleezan.NamazFragment"
         android:label="fragment_namaz"
         tools:layout="@layout/fragment_namaz" />
+
     <fragment
         android:id="@+id/kibleFragment"
         android:name="com.example.risaleezan.KibleFragment"
         android:label="fragment_kible"
         tools:layout="@layout/fragment_kible" />
+
     <fragment
         android:id="@+id/risaleFragment"
         android:name="com.example.risaleezan.RisaleFragment"
         android:label="fragment_risale"
         tools:layout="@layout/fragment_risale" />
+
     <fragment
         android:id="@+id/ayarlarFragment"
         android:name="com.example.risaleezan.AyarlarFragment"
@@ -35,6 +38,7 @@
             android:id="@+id/action_ayarlarFragment_to_permissionSetupFragment"
             app:destination="@id/permissionSetupFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/citiesFragment"
         android:name="com.example.risaleezan.CitiesFragment"
@@ -44,6 +48,7 @@
             android:id="@+id/action_citiesFragment_to_cityListFragment"
             app:destination="@id/cityListFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/cityListFragment"
         android:name="com.example.risaleezan.CityListFragment"
@@ -56,6 +61,7 @@
             android:name="countryName"
             app:argType="string" />
     </fragment>
+
     <fragment
         android:id="@+id/permissionSetupFragment"
         android:name="com.example.risaleezan.PermissionSetupFragment"
@@ -67,9 +73,17 @@
             app:popUpTo="@id/permissionSetupFragment"
             app:popUpToInclusive="true"/>
     </fragment>
+
     <fragment
         android:id="@+id/bildirimAyarlariFragment"
         android:name="com.example.risaleezan.BildirimAyarlariFragment"
         android:label="fragment_bildirim_ayarlari"
         tools:layout="@layout/fragment_bildirim_ayarlari" />
+
+    <!-- Buraya SoundSelectionFragment eklendi -->
+    <fragment
+        android:id="@+id/soundSelectionFragment"
+        android:name="com.example.risaleezan.SoundSelectionFragment"
+        android:label="fragment_sound_selection"
+        tools:layout="@layout/fragment_sound_selection" />
 </navigation>

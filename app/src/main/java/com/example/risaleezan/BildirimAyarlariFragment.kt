@@ -3,22 +3,30 @@ package com.example.risaleezan
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RelativeLayout
-import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
+import android.widget.*
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import java.util.Locale
 
 class BildirimAyarlariFragment : Fragment() {
 
-    private lateinit var prefs: SharedPreferences
-    private val PREFS_NAME = "PrayerTimeSettings"
+    private lateinit var sharedPreferences: SharedPreferences
+    private val prayerNames = listOf("Imsak", "Gunes", "Ogle", "Ikindi", "Aksam", "Yatsi")
+    private val prayerNameMap = mapOf(
+        "Imsak" to "İmsak",
+        "Gunes" to "Güneş",
+        "Ogle" to "Öğle",
+        "Ikindi" to "İkindi",
+        "Aksam" to "Akşam",
+        "Yatsi" to "Yatsı"
+    )
 
-    // Key: Kullanıcının göreceği isim
-    // Value: res/raw klasöründeki dosyanın ID'si
-    // Verdiğiniz tabloya göre liste hazırlandı.
+    private lateinit var adjustmentValues: IntArray // Zamanlama ayarı değerleri
+
     private val soundMap = mapOf(
         "Sessiz" to -1,
         "Bip" to R.raw.bip,
@@ -27,7 +35,7 @@ class BildirimAyarlariFragment : Fragment() {
         "İsmail Coşar (Sabah)" to R.raw.ismail_cosar_turkiye,
         "Ali Tel (Akşam)" to R.raw.ali_tel_turkiye,
         "Azzam Dweik  Mescidi Aksa (Öğle)" to R.raw.azzam_dweik_palestine,
-        "Egzon İbrahimi Kosava (Akşam)" to R.raw.egzon_ibrahimi_kosova,
+        "Egzon İbrahimi Kosova (Akşam)" to R.raw.egzon_ibrahimi_kosova,
         "Ghofar Zaen Endenozya (İkindi)" to R.raw.ghofar_zaen_indonesia,
         "Mansor Az Zahrani Mekke (Sabah)" to R.raw.mansor_az_zahrani_mekke,
         "Mehdi Yarrahi İran (Sabah)" to R.raw.mehdi_yarrahi_iran,
@@ -41,60 +49,81 @@ class BildirimAyarlariFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_bildirim_ayarlari, container, false)
+        val view = inflater.inflate(R.layout.fragment_bildirim_ayarlari, container, false)
+        sharedPreferences = requireActivity().getSharedPreferences("PrayerTimeSettings", Context.MODE_PRIVATE)
+
+        adjustmentValues = resources.getStringArray(R.array.time_adjustment_values).map { it.toInt() }.toIntArray()
+
+        setupPrayerTime(view, "Imsak", R.id.switchImsak, R.id.imageViewImsakSound, R.id.spinnerImsakAdjustment, R.id.textViewImsakSound)
+        setupPrayerTime(view, "Gunes", R.id.switchGunes, R.id.imageViewGunesSound, R.id.spinnerGunesAdjustment, R.id.textViewGunesSound)
+        setupPrayerTime(view, "Ogle", R.id.switchOgle, R.id.imageViewOgleSound, R.id.spinnerOgleAdjustment, R.id.textViewOgleSound)
+        setupPrayerTime(view, "Ikindi", R.id.switchIkindi, R.id.imageViewIkindiSound, R.id.spinnerIkindiAdjustment, R.id.textViewIkindiSound)
+        setupPrayerTime(view, "Aksam", R.id.switchAksam, R.id.imageViewAksamSound, R.id.spinnerAksamAdjustment, R.id.textViewAksamSound)
+        setupPrayerTime(view, "Yatsi", R.id.switchYatsi, R.id.imageViewYatsiSound, R.id.spinnerYatsiAdjustment, R.id.textViewYatsiSound)
+
+        val switchMuteAll = view.findViewById<Switch>(R.id.switchMuteAll)
+        switchMuteAll.isChecked = sharedPreferences.getBoolean("mute_all_notifications", false)
+        switchMuteAll.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("mute_all_notifications", isChecked).apply()
+            prayerNames.forEach { prayer ->
+                val switchId = resources.getIdentifier("switch$prayer", "id", requireContext().packageName)
+                view.findViewById<Switch>(switchId)?.isChecked = !isChecked
+                view.findViewById<Switch>(switchId)?.isEnabled = !isChecked
+            }
+        }
+
+        return view
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        prefs = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private fun setupPrayerTime(view: View, prayerName: String, switchId: Int, soundIconId: Int, spinnerId: Int, textViewId: Int) {
+        val prayerDisplayName = prayerNameMap[prayerName] ?: prayerName
+        val switch = view.findViewById<Switch>(switchId)
+        val soundIcon = view.findViewById<ImageView>(soundIconId)
+        val spinnerAdjustment = view.findViewById<Spinner>(spinnerId)
+        val textViewSound = view.findViewById<TextView>(textViewId)
 
-        setupPrayerTime(view, "Imsak", R.id.layoutImsak, R.id.textViewImsakSound)
-        setupPrayerTime(view, "Gunes", R.id.layoutGunes, R.id.textViewGunesSound)
-        setupPrayerTime(view, "Ogle", R.id.layoutOgle, R.id.textViewOgleSound)
-        setupPrayerTime(view, "Ikindi", R.id.layoutIkindi, R.id.textViewIkindiSound)
-        setupPrayerTime(view, "Aksam", R.id.layoutAksam, R.id.textViewAksamSound)
-        setupPrayerTime(view, "Yatsi", R.id.layoutYatsi, R.id.textViewYatsiSound)
-    }
+        updateSoundTextView(textViewSound, sharedPreferences.getInt("sound_res_id_$prayerName", R.raw.ezan))
 
-    private fun setupPrayerTime(view: View, prayerName: String, layoutId: Int, textViewId: Int) {
-        val layout = view.findViewById<RelativeLayout>(layoutId)
-        val textView = view.findViewById<TextView>(textViewId)
-        val preferenceKey = "sound_res_id_$prayerName"
+        val isEnabled = sharedPreferences.getBoolean("notification_enabled_$prayerName", true)
+        switch.isChecked = isEnabled
+        switch.text = "$prayerDisplayName Bildirimi"
+        switch.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("notification_enabled_$prayerName", isChecked).apply()
+            Log.d("BildirimAyarlari", "$prayerName bildirimi: $isChecked")
+        }
 
-        // Kayıtlı sesi yükle ve ekranda göster
-        updateSoundTextView(textView, prefs.getInt(preferenceKey, R.raw.ezan)) // Varsayılan: Ezan
+        soundIcon.setOnClickListener {
+            val bundle = Bundle().apply { putString("prayer_name", prayerName) }
+            findNavController().navigate(R.id.soundSelectionFragment, bundle)
+        }
 
-        layout.setOnClickListener {
-            showSoundSelectionDialog(prayerName, textView, preferenceKey)
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            resources.getStringArray(R.array.time_adjustment_options)
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerAdjustment.adapter = adapter
+
+        val savedAdjustment = sharedPreferences.getInt("adjustment_minutes_$prayerName", 0)
+        val defaultSelectionIndex = adjustmentValues.indexOf(savedAdjustment)
+        if (defaultSelectionIndex != -1) {
+            spinnerAdjustment.setSelection(defaultSelectionIndex)
+        } else {
+            spinnerAdjustment.setSelection(adjustmentValues.indexOf(0))
+        }
+
+        spinnerAdjustment.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedValue = adjustmentValues[position]
+                sharedPreferences.edit().putInt("adjustment_minutes_$prayerName", selectedValue).apply()
+                Log.d("BildirimAyarlari", "$prayerName zaman ayarı: $selectedValue dakika")
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
     }
 
-    private fun showSoundSelectionDialog(prayerName: String, textView: TextView, preferenceKey: String) {
-        // Diyalogda gösterilecek isimleri al (Ali Tel (Turkiye), Bip vs.)
-        val soundNames = soundMap.keys.toTypedArray()
-        val currentSoundId = prefs.getInt(preferenceKey, R.raw.ezan)
-        // Mevcut seçili olanın listedeki sırasını bul
-        val checkedItem = soundMap.values.indexOf(currentSoundId).let { if (it == -1) 0 else it }
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("$prayerName Sesi Seç")
-            .setSingleChoiceItems(soundNames, checkedItem) { dialog, which ->
-                val selectedSoundName = soundNames[which]
-                val selectedSoundId = soundMap[selectedSoundName] ?: R.raw.ezan // ID'yi al
-
-                // Seçilen sesin ID'sini kaydet
-                prefs.edit().putInt(preferenceKey, selectedSoundId).apply()
-                // Ekranda seçilen sesin açıklayıcı ismini göster
-                updateSoundTextView(textView, selectedSoundId)
-
-                dialog.dismiss()
-            }
-            .setNegativeButton("İptal", null)
-            .show()
-    }
-
     private fun updateSoundTextView(textView: TextView, soundId: Int) {
-        // Kayıtlı olan ID'ye karşılık gelen açıklayıcı ismi bul ve ekrana yaz
         val soundName = soundMap.entries.find { it.value == soundId }?.key ?: "Bilinmeyen"
         textView.text = soundName
     }

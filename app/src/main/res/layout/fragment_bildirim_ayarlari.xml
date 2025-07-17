@@ -17,158 +17,265 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:layout_marginTop="24dp"
-        android:layout_marginBottom="16dp"
-        android:text="EZAN SESİ SEÇİMİ"
-        android:textColor="@color/light_gold"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+            android:layout_marginBottom="16dp"
+            android:text="EZAN SESİ VE BİLDİRİM AYARLARI"
+            android:textColor="@color/light_gold"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutImsak"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="16dp">
-            <TextView
-                android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <Switch
+                android:id="@+id/switchImsak"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="İmsak"
-                android:textColor="@color/off_white"
-                android:textSize="18sp"
-                android:layout_centerVertical="true"/>
-            <TextView
-                android:id="@+id/textViewImsakSound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:textColor="@color/light_gold"
-                android:textSize="16sp"
-                tools:text="Ezan Sesi"/>
-        </RelativeLayout>
+                android:layout_weight="1"
+                android:text="İmsak Bildirimi"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/imageViewImsakSound"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_sound"
+                android:contentDescription="Ses Ayarları"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/textViewImsakSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seçili ses"
+            android:textSize="14sp"
+            android:textColor="@color/light_gold"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerImsakAdjustment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutGunes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="16dp">
-            <TextView
-                android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <Switch
+                android:id="@+id/switchGunes"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Güneş"
-                android:textColor="@color/off_white"
-                android:textSize="18sp"
-                android:layout_centerVertical="true"/>
-            <TextView
-                android:id="@+id/textViewGunesSound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:textColor="@color/light_gold"
-                android:textSize="16sp"
-                tools:text="Ezan Sesi"/>
-        </RelativeLayout>
+                android:layout_weight="1"
+                android:text="Güneş Bildirimi"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/imageViewGunesSound"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_sound"
+                android:contentDescription="Ses Ayarları"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/textViewGunesSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seçili ses"
+            android:textSize="14sp"
+            android:textColor="@color/light_gold"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerGunesAdjustment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-
-
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutOgle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="16dp">
-            <TextView
-                android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <Switch
+                android:id="@+id/switchOgle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Öğle"
-                android:textColor="@color/off_white"
-                android:textSize="18sp"
-                android:layout_centerVertical="true"/>
-            <TextView
-                android:id="@+id/textViewOgleSound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:textColor="@color/light_gold"
-                android:textSize="16sp"
-                tools:text="Sessiz"/>
-        </RelativeLayout>
+                android:layout_weight="1"
+                android:text="Öğle Bildirimi"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/imageViewOgleSound"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_sound"
+                android:contentDescription="Ses Ayarları"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/textViewOgleSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seçili ses"
+            android:textSize="14sp"
+            android:textColor="@color/light_gold"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerOgleAdjustment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutIkindi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="16dp">
-            <TextView
-                android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <Switch
+                android:id="@+id/switchIkindi"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="İkindi"
-                android:textColor="@color/off_white"
-                android:textSize="18sp"
-                android:layout_centerVertical="true"/>
-            <TextView
-                android:id="@+id/textViewIkindiSound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:textColor="@color/light_gold"
-                android:textSize="16sp"
-                tools:text="Kuş Sesi"/>
-        </RelativeLayout>
+                android:layout_weight="1"
+                android:text="İkindi Bildirimi"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/imageViewIkindiSound"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_sound"
+                android:contentDescription="Ses Ayarları"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/textViewIkindiSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seçili ses"
+            android:textSize="14sp"
+            android:textColor="@color/light_gold"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerIkindiAdjustment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutAksam"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="16dp">
-            <TextView
-                android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <Switch
+                android:id="@+id/switchAksam"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Akşam"
-                android:textColor="@color/off_white"
-                android:textSize="18sp"
-                android:layout_centerVertical="true"/>
-            <TextView
-                android:id="@+id/textViewAksamSound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:textColor="@color/light_gold"
-                android:textSize="16sp"
-                tools:text="Ali Tel (Turkiye)"/>
-        </RelativeLayout>
+                android:layout_weight="1"
+                android:text="Akşam Bildirimi"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/imageViewAksamSound"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_sound"
+                android:contentDescription="Ses Ayarları"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/textViewAksamSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seçili ses"
+            android:textSize="14sp"
+            android:textColor="@color/light_gold"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerAksamAdjustment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutYatsi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="16dp">
-            <TextView
-                android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <Switch
+                android:id="@+id/switchYatsi"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Yatsı"
-                android:textColor="@color/off_white"
-                android:textSize="18sp"
-                android:layout_centerVertical="true"/>
-            <TextView
-                android:id="@+id/textViewYatsiSound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:textColor="@color/light_gold"
-                android:textSize="16sp"
-                tools:text="Mishary Rashid Alafasy"/>
-        </RelativeLayout>
+                android:layout_weight="1"
+                android:text="Yatsı Bildirimi"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/imageViewYatsiSound"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_sound"
+                android:contentDescription="Ses Ayarları"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/textViewYatsiSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seçili ses"
+            android:textSize="14sp"
+            android:textColor="@color/light_gold"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerYatsiAdjustment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
+
+        <Switch
+            android:id="@+id/switchMuteAll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tüm Bildirimleri Sessize Al"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp"/>
 
     </LinearLayout>
 </ScrollView>

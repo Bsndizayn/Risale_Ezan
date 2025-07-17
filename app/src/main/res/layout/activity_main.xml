@@ -16,18 +16,25 @@
         app:defaultNavHost="true"
         app:navGraph="@navigation/nav_graph" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        style="@style/CustomBottomNavigationView"
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="64dp"
-        android:layout_alignParentBottom="true"
-        android:elevation="8dp"
-        android:background="#005a0908"
-        app:itemIconSize="35dp"
-        app:itemTextAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-        app:labelVisibilityMode="unlabeled"
-        app:menu="@menu/bottom_nav_menu" />
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@android:color/transparent"
+        android:visibility="gone" /> <com.google.android.material.bottomnavigation.BottomNavigationView
+    android:id="@+id/bottom_navigation"
+    style="@style/CustomBottomNavigationView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="64dp"
+    android:layout_alignParentBottom="true"
+    android:elevation="8dp"
+    android:background="#005a0908"
+    app:itemIconSize="35dp"
+    app:itemTextAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+    app:labelVisibilityMode="unlabeled"
+    app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>

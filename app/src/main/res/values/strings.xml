@@ -26,6 +26,29 @@
         <item>Köln</item>
     </string-array>
 
+    <string-array name="time_adjustment_options">
+        <item>-45 dakika önce</item>
+        <item>-30 dakika önce</item>
+        <item>-15 dakika önce</item>
+        <item>Vaktinde</item>
+        <item>+15 dakika sonra</item>
+        <item>+30 dakika sonra</item>
+        <item>+45 dakika sonra</item>
+    </string-array>
+
+    <string-array name="time_adjustment_values">
+        <item>-45</item>
+        <item>-30</item>
+        <item>-15</item>
+        <item>0</item>
+        <item>15</item>
+        <item>30</item>
+        <item>45</item>
+    </string-array>
+
+
+
+
     <string-array name="risale_quotes">
         <item>Bismillah her hayrın başıdır. Sözler–</item>
         <item>Şu âlemde mü’minin mü’mine karşı en büyük yardımı dua iledir. Barla -</item>
