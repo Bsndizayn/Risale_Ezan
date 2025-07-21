@@ -97,6 +97,12 @@ class BildirimAyarlariFragment : Fragment() {
             findNavController().navigate(R.id.soundSelectionFragment, bundle)
         }
 
+        // ✅ YENİ EKLENDİ: Ses yazısına da tıklanabilirlik
+        textViewSound.setOnClickListener {
+            val bundle = Bundle().apply { putString("prayer_name", prayerName) }
+            findNavController().navigate(R.id.soundSelectionFragment, bundle)
+        }
+
         val adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -107,11 +113,7 @@ class BildirimAyarlariFragment : Fragment() {
 
         val savedAdjustment = sharedPreferences.getInt("adjustment_minutes_$prayerName", 0)
         val defaultSelectionIndex = adjustmentValues.indexOf(savedAdjustment)
-        if (defaultSelectionIndex != -1) {
-            spinnerAdjustment.setSelection(defaultSelectionIndex)
-        } else {
-            spinnerAdjustment.setSelection(adjustmentValues.indexOf(0))
-        }
+        spinnerAdjustment.setSelection(if (defaultSelectionIndex != -1) defaultSelectionIndex else adjustmentValues.indexOf(0))
 
         spinnerAdjustment.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {

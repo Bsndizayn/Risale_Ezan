@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/yeni_arkaplan"
-    android:fitsSystemWindows="false"
+    android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
     <androidx.fragment.app.FragmentContainerView
@@ -23,18 +23,20 @@
         android:clickable="true"
         android:focusable="true"
         android:background="@android:color/transparent"
-        android:visibility="gone" /> <com.google.android.material.bottomnavigation.BottomNavigationView
-    android:id="@+id/bottom_navigation"
-    style="@style/CustomBottomNavigationView"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:minHeight="64dp"
-    android:layout_alignParentBottom="true"
-    android:elevation="8dp"
-    android:background="#005a0908"
-    app:itemIconSize="35dp"
-    app:itemTextAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-    app:labelVisibilityMode="unlabeled"
-    app:menu="@menu/bottom_nav_menu" />
+        android:visibility="gone" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        style="@style/CustomBottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="64dp"
+        android:layout_alignParentBottom="true"
+        android:elevation="8dp"
+        android:background="@color/dark_burgundy"
+        app:itemIconSize="35dp"
+        app:itemTextAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        app:labelVisibilityMode="unlabeled"
+        app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>

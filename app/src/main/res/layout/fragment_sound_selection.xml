@@ -1,23 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/white">
+    android:background="@color/dark_burgundy"
+    android:minHeight="300dp">
 
     <TextView
         android:id="@+id/textViewSoundSelectionTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingBottom="8dp"
         android:text="Ses Seçimi"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:paddingBottom="16dp"
-        android:textColor="@color/black" />
+        android:textColor="@color/light_gold"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/light_gold"
+        android:layout_marginBottom="8dp" />
 
     <ListView
         android:id="@+id/listViewSounds"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@color/light_gold"
+        android:dividerHeight="1dp"
+        android:background="@color/dark_burgundy"
+        android:padding="4dp" />
+
+    <Button
+        android:id="@+id/buttonComplete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tamamla"
+        android:textColor="@color/dark_burgundy"
+        android:backgroundTint="@color/light_gold"
+        android:layout_marginTop="16dp" />
+
 </LinearLayout>

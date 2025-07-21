@@ -2,6 +2,7 @@ package com.example.risaleezan
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,11 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController // Navigasyon için bu satırı ekleyin
 
 class SoundSelectionFragment : Fragment() {
 
     private lateinit var prefs: SharedPreferences
     private var prayerName: String? = null
+    private var mediaPlayer: MediaPlayer? = null
 
     private val soundMap = mapOf(
         "Sessiz" to -1,
@@ -56,6 +59,7 @@ class SoundSelectionFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_sound_selection, container, false)
         val listView = view.findViewById<ListView>(R.id.listViewSounds)
+        val buttonComplete = view.findViewById<Button>(R.id.buttonComplete) // Tamamla butonunu bağlayın
 
         val soundNames = soundMap.keys.toTypedArray()
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_single_choice, soundNames)
@@ -66,17 +70,67 @@ class SoundSelectionFragment : Fragment() {
         val checkedItem = soundMap.values.indexOf(currentSoundId).let { if (it == -1) 0 else it }
         listView.setItemChecked(checkedItem, true)
 
+        // ListView'daki öğeye tıklandığında sesi çal ve kaydet
         listView.setOnItemClickListener { _, _, position, _ ->
             val selectedSoundName = soundNames[position]
             val selectedSoundId = soundMap[selectedSoundName] ?: R.raw.ezan
+
+            // Sadece "Sessiz" seçilmediyse sesi çal
+            if (selectedSoundId != -1) {
+                playSelectedSound(selectedSoundId)
+            } else {
+                stopPlayback() // Sessiz seçilirse oynatmayı durdur
+            }
+
             prefs.edit().putInt("sound_res_id_$prayerName", selectedSoundId).apply()
+            Toast.makeText(requireContext(), "$selectedSoundName seçildi", Toast.LENGTH_SHORT).show()
             Log.d("SoundSelection", "$prayerName için '$selectedSoundName' seçildi.")
-            parentFragmentManager.popBackStack()
+        }
+
+        // "Tamamla" butonuna tıklama dinleyicisi ekle
+        buttonComplete.setOnClickListener {
+            stopPlayback() // Geri dönmeden önce sesi durdur
+            findNavController().popBackStack() // Bir önceki ekrana geri dön
         }
 
         val titleTextView = view.findViewById<TextView>(R.id.textViewSoundSelectionTitle)
         titleTextView.text = "$prayerName Sesi Seç"
 
         return view
+    }
+
+    // Seçilen sesi oynatma fonksiyonu
+    private fun playSelectedSound(soundResId: Int) {
+        stopPlayback() // Önceki oynatmayı durdur
+
+        if (soundResId != -1) { // -1 (Sessiz) ise çalma
+            mediaPlayer = MediaPlayer.create(context, soundResId)
+            mediaPlayer?.setOnCompletionListener { mp ->
+                mp.release() // Ses bittiğinde MediaPlayer'ı serbest bırak
+                mediaPlayer = null
+            }
+            mediaPlayer?.start()
+        }
+    }
+
+    // Oynatmayı durdurma fonksiyonu
+    private fun stopPlayback() {
+        mediaPlayer?.let {
+            if (it.isPlaying) {
+                it.stop()
+            }
+            it.release()
+        }
+        mediaPlayer = null
+    }
+
+    override fun onStop() {
+        super.onStop()
+        stopPlayback() // Fragment durdurulduğunda oynatmayı durdur
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        stopPlayback() // View yok edildiğinde oynatmayı durdur
     }
 }
