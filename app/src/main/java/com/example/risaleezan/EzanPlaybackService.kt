@@ -13,44 +13,42 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.example.risaleezan.MainActivity // MainActivity'e doğrudan referans vermek için eklendi
+import com.example.risaleezan.MainActivity
 
 class EzanPlaybackService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
-    private val NOTIFICATION_ID = 1 // Foreground Service için benzersiz bildirim ID'si
-    private val CHANNEL_ID = "ezan_playback_channel" // Foreground Service bildirim kanalı
+    private val NOTIFICATION_ID = 1
+    private val CHANNEL_ID = "ezan_playback_channel"
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val prayerName = intent?.getStringExtra("PRAYER_NAME") ?: "Namaz Vakti"
-        // SOUND_RESOURCE_ID'yi AlarmReceiver'dan al
         val soundResourceId = intent?.getIntExtra("SOUND_RESOURCE_ID", -1) ?: -1
+        val notificationQuote = intent?.getStringExtra("NOTIFICATION_QUOTE") ?: "" // Yeni: Vecizeyi al
 
         Log.d("EzanSistemi", "EzanPlaybackService servisi başlatıldı. Ses ID: $soundResourceId")
 
-        // Bildirim kanalını oluştur ve servisi ön plana çıkar
         createNotificationChannel()
-        val notification = createNotification(prayerName)
+        val notification = createNotification(prayerName, notificationQuote) // Vecizeyi bildirim oluşturucuya gönder
         startForeground(NOTIFICATION_ID, notification)
 
         if (soundResourceId != -1) {
             playAdhan(soundResourceId)
         } else {
             Log.e("EzanSistemi", "Ses dosyası ID'si bulunamadı (muhtemelen Sessiz seçildi), servis durduruluyor.")
-            stopSelf() // Geçersiz ID veya Sessiz seçiliyse servisi durdur
+            stopSelf()
         }
 
-        // Servisin sistem tarafından öldürülmesi durumunda yeniden başlamamasını sağla
         return START_NOT_STICKY
     }
 
     private fun playAdhan(soundResId: Int) {
-        mediaPlayer?.release() // Önceki MediaPlayer kaynaklarını serbest bırak
-        mediaPlayer = null // Null olarak ayarla
+        mediaPlayer?.release()
+        mediaPlayer = null
 
         if (soundResId == -1) {
             Log.d("EzanSistemi", "Ses 'Sessiz' olarak ayarlı, çalınmayacak.")
-            stopSelf() // Sessizse servisi durdur
+            stopSelf()
             return
         }
 
@@ -58,11 +56,10 @@ class EzanPlaybackService : Service() {
             mediaPlayer = MediaPlayer.create(this, soundResId)
             if (mediaPlayer == null) {
                 Log.e("EzanSistemi", "MediaPlayer oluşturulamadı: $soundResId")
-                stopSelf() // Oluşturulamadıysa servisi durdur
+                stopSelf()
                 return
             }
 
-            // Ses özelliklerini ayarla (alarm sesi gibi davranması için)
             val audioAttributes = AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .setUsage(AudioAttributes.USAGE_ALARM)
@@ -71,13 +68,13 @@ class EzanPlaybackService : Service() {
 
             mediaPlayer?.setOnCompletionListener {
                 Log.d("EzanSistemi", "Ezan sesi çalması bitti, servis durduruluyor.")
-                stopSelf() // Ses çalması bittiğinde servisi durdur
+                stopSelf()
             }
 
             mediaPlayer?.setOnErrorListener { _, what, extra ->
                 Log.e("EzanSistemi", "MediaPlayer hata: what=$what, extra=$extra")
-                stopSelf() // Hata oluştuğunda servisi durdur
-                true // Hatayı işlediğimizi belirt
+                stopSelf()
+                true
             }
 
             mediaPlayer?.start()
@@ -85,7 +82,7 @@ class EzanPlaybackService : Service() {
 
         } catch (e: Exception) {
             Log.e("EzanSistemi", "MediaPlayer başlatılamadı veya çalarken hata.", e)
-            stopSelf() // Hata durumunda servisi durdur
+            stopSelf()
         }
     }
 
@@ -101,26 +98,54 @@ class EzanPlaybackService : Service() {
         }
     }
 
-    private fun createNotification(prayerName: String): Notification {
+    // Vecize parametresi eklendi
+    private fun createNotification(prayerName: String, quote: String): Notification {
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        // Sustur Butonu için Intent
+        val muteIntent = Intent(this, MuteActionReceiver::class.java).apply {
+            action = "ACTION_MUTE_SOUND"
+        }
+        val mutePendingIntent = PendingIntent.getBroadcast(
+            this,
+            prayerName.hashCode(), // Her bildirim için farklı bir request code
+            muteIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Paylaş Butonu için Intent (AlarmReceiver'daki gibi)
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, quote)
+        }
+        val chooser = Intent.createChooser(shareIntent, "Vecizeyi Paylaş")
+        val sharePendingIntent = PendingIntent.getActivity(
+            this,
+            quote.hashCode() + 1, // Farklı bir request code
+            chooser,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Ezan Vakti") // Bildirim başlığı
-            .setContentText("$prayerName vakti şu an çalıyor.") // Bildirim içeriği
+            .setContentTitle("$prayerName Vakti") // Bildirim başlığı
+            .setContentText(quote) // Vecizeyi buraya ekledik
+            .setStyle(NotificationCompat.BigTextStyle().bigText(quote)) // Büyük metin stili
             .setSmallIcon(R.mipmap.ic_launcher) // Küçük ikon
             .setContentIntent(pendingIntent) // Bildirime tıklayınca ne olacağı
             .setPriority(NotificationCompat.PRIORITY_HIGH) // Öncelik
             .setSilent(true) // Bu bildirimin kendi sesini veya titreşimini yapmamasını sağla (ezan çalacağı için)
             .setOngoing(true) // Kullanıcının kaydırarak kapatmasını engelle (ön plan servisi)
+            .addAction(android.R.drawable.ic_menu_share, "Vecizeyi Paylaş", sharePendingIntent) // Paylaş butonu
+            .addAction(android.R.drawable.ic_notification_clear_all, "Sessize Al", mutePendingIntent) // Sustur butonu
             .build()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer?.release() // MediaPlayer kaynaklarını serbest bırak
+        mediaPlayer?.release()
         mediaPlayer = null
         Log.d("EzanSistemi", "EzanPlaybackService yok edildi.")
     }

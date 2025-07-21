@@ -26,23 +26,29 @@ class AlarmReceiver : BroadcastReceiver() {
         try {
             val prefs = context.getSharedPreferences("PrayerTimeSettings", Context.MODE_PRIVATE)
 
-            // TÜM NAMAZ VAKİTLERİ İÇİN TERCIH ANAHTARINI DUZELTEN KISIM BURADA
             val finalPrayerNameKey = when (prayerName) {
-                "Sabah" -> "Imsak" // 'Sabah'ı 'Imsak' anahtarına eşle
-                "Güneş" -> "Gunes" // 'Güneş'i 'Gunes' anahtarına eşle
-                "Öğle" -> "Ogle"   // 'Öğle'yi 'Ogle' anahtarına eşle
-                "İkindi" -> "Ikindi" // 'İkindi'yi 'Ikindi' anahtarına eşle
-                "Akşam" -> "Aksam" // 'Akşam'ı 'Aksam' anahtarına eşle
-                "Yatsı" -> "Yatsi" // 'Yatsı'yı 'Yatsi' anahtarına eşle
-                else -> prayerName.capitalizeAsCustom() // Her ihtimale karşı fallback
+                "Sabah" -> "Imsak"
+                "Güneş" -> "Gunes"
+                "Öğle" -> "Ogle"
+                "İkindi" -> "Ikindi"
+                "Akşam" -> "Aksam"
+                "Yatsı" -> "Yatsi"
+                else -> prayerName.capitalizeAsCustom()
             }
 
             val soundPreferenceKey = "sound_res_id_${finalPrayerNameKey}"
-            val soundResId = prefs.getInt(soundPreferenceKey, R.raw.ezan) // Varsayılan: Ezan
+            val soundResId = prefs.getInt(soundPreferenceKey, R.raw.ezan)
+
+            // Rastgele Vecize Seçimi (Bildirimde kullanılacak)
+            val quotes = context.resources.getStringArray(R.array.notification_quotes)
+            val randomQuote = quotes.random()
 
             val serviceIntent = Intent(context, EzanPlaybackService::class.java).apply {
                 putExtra("PRAYER_NAME", prayerName)
                 putExtra("SOUND_RESOURCE_ID", soundResId)
+                putExtra("NOTIFICATION_QUOTE", randomQuote) // Vecizeyi ekledik
+                // Diğer bildirim aksiyonları için gerekli bilgileri de ekleyebiliriz,
+                // veya EzanPlaybackService bunları kendi içinde oluşturabilir.
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -51,7 +57,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 context.startService(serviceIntent)
             }
 
-            showNotification(context, prayerName)
+            // showNotification(context, prayerName) // BU SATIR ARTIK YOK, EzanPlaybackService halledecek
 
         } catch (e: Exception) {
             Log.e("AlarmReceiver", "EzanPlaybackService başlatılırken hata.", e)
@@ -63,6 +69,8 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 
+    // showNotification metodu artık bu sınıfta gerekli değil, kaldırıldı
+    /*
     private fun showNotification(context: Context, prayerName: String) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -82,22 +90,19 @@ class AlarmReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // --- Sustur Butonu için ---
         val muteIntent = Intent(context, MuteActionReceiver::class.java).apply {
             action = "ACTION_MUTE_SOUND"
         }
         val mutePendingIntent = PendingIntent.getBroadcast(
             context,
-            prayerName.hashCode(), // Her bildirim için farklı bir request code
+            prayerName.hashCode(),
             muteIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // --- Rastgele Vecize Seçimi ---
         val quotes = context.resources.getStringArray(R.array.notification_quotes)
         val randomQuote = quotes.random()
 
-        // --- YENİ: Paylaş Butonu için ---
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, randomQuote)
@@ -105,12 +110,11 @@ class AlarmReceiver : BroadcastReceiver() {
         val chooser = Intent.createChooser(shareIntent, "Vecizeyi Paylaş")
         val sharePendingIntent = PendingIntent.getActivity(
             context,
-            randomQuote.hashCode() + 1, // Farklı bir request code, çakışmayı önlemek için +1
+            randomQuote.hashCode() + 1,
             chooser,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // --- Bildirimi Oluşturma ---
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("$prayerName Vakti")
@@ -118,9 +122,7 @@ class AlarmReceiver : BroadcastReceiver() {
             .setStyle(NotificationCompat.BigTextStyle().bigText(randomQuote))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            // YENİ: Paylaş butonunu ekle
             .addAction(android.R.drawable.ic_menu_share, "Vecizeyi Paylaş", sharePendingIntent)
-            // Mevcut Sustur butonunu ekle
             .addAction(
                 android.R.drawable.ic_notification_clear_all,
                 "Sessize Al",
@@ -129,6 +131,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         notificationManager.notify(prayerName.hashCode(), builder.build())
     }
+    */
 
     private fun String.capitalizeAsCustom(): String {
         return this.replace("İ", "I")
