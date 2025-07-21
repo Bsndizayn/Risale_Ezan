@@ -9,7 +9,7 @@ import androidx.core.app.NotificationCompat
 object NotificationHelper {
 
     fun showNotification(context: Context, title: String, message: String) {
-        val channelId = "namaz_channel_id"
+        val channelId = "namaz_channel_id" // Bildirim Kanalı ID'si
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -19,7 +19,12 @@ object NotificationHelper {
                 channelId,
                 "Namaz Vakitleri",
                 NotificationManager.IMPORTANCE_HIGH
-            )
+            ).apply {
+                // ✅ GÜNCELLEME: Bildirim kanalının sesini ve titreşimini kapat
+                setSound(null, null)
+                enableVibration(false)
+                vibrationPattern = null
+            }
             notificationManager.createNotificationChannel(channel)
         }
 
@@ -29,6 +34,12 @@ object NotificationHelper {
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+
+        // ✅ GÜNCELLEME: Bildirimin kendi sesini ve titreşimini her zaman kapat
+        // Kanalda zaten kapatıldı ama builder seviyesinde de ek bir güvenlik önlemi
+        builder.setSound(null)
+        builder.setVibrate(null)
+        builder.setDefaults(0)
 
         notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
     }

@@ -31,8 +31,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import android.content.SharedPreferences
+import com.example.risaleezan.OnNotificationToggleListener
 
-class NamazFragment : Fragment() {
+class NamazFragment : Fragment(), OnNotificationToggleListener {
 
     private val TAG = "NamazFragment"
 
@@ -74,6 +76,11 @@ class NamazFragment : Fragment() {
         }
 
         setupVecize()
+
+        prayerTimesAdapter = PrayerTimesAdapter(mutableListOf())
+        prayerTimesAdapter.onNotificationToggleListener = this
+        recyclerViewPrayerTimes.layoutManager = LinearLayoutManager(requireContext())
+        recyclerViewPrayerTimes.adapter = prayerTimesAdapter
     }
 
     private fun initializeViews(view: View) {
@@ -87,9 +94,6 @@ class NamazFragment : Fragment() {
         textViewVecize = view.findViewById(R.id.textViewVecize)
         imageViewShare = view.findViewById(R.id.imageViewShare)
         textViewVecize.movementMethod = ScrollingMovementMethod()
-        prayerTimesAdapter = PrayerTimesAdapter(mutableListOf())
-        recyclerViewPrayerTimes.layoutManager = LinearLayoutManager(requireContext())
-        recyclerViewPrayerTimes.adapter = prayerTimesAdapter
     }
 
     private fun setupVecize() {
@@ -218,7 +222,7 @@ class NamazFragment : Fragment() {
             "September" to "Eylül", "October" to "Ekim", "November" to "Kasım", "December" to "Aralık"
         )
         val formattedGregorianDate = "$gregorianDay ${monthMap[gregorianMonth] ?: gregorianMonth} $gregorianYear"
-        val formattedHijriDate = "$hijriDay $hijriMonth $hijriYear"
+        val formattedHijriDate = "$hijriDay ${hijriMonth.capitalize(Locale.getDefault())} $hijriYear"
 
         textViewDate.text = "$formattedGregorianDate\n$formattedHijriDate"
     }
@@ -287,7 +291,6 @@ class NamazFragment : Fragment() {
             }
 
             override fun onFinish() {
-                textViewCountdown.text = "Vakit Girdi!"
                 android.os.Handler(Looper.getMainLooper()).postDelayed({
                     sharedViewModel.selectedLocation.value?.let { currentLocation ->
                         loadPrayerTimes(currentLocation)
@@ -302,9 +305,17 @@ class NamazFragment : Fragment() {
         countDownTimer?.cancel()
     }
 
+    override fun onToggleSound(prayerNameEnglish: String) {
+        Log.d(TAG, "$prayerNameEnglish için ses ayarı değiştirildi, alarmlar yeniden planlanıyor.")
+        sharedViewModel.selectedLocation.value?.let { currentLocation ->
+            loadPrayerTimes(currentLocation)
+        }
+    }
+
     private fun scheduleAlarmsForToday(timings: JSONObject) {
         val context = requireContext()
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val sharedPreferences = context.getSharedPreferences("PrayerTimeSettings", Context.MODE_PRIVATE)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             Log.w(TAG, "SCHEDULE_EXACT_ALARM izni verilmemiş.")
@@ -335,6 +346,24 @@ class NamazFragment : Fragment() {
         for ((prayerKey, timeStr) in prayerTimesToSchedule) {
             val turkishName = prayerNamesTurkish[prayerKey] ?: continue
 
+            val notificationEnabled = sharedPreferences.getBoolean("notification_enabled_$turkishName", true)
+            if (!notificationEnabled) {
+                val requestCode = turkishName.hashCode()
+                val intent = Intent(context, AlarmReceiver::class.java).apply {
+                    putExtra("PRAYER_NAME", turkishName)
+                }
+                val pendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    requestCode,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                alarmManager.cancel(pendingIntent)
+                Log.d(TAG, "$turkishName için bildirim devre dışı bırakıldı ve alarm iptal edildi.")
+                continue
+            }
+
+
             val prayerTime = timeFormat.parse(timeStr.substringBefore(" ")) ?: continue
             val calendar = Calendar.getInstance().apply {
                 time = prayerTime
@@ -345,11 +374,28 @@ class NamazFragment : Fragment() {
                 set(Calendar.MILLISECOND, 0)
             }
 
-            if (calendar.before(Calendar.getInstance())) continue
+            val keyMap = mapOf(
+                "Fajr" to "Imsak",
+                "Sunrise" to "Gunes",
+                "Dhuhr" to "Ogle",
+                "Asr" to "Ikindi",
+                "Maghrib" to "Aksam",
+                "Isha" to "Yatsi"
+            )
+            val adjustmentKey = keyMap[prayerKey] ?: prayerKey
+            val adjustmentMinutes = sharedPreferences.getInt("adjustment_minutes_$adjustmentKey", 0)
+            calendar.add(Calendar.MINUTE, adjustmentMinutes)
+
+            if (calendar.before(Calendar.getInstance())) {
+                calendar.add(Calendar.DAY_OF_MONTH, 1)
+            }
+
+            val soundResId = sharedPreferences.getInt("sound_res_id_$adjustmentKey", R.raw.ezan)
 
             val requestCode = turkishName.hashCode()
             val intent = Intent(context, AlarmReceiver::class.java).apply {
                 putExtra("PRAYER_NAME", turkishName)
+                putExtra("SOUND_RESOURCE_ID", soundResId)
             }
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -359,7 +405,7 @@ class NamazFragment : Fragment() {
             )
             try {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-                Log.d(TAG, "$turkishName için alarm kuruldu: ${calendar.time}")
+                Log.d(TAG, "$turkishName için alarm kuruldu: ${calendar.time} (Ayar: $adjustmentMinutes dk, Ses: $soundResId)")
             } catch (e: SecurityException) {
                 Log.e(TAG, "Alarm kurma izni reddedildi.", e)
             }
