@@ -33,7 +33,7 @@
         android:minHeight="64dp"
         android:layout_alignParentBottom="true"
         android:elevation="8dp"
-        android:background="@color/dark_burgundy"
+        android:background="@color/dark_burgundy "
         app:itemIconSize="35dp"
         app:itemTextAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
         app:labelVisibilityMode="unlabeled"
