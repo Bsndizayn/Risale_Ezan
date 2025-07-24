@@ -31,21 +31,19 @@
             android:gravity="center_vertical"
             android:layout_marginBottom="8dp">
 
-            <Switch
-                android:id="@+id/switchImsak"
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="İmsak Bildirimi"
-                android:textSize="16sp" />
-
-            <ImageView
-                android:id="@+id/imageViewImsakSound"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_sound"
-                android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp" />
+                android:textSize="16sp"
+                android:textColor="@color/off_white"/> <ImageView
+            android:id="@+id/imageViewImsakSound"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_sound"
+            android:contentDescription="Ses Ayarları"
+            android:layout_marginStart="8dp" />
         </LinearLayout>
         <TextView
             android:id="@+id/textViewImsakSound"
@@ -64,21 +62,21 @@
             android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
+
         <LinearLayout
             android:id="@+id/layoutGunes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
-
-            <Switch
-                android:id="@+id/switchGunes"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Güneş Bildirimi"
-                android:textSize="16sp" />
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp"> <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Güneş Bildirimi"
+            android:textSize="16sp"
+            android:textColor="@color/off_white"/>
 
             <ImageView
                 android:id="@+id/imageViewGunesSound"
@@ -86,7 +84,7 @@
                 android:layout_height="32dp"
                 android:src="@drawable/ic_sound"
                 android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="8dp" />
         </LinearLayout>
         <TextView
             android:id="@+id/textViewGunesSound"
@@ -105,21 +103,23 @@
             android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
+
         <LinearLayout
             android:id="@+id/layoutOgle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp">
 
-            <Switch
-                android:id="@+id/switchOgle"
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Öğle Bildirimi"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/off_white"/>
 
             <ImageView
                 android:id="@+id/imageViewOgleSound"
@@ -127,7 +127,7 @@
                 android:layout_height="32dp"
                 android:src="@drawable/ic_sound"
                 android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="8dp" />
         </LinearLayout>
         <TextView
             android:id="@+id/textViewOgleSound"
@@ -146,21 +146,23 @@
             android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
+
         <LinearLayout
             android:id="@+id/layoutIkindi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp">
 
-            <Switch
-                android:id="@+id/switchIkindi"
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="İkindi Bildirimi"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/off_white"/>
 
             <ImageView
                 android:id="@+id/imageViewIkindiSound"
@@ -168,7 +170,7 @@
                 android:layout_height="32dp"
                 android:src="@drawable/ic_sound"
                 android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="8dp" />
         </LinearLayout>
         <TextView
             android:id="@+id/textViewIkindiSound"
@@ -187,21 +189,23 @@
             android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
+
         <LinearLayout
             android:id="@+id/layoutAksam"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp">
 
-            <Switch
-                android:id="@+id/switchAksam"
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Akşam Bildirimi"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/off_white"/>
 
             <ImageView
                 android:id="@+id/imageViewAksamSound"
@@ -209,7 +213,7 @@
                 android:layout_height="32dp"
                 android:src="@drawable/ic_sound"
                 android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="8dp" />
         </LinearLayout>
         <TextView
             android:id="@+id/textViewAksamSound"
@@ -228,21 +232,23 @@
             android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
+
         <LinearLayout
             android:id="@+id/layoutYatsi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp">
 
-            <Switch
-                android:id="@+id/switchYatsi"
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Yatsı Bildirimi"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/off_white"/>
 
             <ImageView
                 android:id="@+id/imageViewYatsiSound"
@@ -250,7 +256,7 @@
                 android:layout_height="32dp"
                 android:src="@drawable/ic_sound"
                 android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="8dp" />
         </LinearLayout>
         <TextView
             android:id="@+id/textViewYatsiSound"
@@ -268,14 +274,6 @@
             android:layout_marginBottom="16dp"
             android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
-
-        <Switch
-            android:id="@+id/switchMuteAll"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Tüm Bildirimleri Sessize Al"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp"/>
 
     </LinearLayout>
 </ScrollView>

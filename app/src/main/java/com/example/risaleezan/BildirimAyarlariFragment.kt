@@ -54,50 +54,59 @@ class BildirimAyarlariFragment : Fragment() {
 
         adjustmentValues = resources.getStringArray(R.array.time_adjustment_values).map { it.toInt() }.toIntArray()
 
-        setupPrayerTime(view, "Imsak", R.id.switchImsak, R.id.imageViewImsakSound, R.id.spinnerImsakAdjustment, R.id.textViewImsakSound)
-        setupPrayerTime(view, "Gunes", R.id.switchGunes, R.id.imageViewGunesSound, R.id.spinnerGunesAdjustment, R.id.textViewGunesSound)
-        setupPrayerTime(view, "Ogle", R.id.switchOgle, R.id.imageViewOgleSound, R.id.spinnerOgleAdjustment, R.id.textViewOgleSound)
-        setupPrayerTime(view, "Ikindi", R.id.switchIkindi, R.id.imageViewIkindiSound, R.id.spinnerIkindiAdjustment, R.id.textViewIkindiSound)
-        setupPrayerTime(view, "Aksam", R.id.switchAksam, R.id.imageViewAksamSound, R.id.spinnerAksamAdjustment, R.id.textViewAksamSound)
-        setupPrayerTime(view, "Yatsi", R.id.switchYatsi, R.id.imageViewYatsiSound, R.id.spinnerYatsiAdjustment, R.id.textViewYatsiSound)
+        // İmsak Vakti Ayarları
+        setupPrayerTime(view, "Imsak", R.id.imageViewImsakSound, R.id.spinnerImsakAdjustment, R.id.textViewImsakSound)
+        // Güneş Vakti Ayarları
+        setupPrayerTime(view, "Gunes", R.id.imageViewGunesSound, R.id.spinnerGunesAdjustment, R.id.textViewGunesSound)
+        // Öğle Vakti Ayarları
+        setupPrayerTime(view, "Ogle", R.id.imageViewOgleSound, R.id.spinnerOgleAdjustment, R.id.textViewOgleSound)
+        // İkindi Vakti Ayarları
+        setupPrayerTime(view, "Ikindi", R.id.imageViewIkindiSound, R.id.spinnerIkindiAdjustment, R.id.textViewIkindiSound)
+        // Akşam Vakti Ayarları
+        setupPrayerTime(view, "Aksam", R.id.imageViewAksamSound, R.id.spinnerAksamAdjustment, R.id.textViewAksamSound)
+        // Yatsı Vakti Ayarları
+        setupPrayerTime(view, "Yatsi", R.id.imageViewYatsiSound, R.id.spinnerYatsiAdjustment, R.id.textViewYatsiSound)
 
-        val switchMuteAll = view.findViewById<Switch>(R.id.switchMuteAll)
-        switchMuteAll.isChecked = sharedPreferences.getBoolean("mute_all_notifications", false)
-        switchMuteAll.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferences.edit().putBoolean("mute_all_notifications", isChecked).apply()
-            prayerNames.forEach { prayer ->
-                val switchId = resources.getIdentifier("switch$prayer", "id", requireContext().packageName)
-                view.findViewById<Switch>(switchId)?.isChecked = !isChecked
-                view.findViewById<Switch>(switchId)?.isEnabled = !isChecked
-            }
-        }
+        // "Tüm Bildirimleri Sessize Al" anahtarıyla ilgili kod kaldırıldı
+        // val switchMuteAll = view.findViewById<Switch>(R.id.switchMuteAll)
+        // switchMuteAll.isChecked = sharedPreferences.getBoolean("mute_all_notifications", false)
+        // switchMuteAll.setOnCheckedChangeListener { _, isChecked ->
+        //     sharedPreferences.edit().putBoolean("mute_all_notifications", isChecked).apply()
+        //     prayerNames.forEach { prayer ->
+        //         val switchId = resources.getIdentifier("switch$prayer", "id", requireContext().packageName)
+        //         view.findViewById<Switch>(switchId)?.isChecked = !isChecked
+        //         view.findViewById<Switch>(switchId)?.isEnabled = !isChecked
+        //     }
+        // }
 
         return view
     }
 
-    private fun setupPrayerTime(view: View, prayerName: String, switchId: Int, soundIconId: Int, spinnerId: Int, textViewId: Int) {
+    // setupPrayerTime metodunun parametreleri switchId kaldırıldığı için güncellendi
+    private fun setupPrayerTime(view: View, prayerName: String, soundIconId: Int, spinnerId: Int, textViewId: Int) {
         val prayerDisplayName = prayerNameMap[prayerName] ?: prayerName
-        val switch = view.findViewById<Switch>(switchId)
+        // val switch = view.findViewById<Switch>(switchId) // Switch kaldırıldı
         val soundIcon = view.findViewById<ImageView>(soundIconId)
         val spinnerAdjustment = view.findViewById<Spinner>(spinnerId)
         val textViewSound = view.findViewById<TextView>(textViewId)
 
         updateSoundTextView(textViewSound, sharedPreferences.getInt("sound_res_id_$prayerName", R.raw.ezan))
 
-        val isEnabled = sharedPreferences.getBoolean("notification_enabled_$prayerName", true)
-        switch.isChecked = isEnabled
-        switch.text = "$prayerDisplayName Bildirimi"
-        switch.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferences.edit().putBoolean("notification_enabled_$prayerName", isChecked).apply()
-            Log.d("BildirimAyarlari", "$prayerName bildirimi: $isChecked")
-        }
+        // Switch'in durumuyla ilgili kod kaldırıldı
+        // val isEnabled = sharedPreferences.getBoolean("notification_enabled_$prayerName", true)
+        // switch.isChecked = isEnabled
+        // switch.text = "$prayerDisplayName Bildirimi"
+        // switch.setOnCheckedChangeListener { _, isChecked ->
+        //     sharedPreferences.edit().putBoolean("notification_enabled_$prayerName", isChecked).apply()
+        //     Log.d("BildirimAyarlari", "$prayerName bildirimi: $isChecked")
+        // }
 
         soundIcon.setOnClickListener {
             val bundle = Bundle().apply { putString("prayer_name", prayerName) }
             findNavController().navigate(R.id.soundSelectionFragment, bundle)
         }
 
-        // ✅ YENİ EKLENDİ: Ses yazısına da tıklanabilirlik
+        // Ses yazısına tıklanabilirlik
         textViewSound.setOnClickListener {
             val bundle = Bundle().apply { putString("prayer_name", prayerName) }
             findNavController().navigate(R.id.soundSelectionFragment, bundle)
