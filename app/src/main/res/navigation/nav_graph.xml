@@ -21,7 +21,23 @@
         android:id="@+id/risaleFragment"
         android:name="com.example.risaleezan.RisaleFragment"
         android:label="fragment_risale"
-        tools:layout="@layout/fragment_risale" />
+        tools:layout="@layout/fragment_risale" >
+        <action
+            android:id="@+id/action_risaleFragment_to_sabahNamaziFragment"
+            app:destination="@id/sabahNamaziFragment" />
+        <action
+            android:id="@+id/action_risaleFragment_to_ogleNamaziFragment"
+            app:destination="@id/ogleNamaziFragment" />
+        <action
+            android:id="@+id/action_risaleFragment_to_ikindiNamaziFragment"
+            app:destination="@id/ikindiNamaziFragment" />
+        <action
+            android:id="@+id/action_risaleFragment_to_aksamNamaziFragment"
+            app:destination="@id/aksamNamaziFragment" />
+        <action
+            android:id="@+id/action_risaleFragment_to_yatsiNamaziFragment"
+            app:destination="@id/yatsiNamaziFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/ayarlarFragment"
@@ -80,10 +96,31 @@
         android:label="fragment_bildirim_ayarlari"
         tools:layout="@layout/fragment_bildirim_ayarlari" />
 
-    <!-- Buraya SoundSelectionFragment eklendi -->
     <fragment
         android:id="@+id/soundSelectionFragment"
         android:name="com.example.risaleezan.SoundSelectionFragment"
         android:label="fragment_sound_selection"
         tools:layout="@layout/fragment_sound_selection" />
+
+    <fragment
+        android:id="@+id/sabahNamaziFragment"
+        android:name="com.example.risaleezan.SabahNamaziFragment"
+        android:label="Sabah Namazı" />
+    <fragment
+        android:id="@+id/ogleNamaziFragment"
+        android:name="com.example.risaleezan.OgleNamaziFragment"
+        android:label="Öğle Namazı" />
+    <fragment
+        android:id="@+id/ikindiNamaziFragment"
+        android:name="com.example.risaleezan.IkindiNamaziFragment"
+        android:label="İkindi Namazı" />
+    <fragment
+        android:id="@+id/aksamNamaziFragment"
+        android:name="com.example.risaleezan.AksamNamaziFragment"
+        android:label="Akşam Namazı" />
+    <fragment
+        android:id="@+id/yatsiNamaziFragment"
+        android:name="com.example.risaleezan.YatsiNamaziFragment"
+        android:label="Yatsı Namazı" />
+
 </navigation>

@@ -4,24 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.JavascriptInterface
+import android.webkit.WebView
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import android.graphics.drawable.Drawable
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.navigation.fragment.findNavController
 
 class RisaleFragment : Fragment() {
-
-    // KİTAPLARIN RAF İÇİNDEKİ DİKEY KONUMUNU BELİRLEYEN SABİTLER
-    // BU DEĞERLERİ DEĞİŞTİREREK KİTAPLARIN RAF ARKA PLANINA TAM OTURMASINI SAĞLAYIN!
-    // Pozitif değerler boşluk bırakır ve kitabı küçültür.
-    private val SHELF_TOP_PADDING_DP = 60    // Kitabın raf arka planının üst kenarından boşluk (daha büyük bir değer deneyin)
-    private val SHELF_BOTTOM_PADDING_DP = 23 // Kitabın raf arka planının alt kenarından boşluk (daha küçük bir değer deneyin)
-
-    private lateinit var bottomNavigationView: BottomNavigationView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,151 +21,113 @@ class RisaleFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        bottomNavigationView = (activity as MainActivity).findViewById(R.id.bottom_navigation)
+        val webView = view.findViewById<WebView>(R.id.htmlWebView)
+        webView.settings.javaScriptEnabled = true
+        webView.setBackgroundColor(0x00000000)
+        webView.addJavascriptInterface(WebAppInterface(), "Android")
 
-        val allBooks = listOf(
-            // Külliyat
-            Book("Asa-yı Musa", R.drawable.asa),
-            Book("Tarihçe-i Hayat", R.drawable.tarihce),
-            Book("Sözler", R.drawable.sozler),
-            Book("Mektûbat", R.drawable.mektubat),
-            Book("Lem'alar", R.drawable.lemalar),
-            Book("Şualar", R.drawable.sualar),
-            Book("Barla ", R.drawable.barla),
-            Book("Kastamonu ", R.drawable.kastamonu),
-            Book("Emirdağ ", R.drawable.emirdag),
-            Book("İ.İ'caz", R.drawable.isarat),
-            Book("M.Nuriye", R.drawable.mesnevi),
-            Book("S.T.Gaybi", R.drawable.sikke),
-            Book("İman ve Küfür M.", R.drawable.iman_kufur),
-            Book("Muhakemat", R.drawable.muhakemat),
+        val menuHtml = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body{background-color:transparent;font-family:'Segoe UI',sans-serif;color:white;padding:16px;}
+                    details{border-radius:12px;margin-bottom:12px;overflow:hidden;background:linear-gradient(145deg, #5a0908, #6f1c1c);}
+                    summary{padding:18px 20px;font-size:17px;font-weight:600;cursor:pointer;list-style:none;}
+                    .content{padding:16px 20px;background-color:rgba(0,0,0,0.2);border-top:1px solid rgba(255,255,255,0.1);}
+                    .link-button{display:block;padding:10px;margin:5px 0;background-color:#8B4513;border-radius:8px;text-align:center;color:white;text-decoration:none;}
+                </style>
+            </head>
+            <body>
+                <details>
+                    <summary>SABAH NAMAZI</summary>
+                    <div class="content">
+                        <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH')">TAMAMI</a>
+                        <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH')">Farzdan Sonra</a>
+                        <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH')">Duadan Sonra</a>
+                        <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH')">Ecirnalar</a>
+                        <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH')">Ecirna Duası</a>
+                        <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH')">Lâ Yestevi</a>
+                    </div>
+                </details>
+                <details>
+                    <summary>ÖĞLE NAMAZI</summary>
+                    <div class="content">
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE')">TAMAMI</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE')">Duadan Sonra</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE')">Esma Duası</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE')">Esma Duasının Duası</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE')">Lekad Sadakallah</a>
+                    </div>
+                </details>
+                <details>
+                    <summary>İKİNDİ NAMAZI</summary>
+                    <div class="content">
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('IKINDI')">TAMAMI</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('IKINDI')">Duadan Sonra</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('IKINDI')">Ecirnalar</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('IKINDI')">Ecirna Duası</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('IKINDI')">Amme</a>
+                    </div>
+                </details>
+                <details>
+                    <summary>AKŞAM NAMAZI</summary>
+                    <div class="content">
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('AKSAM')">TAMAMI</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('AKSAM')">Farzdan Sonra</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('AKSAM')">Duadan Sonra</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('AKSAM')">Esma Duası</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('AKSAM')">Esma Duasının Duası</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('AKSAM')">Lâ Yestevi</a>
+                    </div>
+                </details>
+                <details>
+                    <summary>YATSI NAMAZI</summary>
+                    <div class="content">
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('YATSI')">TAMAMI</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('YATSI')">Duadan Sonra</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('YATSI')">Esma Duası</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('YATSI')">Esma Duasının Duası</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('YATSI')">AmenerResulü</a>
+                    </div>
+                </details>
 
-            // Küçük Kitaplar (devam)
-            Book("Meyve Risalesi", R.drawable.meyve_risalesi),
-            Book("Küçük Sözler", R.drawable.kucuk_sozler),
-            Book("Gençlik Reh.", R.drawable.genclik_rehberi),
-            Book("23. Söz", R.drawable.yirmiucuncu_soz),
-            Book("Hizmet Reh.", R.drawable.hizmet_rehberi),
-            Book("Hastalar Risalesi", R.drawable.hastalar_risalesi),
-            Book("Münacat", R.drawable.munacat),
-            Book("İhtiyarlar Ris.", R.drawable.ihtiyarlar_risalesi),
-            Book("Hanımlar Reh.", R.drawable.hanimlar_rehberi),
-            Book("Ayet-ül Kübra", R.drawable.ayet_ul_kubra),
-            Book("İhlas Risalesi", R.drawable.ihlas_risalesi),
-            Book("Uhuvvet Risalesi", R.drawable.uhuvvet_risalesi),
-            Book("33 Pencere", R.drawable.otuzuc_pencere),
-            Book("Mucizat-ı Kur.", R.drawable.mucizat_i_kuraniye),
-            Book("Mucizat-ı Ah.", R.drawable.mucizat_i_ahmediye),
-            Book("Nur Çeşmesi", R.drawable.nur_cesmesi),
-            Book("Bedi Üz. Cvp.", R.drawable.bedi_uz_cevap_veriyor),
-            Book("Nurun İlk Kap.", R.drawable.nurun_ilk_kapisi),
-            Book("Mirkat-üs Sün.", R.drawable.mirkat_us_sunnet),
-            Book("Zuhretunnur", R.drawable.zuhretunnur),
-            Book("Haşir Risalesi", R.drawable.hasir_risalesi),
-            Book("Hakikat Nur.", R.drawable.hakikat_nurlari),
-            Book("Konferans", R.drawable.konferans),
-            Book("El-Hüccet-üz Z.", R.drawable.el_huccet_uz_zehra),
-            Book("İman Hak.", R.drawable.iman_hakikatlari),
-            Book("Hutbe-i Şam.", R.drawable.hutbe_i_samiye),
-            Book("Rhmt. Şfkt. İlaç.", R.drawable.rahmet_sefkat_ilaclari),
-            Book("Münazarat", R.drawable.munazarat),
-            Book("Miraç & Ş. Kamer", R.drawable.mirac_ve_sakki_kamer),
-            Book("Rmzn. İkt. Şükür Ris.", R.drawable.ramazan_iktisat_sukr_risalesi),
-            Book("Miftah-ül İm.", R.drawable.miftah_ul_iman),
-            Book("Sunuhat-Tuluat-İş.", R.drawable.sunuhat_tuluat_isarat),
-            Book("İçtihad Risalesi", R.drawable.ictihad_risalesi),
-            Book("Divan-ı H. Örf.", R.drawable.divan_i_harbi_orfi),
-            Book("Nur Alemi Anahtarı", R.drawable.nur_aleminin_bir_anahtari),
-            Book("Ene & Zerre Ris.", R.drawable.ene_ve_zerre_risalesi),
-            Book("Tabiat Risalesi", R.drawable.tabiat_risalesi),
-            Book("30. Lem'a", R.drawable.otuzuncu_lem_a)
-        )
-        val evradVeKuranBooks = listOf(
-            Book("Kuran-ı Kerim", R.drawable.kuran_i_kerim),
-            Book("Hizbü'l-Kuran", R.drawable.hizbul_kuran),
-            Book("Hizb-ül Hakaik", R.drawable.hizbul_hakaik),
-            Book("Cevşen", R.drawable.cevsen),
-            Book("Namaz Tesbihatı", R.drawable.namaz_tesbihati),
-            Book("Elif-Ba", R.drawable.elif_ba)
-        )
+                <script>
+                    document.querySelectorAll('details').forEach((el) => {
+                        el.addEventListener('toggle', (e) => {
+                            if (el.open) {
+                                document.querySelectorAll('details').forEach((otherEl) => {
+                                    if (otherEl !== el) {
+                                        otherEl.open = false;
+                                    }
+                                });
+                            }
+                        });
+                    });
+                </script>
 
-        view.post { // view'ın boyutları hazır olduğunda çalışacak
-            val rootLayout = view as ViewGroup
-            val totalHeightPx = rootLayout.height // Fragment'ın toplam yüksekliği (padding sonrası)
+            </body>
+            </html>
+        """.trimIndent()
 
-            val density = resources.displayMetrics.density
-
-            // Her rafın dikey yüksekliğini ve kitapların sığması gereken yüksekliği hesaplayalım
-            val guideTopPx = (totalHeightPx * 0.00).toInt()
-            val guide1BottomPx = (totalHeightPx * 0.25).toInt()
-            val guide2BottomPx = (totalHeightPx * 0.50).toInt()
-            val guide3BottomPx = (totalHeightPx * 0.75).toInt()
-            val guideBottomPx = (totalHeightPx * 1.00).toInt()
-
-            val shelf1HeightPx = guide1BottomPx - guideTopPx
-            val shelf2HeightPx = guide2BottomPx - guide1BottomPx
-            val shelf3HeightPx = guide3BottomPx - guide2BottomPx
-            val shelf4HeightPx = guideBottomPx - guide3BottomPx
-
-            val bookAreaPaddingTopPx = (SHELF_TOP_PADDING_DP * density).toInt()
-            val bookAreaPaddingBottomPx = (SHELF_BOTTOM_PADDING_DP * density).toInt()
-
-            val bookHeightForShelf1 = shelf1HeightPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
-            val bookHeightForShelf2 = shelf2HeightPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
-            val bookHeightForShelf3 = shelf3HeightPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
-            val bookHeightForShelf4 = shelf4HeightPx - bookAreaPaddingTopPx - bookAreaPaddingBottomPx
-
-            // Kitapların minimum bir yüksekliği olmalı, aksi takdirde çok küçük görünebilirler
-            val minBookHeightPx = (70 * density).toInt()
-
-            view.findViewById<RecyclerView>(R.id.horizontalBookRecyclerView1).apply {
-                layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-                adapter = BookAdapter(allBooks.subList(0, 5), Math.max(minBookHeightPx, bookHeightForShelf1))
-            }
-
-            view.findViewById<RecyclerView>(R.id.horizontalBookRecyclerView2).apply {
-                layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-                adapter = BookAdapter(allBooks.subList(0, 14), Math.max(minBookHeightPx, bookHeightForShelf2))
-            }
-
-            view.findViewById<RecyclerView>(R.id.horizontalBookRecyclerView3).apply {
-                layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-                adapter = BookAdapter(evradVeKuranBooks, Math.max(minBookHeightPx, bookHeightForShelf3))
-            }
-
-            view.findViewById<RecyclerView>(R.id.horizontalBookRecyclerView4).apply {
-                layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-                adapter = BookAdapter(allBooks.subList(14, allBooks.size), Math.max(minBookHeightPx, bookHeightForShelf4))
-            }
-        }
-
-        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
-            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(
-                left = v.paddingLeft + systemBarsInsets.left,
-                top = v.paddingTop + systemBarsInsets.top,
-                right = v.paddingRight + systemBarsInsets.right,
-                bottom = v.paddingBottom + systemBarsInsets.bottom
-            )
-            insets
-        }
+        webView.loadDataWithBaseURL(null, menuHtml, "text/html", "UTF-8", null)
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (::bottomNavigationView.isInitialized) {
-            bottomNavigationView.visibility = View.GONE
-        }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        if (::bottomNavigationView.isInitialized) {
-            bottomNavigationView.visibility = View.VISIBLE
+    inner class WebAppInterface {
+        @JavascriptInterface
+        fun openPrayerTime(prayerTime: String) {
+            val actionId = when (prayerTime) {
+                "SABAH" -> R.id.action_risaleFragment_to_sabahNamaziFragment
+                "OGLE" -> R.id.action_risaleFragment_to_ogleNamaziFragment
+                "IKINDI" -> R.id.action_risaleFragment_to_ikindiNamaziFragment
+                "AKSAM" -> R.id.action_risaleFragment_to_aksamNamaziFragment
+                "YATSI" -> R.id.action_risaleFragment_to_yatsiNamaziFragment
+                else -> return
+            }
+            activity?.runOnUiThread {
+                findNavController().navigate(actionId)
+            }
         }
     }
 }
-
-// Yardımcı fonksiyon: DP'yi piksele çevirmek için
-fun Int.dpToPx(displayMetrics: android.util.DisplayMetrics): Int =
-    (this * displayMetrics.density + 0.5f).toInt()
