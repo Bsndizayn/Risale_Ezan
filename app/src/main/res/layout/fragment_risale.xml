@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<WebView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/htmlWebView"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF400606" />
+    android:background="#FF400606">
+
+    <WebView
+        android:id="@+id/htmlWebView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</FrameLayout>
