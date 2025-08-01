@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/transparent"
+    android:background="@color/dark_burgundy"
+    android:fillViewport="true"
     tools:context=".BildirimAyarlariFragment">
 
     <LinearLayout
@@ -18,261 +19,249 @@
             android:gravity="center"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="16dp"
-            android:text="EZAN SESİ VE BİLDİRİM AYARLARI"
+            android:text="EZAN SES VE BİLDİRİM AYARLARI"
             android:textColor="@color/light_gold"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <LinearLayout
-            android:id="@+id/layoutImsak"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
-
-            <TextView
-                android:layout_width="0dp"
+            android:orientation="vertical"
+            android:paddingVertical="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="İmsak Bildirimi"
-                android:textSize="16sp"
-                android:textColor="@color/off_white"/> <ImageView
-            android:id="@+id/imageViewImsakSound"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_sound"
-            android:contentDescription="Ses Ayarları"
-            android:layout_marginStart="8dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="İmsak Bildirimi"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+                <ImageView
+                    android:id="@+id/imageViewImsakSound"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_sound" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/textViewImsakSound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Seçili ses"
+                android:textColor="@color/light_gold"
+                android:textSize="14sp" />
+            <Spinner
+                android:id="@+id/spinnerImsakAdjustment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@drawable/spinner_dropdown_background" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/textViewImsakSound"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seçili ses"
-            android:textSize="14sp"
-            android:textColor="@color/light_gold"
-            android:layout_marginBottom="8dp" />
-
-        <Spinner
-            android:id="@+id/spinnerImsakAdjustment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-
         <LinearLayout
-            android:id="@+id/layoutGunes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="16dp"> <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Güneş Bildirimi"
-            android:textSize="16sp"
-            android:textColor="@color/off_white"/>
-
-            <ImageView
-                android:id="@+id/imageViewGunesSound"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_sound"
-                android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp" />
+            android:orientation="vertical"
+            android:paddingVertical="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Güneş Bildirimi"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+                <ImageView
+                    android:id="@+id/imageViewGunesSound"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_sound" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/textViewGunesSound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Seçili ses"
+                android:textColor="@color/light_gold"
+                android:textSize="14sp" />
+            <Spinner
+                android:id="@+id/spinnerGunesAdjustment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@drawable/spinner_dropdown_background" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/textViewGunesSound"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seçili ses"
-            android:textSize="14sp"
-            android:textColor="@color/light_gold"
-            android:layout_marginBottom="8dp" />
-
-        <Spinner
-            android:id="@+id/spinnerGunesAdjustment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-
         <LinearLayout
-            android:id="@+id/layoutOgle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="16dp">
-
-            <TextView
-                android:layout_width="0dp"
+            android:orientation="vertical"
+            android:paddingVertical="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Öğle Bildirimi"
-                android:textSize="16sp"
-                android:textColor="@color/off_white"/>
-
-            <ImageView
-                android:id="@+id/imageViewOgleSound"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_sound"
-                android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Öğle Bildirimi"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+                <ImageView
+                    android:id="@+id/imageViewOgleSound"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_sound" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/textViewOgleSound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Seçili ses"
+                android:textColor="@color/light_gold"
+                android:textSize="14sp" />
+            <Spinner
+                android:id="@+id/spinnerOgleAdjustment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@drawable/spinner_dropdown_background" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/textViewOgleSound"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seçili ses"
-            android:textSize="14sp"
-            android:textColor="@color/light_gold"
-            android:layout_marginBottom="8dp" />
-
-        <Spinner
-            android:id="@+id/spinnerOgleAdjustment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-
         <LinearLayout
-            android:id="@+id/layoutIkindi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="16dp">
-
-            <TextView
-                android:layout_width="0dp"
+            android:orientation="vertical"
+            android:paddingVertical="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="İkindi Bildirimi"
-                android:textSize="16sp"
-                android:textColor="@color/off_white"/>
-
-            <ImageView
-                android:id="@+id/imageViewIkindiSound"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_sound"
-                android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="İkindi Bildirimi"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+                <ImageView
+                    android:id="@+id/imageViewIkindiSound"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_sound" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/textViewIkindiSound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Seçili ses"
+                android:textColor="@color/light_gold"
+                android:textSize="14sp" />
+            <Spinner
+                android:id="@+id/spinnerIkindiAdjustment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@drawable/spinner_dropdown_background" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/textViewIkindiSound"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seçili ses"
-            android:textSize="14sp"
-            android:textColor="@color/light_gold"
-            android:layout_marginBottom="8dp" />
-
-        <Spinner
-            android:id="@+id/spinnerIkindiAdjustment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-
         <LinearLayout
-            android:id="@+id/layoutAksam"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="16dp">
-
-            <TextView
-                android:layout_width="0dp"
+            android:orientation="vertical"
+            android:paddingVertical="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Akşam Bildirimi"
-                android:textSize="16sp"
-                android:textColor="@color/off_white"/>
-
-            <ImageView
-                android:id="@+id/imageViewAksamSound"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_sound"
-                android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Akşam Bildirimi"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+                <ImageView
+                    android:id="@+id/imageViewAksamSound"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_sound" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/textViewAksamSound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Seçili ses"
+                android:textColor="@color/light_gold"
+                android:textSize="14sp" />
+            <Spinner
+                android:id="@+id/spinnerAksamAdjustment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@drawable/spinner_dropdown_background" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/textViewAksamSound"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seçili ses"
-            android:textSize="14sp"
-            android:textColor="@color/light_gold"
-            android:layout_marginBottom="8dp" />
-
-        <Spinner
-            android:id="@+id/spinnerAksamAdjustment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
-
         <LinearLayout
-            android:id="@+id/layoutYatsi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="16dp">
-
-            <TextView
-                android:layout_width="0dp"
+            android:orientation="vertical"
+            android:paddingVertical="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Yatsı Bildirimi"
-                android:textSize="16sp"
-                android:textColor="@color/off_white"/>
-
-            <ImageView
-                android:id="@+id/imageViewYatsiSound"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_sound"
-                android:contentDescription="Ses Ayarları"
-                android:layout_marginStart="8dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Yatsı Bildirimi"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+                <ImageView
+                    android:id="@+id/imageViewYatsiSound"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_sound" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/textViewYatsiSound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Seçili ses"
+                android:textColor="@color/light_gold"
+                android:textSize="14sp" />
+            <Spinner
+                android:id="@+id/spinnerYatsiAdjustment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@drawable/spinner_dropdown_background" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/textViewYatsiSound"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seçili ses"
-            android:textSize="14sp"
-            android:textColor="@color/light_gold"
-            android:layout_marginBottom="8dp" />
-
-        <Spinner
-            android:id="@+id/spinnerYatsiAdjustment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:entries="@array/time_adjustment_options" />
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#40FFFFFF"/>
 
     </LinearLayout>

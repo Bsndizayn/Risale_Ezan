@@ -8,15 +8,25 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController // Navigasyon için bu satırı ekleyin
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class SoundSelectionFragment : Fragment() {
 
     private lateinit var prefs: SharedPreferences
     private var prayerName: String? = null
     private var mediaPlayer: MediaPlayer? = null
+    private lateinit var adapter: SoundAdapter
+
+    private val prayerNameMap = mapOf(
+        "Imsak" to "İmsak", "Gunes" to "Güneş", "Ogle" to "Öğle",
+        "Ikindi" to "İkindi", "Aksam" to "Akşam", "Yatsi" to "Yatsı"
+    )
 
     private val soundMap = mapOf(
         "Sessiz" to -1,
@@ -25,7 +35,7 @@ class SoundSelectionFragment : Fragment() {
         "Cami Ezanı (YÜKSEK SES)" to R.raw.ezan,
         "İsmail Coşar (Sabah)" to R.raw.ismail_cosar_turkiye,
         "Ali Tel (Akşam)" to R.raw.ali_tel_turkiye,
-        "Azzam Dweik  Mescidi Aksa (Öğle)" to R.raw.azzam_dweik_palestine,
+        "Azzam Dweik Mescidi Aksa (Öğle)" to R.raw.azzam_dweik_palestine,
         "Egzon İbrahimi Kosova (Akşam)" to R.raw.egzon_ibrahimi_kosova,
         "Ghofar Zaen Endenozya (İkindi)" to R.raw.ghofar_zaen_indonesia,
         "Mansor Az Zahrani Mekke (Sabah)" to R.raw.mansor_az_zahrani_mekke,
@@ -36,20 +46,9 @@ class SoundSelectionFragment : Fragment() {
         "Salim Bahanan Kamerun (Öğle)" to R.raw.salim_bahanan_endonezya
     )
 
-    companion object {
-        private const val ARG_PRAYER_NAME = "prayer_name"
-        fun newInstance(prayerName: String): SoundSelectionFragment {
-            val fragment = SoundSelectionFragment()
-            val args = Bundle()
-            args.putString(ARG_PRAYER_NAME, prayerName)
-            fragment.arguments = args
-            return fragment
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        prayerName = arguments?.getString(ARG_PRAYER_NAME)
+        prayerName = arguments?.getString("prayer_name")
         prefs = requireActivity().getSharedPreferences("PrayerTimeSettings", Context.MODE_PRIVATE)
     }
 
@@ -57,80 +56,59 @@ class SoundSelectionFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_sound_selection, container, false)
-        val listView = view.findViewById<ListView>(R.id.listViewSounds)
-        val buttonComplete = view.findViewById<Button>(R.id.buttonComplete) // Tamamla butonunu bağlayın
-
-        val soundNames = soundMap.keys.toTypedArray()
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_single_choice, soundNames)
-        listView.adapter = adapter
-        listView.choiceMode = ListView.CHOICE_MODE_SINGLE
-
-        val currentSoundId = prefs.getInt("sound_res_id_$prayerName", R.raw.ezan)
-        val checkedItem = soundMap.values.indexOf(currentSoundId).let { if (it == -1) 0 else it }
-        listView.setItemChecked(checkedItem, true)
-
-        // ListView'daki öğeye tıklandığında sesi çal ve kaydet
-        listView.setOnItemClickListener { _, _, position, _ ->
-            val selectedSoundName = soundNames[position]
-            val selectedSoundId = soundMap[selectedSoundName] ?: R.raw.ezan
-
-            // Sadece "Sessiz" seçilmediyse sesi çal
-            if (selectedSoundId != -1) {
-                playSelectedSound(selectedSoundId)
-            } else {
-                stopPlayback() // Sessiz seçilirse oynatmayı durdur
-            }
-
-            prefs.edit().putInt("sound_res_id_$prayerName", selectedSoundId).apply()
-            Toast.makeText(requireContext(), "$selectedSoundName seçildi", Toast.LENGTH_SHORT).show()
-            Log.d("SoundSelection", "$prayerName için '$selectedSoundName' seçildi.")
-        }
-
-        // "Tamamla" butonuna tıklama dinleyicisi ekle
-        buttonComplete.setOnClickListener {
-            stopPlayback() // Geri dönmeden önce sesi durdur
-            findNavController().popBackStack() // Bir önceki ekrana geri dön
-        }
-
-        val titleTextView = view.findViewById<TextView>(R.id.textViewSoundSelectionTitle)
-        titleTextView.text = "$prayerName Sesi Seç"
-
-        return view
+        return inflater.inflate(R.layout.fragment_sound_selection, container, false)
     }
 
-    // Seçilen sesi oynatma fonksiyonu
-    private fun playSelectedSound(soundResId: Int) {
-        stopPlayback() // Önceki oynatmayı durdur
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        if (soundResId != -1) { // -1 (Sessiz) ise çalma
+        val prayerNameKey = prayerName ?: return
+        val currentSoundId = prefs.getInt("sound_res_id_$prayerNameKey", R.raw.ezan)
+
+        val titleTextView = view.findViewById<TextView>(R.id.textViewSoundSelectionTitle)
+        titleTextView.text = "${prayerNameMap[prayerNameKey]} Sesi Seç"
+
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewSounds)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+
+        val soundList = soundMap.entries.map { it.key to it.value }
+
+        adapter = SoundAdapter(soundList, currentSoundId) { selectedSound ->
+            playSelectedSound(selectedSound.second)
+        }
+        recyclerView.adapter = adapter
+
+        val buttonComplete = view.findViewById<Button>(R.id.buttonComplete)
+        buttonComplete.setOnClickListener {
+            stopPlayback()
+            val selectedSound = adapter.getSelectedSound()
+            if (selectedSound != null) {
+                prefs.edit().putInt("sound_res_id_$prayerNameKey", selectedSound.second).apply()
+                Toast.makeText(context, "${selectedSound.first} seçildi", Toast.LENGTH_SHORT).show()
+            }
+            findNavController().popBackStack()
+        }
+    }
+
+    private fun playSelectedSound(soundResId: Int) {
+        stopPlayback()
+        if (soundResId != -1) {
             mediaPlayer = MediaPlayer.create(context, soundResId)
             mediaPlayer?.setOnCompletionListener { mp ->
-                mp.release() // Ses bittiğinde MediaPlayer'ı serbest bırak
+                mp.release()
                 mediaPlayer = null
             }
             mediaPlayer?.start()
         }
     }
 
-    // Oynatmayı durdurma fonksiyonu
     private fun stopPlayback() {
-        mediaPlayer?.let {
-            if (it.isPlaying) {
-                it.stop()
-            }
-            it.release()
-        }
+        mediaPlayer?.release()
         mediaPlayer = null
     }
 
     override fun onStop() {
         super.onStop()
-        stopPlayback() // Fragment durdurulduğunda oynatmayı durdur
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        stopPlayback() // View yok edildiğinde oynatmayı durdur
+        stopPlayback()
     }
 }

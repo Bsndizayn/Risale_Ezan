@@ -45,7 +45,7 @@ class RisaleFragment : Fragment() {
             <body>
                 <details> <summary>SABAH NAMAZI</summary>
                     <div class="content">
-                        <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH', null)">TAMAMI</a>
+                        <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH', null)">Baştan Sona<</a>
                         <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH', 'nav-2')">Allahümme İnne Nükaddimü</a>
                         <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH', 'nav-3')">Ecirnalar</a>
                         <a href="#" class="link-button" onclick="Android.openPrayerTime('SABAH', 'nav-4')">Kısa Tesbihat Başlangıç</a>
@@ -56,10 +56,10 @@ class RisaleFragment : Fragment() {
                 <details>
                     <summary>ÖĞLE NAMAZI</summary>
                     <div class="content">
-                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', null)">TAMAMI</a>
-                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', 'nav-ogle-2')">Duadan Sonra</a>
-                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', 'nav-ogle-3')">Esma Duası</a>
-                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', 'nav-ogle-4')">Esma Duasının Duası</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', null)">Baştan Sona</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', 'nav-ogle-2')">Kısa Tesbihat Başlangıç</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', 'nav-ogle-3')">Uzun Tesbihat Başlangıç</a>
+                         <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', 'nav-ogle-4')">Esma Duası</a>
                          <a href="#" class="link-button" onclick="Android.openPrayerTime('OGLE', 'nav-ogle-5')">Lekad Sadakallah</a>
                     </div>
                 </details>

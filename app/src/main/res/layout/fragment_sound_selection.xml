@@ -1,46 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/dark_burgundy"
-    android:minHeight="300dp">
+    android:layout_height="match_parent"
+    android:background="@color/transparent"
+    tools:context=".SoundSelectionFragment">
 
     <TextView
         android:id="@+id/textViewSoundSelectionTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:gravity="center"
-        android:paddingBottom="8dp"
-        android:text="Ses Seçimi"
+        android:padding="16dp"
+        android:text="Ses Seç"
         android:textColor="@color/light_gold"
         android:textSize="18sp"
         android:textStyle="bold" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/light_gold"
-        android:layout_marginBottom="8dp" />
-
-    <ListView
-        android:id="@+id/listViewSounds"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:divider="@color/light_gold"
-        android:dividerHeight="1dp"
-        android:background="@color/dark_burgundy"
-        android:padding="4dp" />
 
     <Button
         android:id="@+id/buttonComplete"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tamamla"
-        android:textColor="@color/dark_burgundy"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
         android:backgroundTint="@color/light_gold"
-        android:layout_marginTop="16dp" />
+        android:text="Tamamla"
+        android:textColor="@color/dark_maroon" />
 
-</LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewSounds"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_above="@id/buttonComplete"
+        android:layout_below="@id/textViewSoundSelectionTitle" />
+
+</RelativeLayout>

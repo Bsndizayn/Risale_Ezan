@@ -2,12 +2,14 @@ package com.example.risaleezan
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import java.util.Locale
@@ -25,7 +27,7 @@ class BildirimAyarlariFragment : Fragment() {
         "Yatsi" to "Yatsı"
     )
 
-    private lateinit var adjustmentValues: IntArray // Zamanlama ayarı değerleri
+    private lateinit var adjustmentValues: IntArray
 
     private val soundMap = mapOf(
         "Sessiz" to -1,
@@ -54,71 +56,42 @@ class BildirimAyarlariFragment : Fragment() {
 
         adjustmentValues = resources.getStringArray(R.array.time_adjustment_values).map { it.toInt() }.toIntArray()
 
-        // İmsak Vakti Ayarları
-        setupPrayerTime(view, "Imsak", R.id.imageViewImsakSound, R.id.spinnerImsakAdjustment, R.id.textViewImsakSound)
-        // Güneş Vakti Ayarları
-        setupPrayerTime(view, "Gunes", R.id.imageViewGunesSound, R.id.spinnerGunesAdjustment, R.id.textViewGunesSound)
-        // Öğle Vakti Ayarları
-        setupPrayerTime(view, "Ogle", R.id.imageViewOgleSound, R.id.spinnerOgleAdjustment, R.id.textViewOgleSound)
-        // İkindi Vakti Ayarları
-        setupPrayerTime(view, "Ikindi", R.id.imageViewIkindiSound, R.id.spinnerIkindiAdjustment, R.id.textViewIkindiSound)
-        // Akşam Vakti Ayarları
-        setupPrayerTime(view, "Aksam", R.id.imageViewAksamSound, R.id.spinnerAksamAdjustment, R.id.textViewAksamSound)
-        // Yatsı Vakti Ayarları
-        setupPrayerTime(view, "Yatsi", R.id.imageViewYatsiSound, R.id.spinnerYatsiAdjustment, R.id.textViewYatsiSound)
+        prayerNames.forEach { prayerName ->
+            val soundIconId = resources.getIdentifier("imageView${prayerName}Sound", "id", requireContext().packageName)
+            val spinnerId = resources.getIdentifier("spinner${prayerName}Adjustment", "id", requireContext().packageName)
+            val textViewId = resources.getIdentifier("textView${prayerName}Sound", "id", requireContext().packageName)
 
-        // "Tüm Bildirimleri Sessize Al" anahtarıyla ilgili kod kaldırıldı
-        // val switchMuteAll = view.findViewById<Switch>(R.id.switchMuteAll)
-        // switchMuteAll.isChecked = sharedPreferences.getBoolean("mute_all_notifications", false)
-        // switchMuteAll.setOnCheckedChangeListener { _, isChecked ->
-        //     sharedPreferences.edit().putBoolean("mute_all_notifications", isChecked).apply()
-        //     prayerNames.forEach { prayer ->
-        //         val switchId = resources.getIdentifier("switch$prayer", "id", requireContext().packageName)
-        //         view.findViewById<Switch>(switchId)?.isChecked = !isChecked
-        //         view.findViewById<Switch>(switchId)?.isEnabled = !isChecked
-        //     }
-        // }
+            if (soundIconId != 0 && spinnerId != 0 && textViewId != 0) {
+                setupPrayerTime(view, prayerName, soundIconId, spinnerId, textViewId)
+            }
+        }
 
         return view
     }
 
-    // setupPrayerTime metodunun parametreleri switchId kaldırıldığı için güncellendi
     private fun setupPrayerTime(view: View, prayerName: String, soundIconId: Int, spinnerId: Int, textViewId: Int) {
-        val prayerDisplayName = prayerNameMap[prayerName] ?: prayerName
-        // val switch = view.findViewById<Switch>(switchId) // Switch kaldırıldı
         val soundIcon = view.findViewById<ImageView>(soundIconId)
         val spinnerAdjustment = view.findViewById<Spinner>(spinnerId)
         val textViewSound = view.findViewById<TextView>(textViewId)
 
         updateSoundTextView(textViewSound, sharedPreferences.getInt("sound_res_id_$prayerName", R.raw.ezan))
 
-        // Switch'in durumuyla ilgili kod kaldırıldı
-        // val isEnabled = sharedPreferences.getBoolean("notification_enabled_$prayerName", true)
-        // switch.isChecked = isEnabled
-        // switch.text = "$prayerDisplayName Bildirimi"
-        // switch.setOnCheckedChangeListener { _, isChecked ->
-        //     sharedPreferences.edit().putBoolean("notification_enabled_$prayerName", isChecked).apply()
-        //     Log.d("BildirimAyarlari", "$prayerName bildirimi: $isChecked")
-        // }
-
         soundIcon.setOnClickListener {
             val bundle = Bundle().apply { putString("prayer_name", prayerName) }
             findNavController().navigate(R.id.soundSelectionFragment, bundle)
         }
 
-        // Ses yazısına tıklanabilirlik
         textViewSound.setOnClickListener {
             val bundle = Bundle().apply { putString("prayer_name", prayerName) }
             findNavController().navigate(R.id.soundSelectionFragment, bundle)
         }
 
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            resources.getStringArray(R.array.time_adjustment_options)
-        )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // --- DEĞİŞİKLİK BURADA: Renk mantığı kaldırıldı, standart adaptöre dönüldü ---
+        val options = resources.getStringArray(R.array.time_adjustment_options)
+        val adapter = ArrayAdapter(requireContext(), R.layout.custom_spinner_item, options)
+        adapter.setDropDownViewResource(R.layout.custom_spinner_item)
         spinnerAdjustment.adapter = adapter
+        // --- DEĞİŞİKLİK SONU ---
 
         val savedAdjustment = sharedPreferences.getInt("adjustment_minutes_$prayerName", 0)
         val defaultSelectionIndex = adjustmentValues.indexOf(savedAdjustment)

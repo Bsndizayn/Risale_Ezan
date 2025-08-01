@@ -13,6 +13,7 @@
     <color name="transparent">#00000000</color>
     <color name="success_green">#4CAF50</color>
     <color name="error_red">#F44336</color>
+    <color name="dark_maroon">#8B4513</color>
 
 
 </resources>

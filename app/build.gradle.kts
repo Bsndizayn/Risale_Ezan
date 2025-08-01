@@ -57,5 +57,5 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation ("androidx.constraintlayout:constraintlayout:2.2.1")
-
+    implementation ("com.google.android.material:material:1.5.0")
 }

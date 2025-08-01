@@ -5,16 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
-import android.webkit.WebViewClient // YENİ EKLEME
+import android.webkit.WebViewClient
 import androidx.fragment.app.Fragment
+import com.google.android.material.floatingactionbutton.FloatingActionButton // YENİ IMPORT
 
 class SabahNamaziFragment : Fragment() {
-    // scrollToId değerini saklamak için bir değişken
     private var scrollToId: String? = null
+    private var currentTextZoom = 100 // Başlangıç yazı boyutu yüzdesi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Fragment oluşturulurken argümanları al
         arguments?.let {
             scrollToId = it.getString("scrollToId")
         }
@@ -30,15 +30,45 @@ class SabahNamaziFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val webView = view.findViewById<WebView>(R.id.sabah_namazi_webview)
-        webView.settings.javaScriptEnabled = true
+        val zoomInButton = view.findViewById<FloatingActionButton>(R.id.zoom_in_button)
+        val zoomOutButton = view.findViewById<FloatingActionButton>(R.id.zoom_out_button)
+
+        val settings = webView.settings
+        settings.javaScriptEnabled = true
         webView.setBackgroundColor(0x00000000)
 
-        // --- YENİ EKLEME: WebViewClient ---
-        // Sayfanın tamamen yüklendiğinden emin olmak için bu gereklidir.
+        // ESKİ VE SORUNLU YAKINLAŞTIRMA AYARLARI TAMAMEN KALDIRILDI
+        // settings.setSupportZoom(true)
+        // settings.builtInZoomControls = true
+        // settings.displayZoomControls = false
+        // settings.loadWithOverviewMode = true
+        // settings.useWideViewPort = true
+        // settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+
+        // YAZILARIN KAYBOLMASINI ÖNLEYEN AYAR (BU KALSIN)
+        webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+
+        // Başlangıç metin boyutunu ayarla
+        settings.textZoom = currentTextZoom
+
+        // BUTON TIKLAMA OLAYLARI
+        zoomInButton.setOnClickListener {
+            if (currentTextZoom < 200) { // Maksimum %200 büyüsün
+                currentTextZoom += 10
+                settings.textZoom = currentTextZoom
+            }
+        }
+
+        zoomOutButton.setOnClickListener {
+            if (currentTextZoom > 50) { // Minimum %50 küçülsün
+                currentTextZoom -= 10
+                settings.textZoom = currentTextZoom
+            }
+        }
+
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                // Sayfa yüklendikten sonra, eğer bir ID varsa, o ID'ye kaydır
                 scrollToId?.let { id ->
                     val script = "document.getElementById('$id').scrollIntoView({ behavior: 'smooth' });"
                     webView.evaluateJavascript(script, null)
@@ -46,14 +76,14 @@ class SabahNamaziFragment : Fragment() {
             }
         }
 
-        // HTML içeriğini buraya alıyoruz (HTML içeriğiniz çok uzun olduğu için kısaltıyorum,
-        // siz kendi tam içeriğinizi kullanmalısınız)
+
         val htmlContent = """
            <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Sabah Namazı Tesbihatı</title>
   
   <style>
@@ -130,7 +160,7 @@ class SabahNamaziFragment : Fragment() {
       font-weight: 500; 
     }
     
-    .blue-text {
+    .arabic.blue, .blue-text {
       color: #0056b3; /* Mavi renk */
       font-weight: 500; /* Mavi metinleri de kalın yap */
     }
@@ -164,8 +194,11 @@ class SabahNamaziFragment : Fragment() {
   vertical-align: middle; /* Yazıları dikeyde ortalar */
   margin-left: 15px; /* Türkçe ve Arapça arasına boşluk koyar */
 }
-  .H3 {
-}
+
+h1, h2, .arabic, .arabic.red, .arabic.red2, .arabic.blue, .instruction, .tesbih-line {
+                   max-width: 100%; /* İçeriğin taşmasını engeller */
+                   word-wrap: break-word; /* Kelimeleri böler */
+                }
   </style>
 </head>
 <body>
@@ -248,7 +281,7 @@ class SabahNamaziFragment : Fragment() {
     <h2 id="nav-5">Tercüman-ı İsm-i A’zâm</h2>
     <p><strong>Tercüman-ı İsm-i A’zâm duası okunur:</strong></p>
     <p class="arabic"><span class="red-text">
-      بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّح۪يمِ<br>للّٰهُمَّ</span>
+      بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّح۪يمِ<br></span>
       سُبْحَانَكَ يَا <span class="red-text">اَللّٰهُ</span> تَعَالَيْتَ يَا <span class="red-text">رَحْمٰنُ</span> اَجِرْنَا مِنَ النَّارِ بِعَفْوِكَ يَا رَحْمٰنُ<br>
       سُبْحَانَكَ يَا <span class="red-text">رَح۪يمُ</span> تَعَالَيْتَ يَا <span class="red-text">كَر۪يمُ</span> اَجِرْنَا مِنَ النَّارِ بِعَفْوِكَ يَا رَحْمٰنُ<br>
       سُبْحَانَكَ يَا <span class="red-text">حَم۪يدُ</span> تَعَالَيْتَ يَا <span class="red-text">حَك۪يمُ</span> اَجِرْنَا مِنَ النَّارِ بِعَفْوِكَ يَا رَحْمٰنُ<br>
