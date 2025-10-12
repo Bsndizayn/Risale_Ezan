@@ -6,19 +6,57 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AddLocation
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.LocationCity
+import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,7 +85,6 @@ fun LocationSelectionScreen(
     val locationSelected by viewModel.locationSelected.collectAsState()
 
     var selectedTabIndex by remember { mutableStateOf(1) }
-
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -87,76 +124,43 @@ fun LocationSelectionScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Konum Seçimi") },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (selectedTabIndex == 1 && currentStep !is SelectionStep.CountrySelection) {
-                            viewModel.goBackStep()
-                        } else {
-                            navController.popBackStack()
-                        }
-                    }) {
-                        Icon(Icons.Default.ArrowBack, "Geri")
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(
+//                    brush = Brush.verticalGradient(
+//                        colors = listOf(
+//                            Color(0xFF1E3A8A),
+//                            Color(0xFF7C3AED),
+//                            Color(0xFFF97316)
+//                        )
+//                    )
+//                )
+//        )
+
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            GlassLocationTopBar(
+                isLoadingGps = isLoadingGps,
+                onBackClick = {
+                    if (selectedTabIndex == 1 && currentStep !is SelectionStep.CountrySelection) {
+                        viewModel.goBackStep()
+                    } else {
+                        navController.popBackStack()
                     }
                 },
-                actions = {
-                    if (isLoadingGps) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(end = 16.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        IconButton(onClick = { viewModel.useGpsLocation() }) {
-                            Icon(Icons.Default.MyLocation, "GPS Konumumu Al")
-                        }
-                    }
-                }
+                onGpsClick = { viewModel.useGpsLocation() }
             )
-        },
-        snackbarHost = {
-            errorMessage?.let { message ->
-                Snackbar(
-                    modifier = Modifier.padding(16.dp),
-                    action = {
-                        TextButton(onClick = { viewModel.clearError() }) {
-                            Text("Tamam")
-                        }
-                    }
-                ) {
-                    Text(message)
-                }
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            TabRow(
+
+            GlassTabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Tab(
-                    selected = selectedTabIndex == 0,
-                    onClick = {
-                        selectedTabIndex = 0
-                    },
-                    text = { Text("Kayıtlı Konumlar") }
-                )
-                Tab(
-                    selected = selectedTabIndex == 1,
-                    onClick = {
-                        selectedTabIndex = 1
-                    },
-                    text = { Text("Yeni Ekle") }
-                )
-            }
+                onTabSelected = { selectedTabIndex = it }
+            )
 
             when (selectedTabIndex) {
                 0 -> {
@@ -170,6 +174,7 @@ fun LocationSelectionScreen(
                         onDeleteLocation = { }
                     )
                 }
+
                 1 -> {
                     NewLocationTab(
                         currentStep = currentStep,
@@ -179,14 +184,197 @@ fun LocationSelectionScreen(
                         isSearching = isSearching,
                         keyboardController = keyboardController,
                         onCountrySelected = { viewModel.onCountrySelected(it) },
-                        onRegionSelected = { country, region -> viewModel.onRegionSelected(country, region) },
-                        onShowCities = { country, region -> viewModel.onShowCities(country, region) },
-                        onAddRegionAsLocation = { country, region -> viewModel.onAddRegionAsLocation(country, region) },
-                        onCitySelected = { country, region, city -> viewModel.onCitySelected(country, region, city) }
+                        onRegionSelected = { country, region ->
+                            viewModel.onRegionSelected(
+                                country,
+                                region
+                            )
+                        },
+                        onShowCities = { country, region ->
+                            viewModel.onShowCities(
+                                country,
+                                region
+                            )
+                        },
+                        onAddRegionAsLocation = { country, region ->
+                            viewModel.onAddRegionAsLocation(
+                                country,
+                                region
+                            )
+                        },
+                        onCitySelected = { country, region, city ->
+                            viewModel.onCitySelected(
+                                country,
+                                region,
+                                city
+                            )
+                        }
                     )
                 }
             }
         }
+
+        errorMessage?.let { message ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.2f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = message,
+                            color = Color.White,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TextButton(onClick = { viewModel.clearError() }) {
+                            Text("Tamam", color = Color.White)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun GlassLocationTopBar(
+    isLoadingGps: Boolean,
+    onBackClick: () -> Unit,
+    onGpsClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                ) {
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        "Geri",
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    text = "Konum Seçimi",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            if (isLoadingGps) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(32.dp),
+                    color = Color.White,
+                    strokeWidth = 3.dp
+                )
+            } else {
+                IconButton(
+                    onClick = onGpsClick,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                ) {
+                    Icon(
+                        Icons.Default.MyLocation,
+                        "GPS",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun GlassTabRow(
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.15f)
+            ),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+            ) {
+                GlassTab(
+                    text = "Kayıtlı Konumlar",
+                    selected = selectedTabIndex == 0,
+                    onClick = { onTabSelected(0) },
+                    modifier = Modifier.weight(1f)
+                )
+                GlassTab(
+                    text = "Yeni Ekle",
+                    selected = selectedTabIndex == 1,
+                    onClick = { onTabSelected(1) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun GlassTab(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .height(48.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (selected) Color.White.copy(alpha = 0.2f)
+                else Color.Transparent
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = Color.White,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+        )
     }
 }
 
@@ -207,7 +395,7 @@ fun NewLocationTab(
     Column(modifier = Modifier.fillMaxSize()) {
         BreadcrumbBar(currentStep = currentStep)
 
-        SearchBar(
+        GlassSearchBar(
             query = searchQuery,
             onQueryChange = { onQueryChange(it) },
             onSearch = { keyboardController?.hide() },
@@ -226,6 +414,7 @@ fun NewLocationTab(
                     onCountrySelected = { onCountrySelected(it) }
                 )
             }
+
             is SelectionStep.RegionSelection -> {
                 RegionList(
                     searchResults = searchResults,
@@ -236,6 +425,7 @@ fun NewLocationTab(
                     }
                 )
             }
+
             is SelectionStep.RegionAction -> {
                 RegionActionCard(
                     country = currentStep.country,
@@ -248,6 +438,7 @@ fun NewLocationTab(
                     }
                 )
             }
+
             is SelectionStep.CitySelection -> {
                 CityList(
                     searchResults = searchResults,
@@ -274,15 +465,16 @@ fun SavedLocationsTab(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (savedLocations.isEmpty()) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                        containerColor = Color.White.copy(alpha = 0.15f)
+                    ),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -295,16 +487,18 @@ fun SavedLocationsTab(
                             imageVector = Icons.Default.LocationOff,
                             contentDescription = null,
                             modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.White.copy(alpha = 0.6f)
                         )
                         Text(
                             text = "Henüz kayıtlı konum yok",
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Yeni Ekle sekmesinden konum ekleyebilirsiniz",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color.White.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -321,12 +515,14 @@ fun SavedLocationsTab(
                 ) {
                     Text(
                         text = "Tüm Konumlar",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "${savedLocations.size} konum",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -346,90 +542,105 @@ fun SavedLocationsTab(
 
 @Composable
 fun BreadcrumbBar(currentStep: SelectionStep) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = 2.dp
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.15f)
+            ),
+            shape = RoundedCornerShape(16.dp)
         ) {
-            when (currentStep) {
-                is SelectionStep.CountrySelection -> {
-                    Text(
-                        text = "Ülke Seçin",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                is SelectionStep.RegionSelection -> {
-                    Text(
-                        text = currentStep.country.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Icon(
-                        Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = "Bölge Seçin",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                is SelectionStep.RegionAction -> {
-                    Text(
-                        text = currentStep.country.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Icon(
-                        Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = currentStep.region,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                is SelectionStep.CitySelection -> {
-                    Text(
-                        text = currentStep.country.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Icon(
-                        Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = currentStep.region,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Icon(
-                        Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = "Şehir Seçin",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                when (currentStep) {
+                    is SelectionStep.CountrySelection -> {
+                        Text(
+                            text = "Ülke Seçin",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    is SelectionStep.RegionSelection -> {
+                        Text(
+                            text = currentStep.country.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Icon(
+                            Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Bölge Seçin",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    is SelectionStep.RegionAction -> {
+                        Text(
+                            text = currentStep.country.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Icon(
+                            Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = currentStep.region,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    is SelectionStep.CitySelection -> {
+                        Text(
+                            text = currentStep.country.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Icon(
+                            Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = currentStep.region,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Icon(
+                            Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Şehir Seçin",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
@@ -446,7 +657,7 @@ fun getPlaceholder(step: SelectionStep): String {
 }
 
 @Composable
-fun SearchBar(
+fun GlassSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
@@ -458,24 +669,36 @@ fun SearchBar(
         value = query,
         onValueChange = onQueryChange,
         modifier = modifier,
-        placeholder = { Text(placeholder) },
+        placeholder = {
+            Text(placeholder, color = Color.White.copy(alpha = 0.6f))
+        },
         leadingIcon = {
-            Icon(Icons.Default.Search, "Ara")
+            Icon(Icons.Default.Search, "Ara", tint = Color.White.copy(alpha = 0.8f))
         },
         trailingIcon = {
             if (isSearching) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp
+                    strokeWidth = 2.dp,
+                    color = Color.White
                 )
             } else if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Default.Clear, "Temizle")
+                    Icon(Icons.Default.Clear, "Temizle", tint = Color.White.copy(alpha = 0.8f))
                 }
             }
         },
         singleLine = true,
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedBorderColor = Color.White.copy(alpha = 0.5f),
+            unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
+            focusedContainerColor = Color.White.copy(alpha = 0.1f),
+            unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+            cursorColor = Color.White
+        )
     )
 }
 
@@ -488,7 +711,7 @@ fun CountryList(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (isSearching) {
             item {
@@ -496,7 +719,7 @@ fun CountryList(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Color.White)
                 }
             }
         } else if (searchResults is SearchResult.Countries) {
@@ -504,7 +727,11 @@ fun CountryList(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onCountrySelected(country) }
+                        .clickable { onCountrySelected(country) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.15f)
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -520,16 +747,18 @@ fun CountryList(
                             Icon(
                                 imageVector = Icons.Default.Public,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = Color.White
                             )
                             Text(
                                 text = country.name,
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White
                             )
                         }
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.6f)
                         )
                     }
                 }
@@ -548,7 +777,7 @@ fun RegionList(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (isSearching) {
             item {
@@ -556,7 +785,7 @@ fun RegionList(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Color.White)
                 }
             }
         } else if (searchResults is SearchResult.Regions) {
@@ -564,7 +793,11 @@ fun RegionList(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onRegionSelected(country, region) }
+                        .clickable { onRegionSelected(country, region) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.15f)
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -580,16 +813,18 @@ fun RegionList(
                             Icon(
                                 imageVector = Icons.Default.LocationCity,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = Color.White
                             )
                             Text(
                                 text = region,
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White
                             )
                         }
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.6f)
                         )
                     }
                 }
@@ -614,6 +849,8 @@ fun RegionActionCard(
         Text(
             text = "$region seçildi",
             style = MaterialTheme.typography.titleLarge,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
@@ -622,8 +859,9 @@ fun RegionActionCard(
                 .fillMaxWidth()
                 .clickable { onAddAsLocation() },
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
+                containerColor = Color.White.copy(alpha = 0.2f)
+            ),
+            shape = RoundedCornerShape(20.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -635,25 +873,26 @@ fun RegionActionCard(
                 Icon(
                     imageVector = Icons.Default.AddLocation,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = Color.White,
                     modifier = Modifier.size(32.dp)
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "$region'u ekle",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "Bu bölgeyi konum olarak kaydet",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = Color.White
                 )
             }
         }
@@ -663,8 +902,9 @@ fun RegionActionCard(
                 .fillMaxWidth()
                 .clickable { onShowCities() },
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+                containerColor = Color.White.copy(alpha = 0.15f)
+            ),
+            shape = RoundedCornerShape(20.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -676,23 +916,25 @@ fun RegionActionCard(
                 Icon(
                     imageVector = Icons.Default.List,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.size(32.dp)
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Şehirleri göster",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
                     )
                     Text(
                         text = "$region içindeki şehirleri listele",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.6f)
                 )
             }
         }
@@ -710,7 +952,7 @@ fun CityList(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (isSearching) {
             item {
@@ -718,7 +960,7 @@ fun CityList(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Color.White)
                 }
             }
         } else if (searchResults is SearchResult.Cities) {
@@ -726,7 +968,11 @@ fun CityList(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onCitySelected(country, region, city) }
+                        .clickable { onCitySelected(country, region, city) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.15f)
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -742,17 +988,18 @@ fun CityList(
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = Color.White
                             )
                             Text(
                                 text = city,
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White
                             )
                         }
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = Color.White
                         )
                     }
                 }
@@ -760,7 +1007,6 @@ fun CityList(
         }
     }
 }
-
 
 @Composable
 fun SavedLocationCard(
@@ -776,14 +1022,12 @@ fun SavedLocationCard(
             .clickable { onLocationSelected(location) },
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected)
-                MaterialTheme.colorScheme.primaryContainer
+                Color.White.copy(alpha = 0.25f)
             else
-                MaterialTheme.colorScheme.surface
+                Color.White.copy(alpha = 0.15f)
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 4.dp else 2.dp
-        )
-    )  {
+        shape = RoundedCornerShape(16.dp)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -796,51 +1040,28 @@ fun SavedLocationCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Seçili",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Icon(
+                    imageVector = if (isSelected) Icons.Default.CheckCircle else Icons.Default.LocationOn,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
 
                 Column {
                     Text(
                         text = location.placeName,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = Color.White
                     )
                     Text(
                         text = "${location.placeName}, ${location.region}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
 
-            IconButton(
-                onClick = { onFavoriteToggle(location.placeId) }
-            ) {
-                Icon(
-                    imageVector = if (location.isFavorite)
-                        Icons.Default.Star
-                    else
-                        Icons.Default.StarBorder,
-                    contentDescription = "Favori",
-                    tint = if (location.isFavorite)
-                        MaterialTheme.colorScheme.secondary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
     }
 }

@@ -7,111 +7,117 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = IslamicGreen,
-    onPrimary = PureWhite,
-    primaryContainer = LightGreen,
-    onPrimaryContainer = DeepGreen,
+    primary = RisaleRed,
+    onPrimary = White,
+    primaryContainer = RisaleRedLight.copy(alpha = 0.12f),
+    onPrimaryContainer = RisaleRedDark,
 
-    secondary = GoldAccent,
-    onSecondary = PureWhite,
-    secondaryContainer = LightCream,
-    onSecondaryContainer = TextDark,
+    secondary = GoldYaldiz,
+    onSecondary = TextBrown,
+    secondaryContainer = GoldLight.copy(alpha = 0.15f),
+    onSecondaryContainer = GoldDark,
 
-    tertiary = BrightGreen,
-    onTertiary = PureWhite,
-    tertiaryContainer = MediumGreen,
-    onTertiaryContainer = DeepGreen,
+    tertiary = IslamicGreen,
+    onTertiary = White,
+    tertiaryContainer = IslamicGreenSoft.copy(alpha = 0.12f),
+    onTertiaryContainer = IslamicGreen,
 
-    background = CreamBackground,
-    onBackground = TextDark,
+    background = PageCream,
+    onBackground = TextInk,
 
-    surface = WarmWhite,
-    onSurface = TextDark,
-    surfaceVariant = LightCream,
+    surface = PageBeige,
+    onSurface = TextInk,
+    surfaceVariant = PageOld,
     onSurfaceVariant = TextMedium,
 
-    error = ErrorRed,
-    onError = PureWhite,
-    errorContainer = Color(0xFFFFEBEE),
-    onErrorContainer = DeepGreen,
+    surfaceTint = RisaleRed.copy(alpha = 0.05f),
 
-    outline = DividerLight,
-    outlineVariant = OutlineLight,
-    scrim = PureBlack.copy(alpha = 0.32f),
+    error = ErrorRed,
+    onError = White,
+    errorContainer = ErrorRed.copy(alpha = 0.1f),
+    onErrorContainer = ErrorRed,
+
+    outline = DividerMedium,
+    outlineVariant = DividerLight,
+    scrim = Black.copy(alpha = 0.32f),
 
     inverseSurface = DarkSurface,
-    inverseOnSurface = WarmWhite,
-    inversePrimary = SoftGreen
+    inverseOnSurface = PageBeige,
+    inversePrimary = RisaleRedSoft
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = LightGreenDark,
+    primary = DarkRed,
     onPrimary = DarkBackground,
-    primaryContainer = SoftGreenDark,
-    onPrimaryContainer = BrightGreenDark,
+    primaryContainer = RisaleRedDark,
+    onPrimaryContainer = DarkRed,
 
-    secondary = GoldDark,
+    secondary = DarkGold,
     onSecondary = DarkBackground,
-    secondaryContainer = DarkSurfaceVariant,
-    onSecondaryContainer = GoldSoftDark,
+    secondaryContainer = GoldDark,
+    onSecondaryContainer = GoldLight,
 
-    tertiary = BrightGreenDark,
+    tertiary = IslamicGreenSoft,
     onTertiary = DarkBackground,
-    tertiaryContainer = DarkSurfaceVariant,
-    onTertiaryContainer = LightGreenDark,
+    tertiaryContainer = IslamicGreen,
+    onTertiaryContainer = IslamicGreenSoft,
 
     background = DarkBackground,
-    onBackground = TextDarkMode,
+    onBackground = DarkTextPrimary,
 
     surface = DarkSurface,
-    onSurface = TextDarkMode,
+    onSurface = DarkTextPrimary,
     surfaceVariant = DarkSurfaceVariant,
-    onSurfaceVariant = TextDarkSecondary,
+    onSurfaceVariant = DarkTextSecondary,
+
+    surfaceTint = DarkGold.copy(alpha = 0.08f),
 
     error = ErrorRed,
-    onError = DarkBackground,
-    errorContainer = Color(0xFF5D1F1F),
-    onErrorContainer = Color(0xFFFFB4AB),
+    onError = White,
+    errorContainer = ErrorRed.copy(alpha = 0.15f),
+    onErrorContainer = DarkRed,
 
     outline = DividerDark,
-    outlineVariant = Color(0xFF4A4A4A),
-    scrim = PureBlack.copy(alpha = 0.5f),
+    outlineVariant = DividerMedium.copy(alpha = 0.3f),
+    scrim = Black.copy(alpha = 0.5f),
 
-    inverseSurface = TextDarkMode,
+    inverseSurface = PageBeige,
     inverseOnSurface = DarkBackground,
-    inversePrimary = IslamicGreen
+    inversePrimary = RisaleRed
 )
 
 @Composable
 fun RisaleEzanVaktiComposeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = when {
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = if (darkTheme) {
-                DarkBackground.toArgb()
-            } else {
-                CreamBackground.toArgb()
-            }
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+
+            window.statusBarColor = colorScheme.background.toArgb()
+            window.navigationBarColor = colorScheme.background.toArgb()
+
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            insetsController.isAppearanceLightStatusBars = !darkTheme
+            insetsController.isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = RisaleTypography,
         content = content
     )
 }

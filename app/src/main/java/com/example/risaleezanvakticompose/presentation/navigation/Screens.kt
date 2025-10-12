@@ -1,9 +1,5 @@
 package com.example.risaleezanvakticompose.presentation.navigation
 
-import androidx.navigation.NavBackStackEntry
-import java.net.URLDecoder
-import java.net.URLEncoder
-
 sealed class Screen {
     abstract val route: String
 
@@ -76,30 +72,5 @@ sealed class Screen {
             }
         }
 
-        data class Note(val bookID: String = "") : Detail() {
-            override val route = "note/{bookID}"
-
-            companion object {
-                const val ROUTE = "note/{bookID}"
-                const val ARG_BOOK_ID = "bookID"
-
-                fun createRoute(bookID: String): String {
-                    require(bookID.isNotEmpty()) {
-                        "Book ID cannot be empty for Note navigation"
-                    }
-                    return "note/$bookID"
-                }
-
-                fun getBookID(entry: NavBackStackEntry): String {
-                    return entry.arguments?.getString(ARG_BOOK_ID)
-                        ?: throw IllegalStateException(
-                            "Book ID is required for Note screen"
-                        )
-                }
-            }
-        }
     }
-
-
-
 }

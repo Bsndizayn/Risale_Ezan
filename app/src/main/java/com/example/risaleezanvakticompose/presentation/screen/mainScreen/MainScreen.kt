@@ -5,15 +5,19 @@ import android.content.Context
 import android.content.Intent
 import android.location.LocationManager
 import android.provider.Settings
-import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,12 +29,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AddLocation
+import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
@@ -42,17 +47,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -62,20 +64,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.risaleezanvakticompose.R
 import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
 import com.example.risaleezanvakticompose.data.local.entities.PrayerTimesEntity
-import com.example.risaleezanvakticompose.ui.components.RiasalieArkaPlan
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -89,20 +99,21 @@ fun MainScreen(
     val currentLocation by viewModel.currentLocation.collectAsState()
     val countdown by viewModel.countdown.collectAsState()
     val notificationSettings by viewModel.notificationSettings.collectAsState()
+    val currentQuote by viewModel.currentQuote.collectAsState()
 
     var showGpsDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var isQuoteExpanded by remember { mutableStateOf(false) }
+    var isWeeklyExpanded by remember { mutableStateOf(false) }
 
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
 
-    // GPS açık mı kontrol et
     fun isGpsEnabled(): Boolean {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
-    // GPS konumunu al - DÜZELTME: ViewModel state'ine güveniyoruz
     fun requestGpsLocation() {
         when {
             !locationPermissionState.status.isGranted -> {
@@ -115,14 +126,9 @@ fun MainScreen(
 
             else -> {
                 val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-
                 try {
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                         if (location != null) {
-                            Log.d(
-                                "MainScreen",
-                                " GPS Location obtained: ${location.latitude}, ${location.longitude}"
-                            )
                             viewModel.fetchCurrentLocationFromGps(
                                 location.latitude,
                                 location.longitude
@@ -131,34 +137,20 @@ fun MainScreen(
                             fusedLocationClient.getCurrentLocation(
                                 Priority.PRIORITY_HIGH_ACCURACY,
                                 null
-                            ).addOnSuccessListener { currentLoc ->
-                                if (currentLoc != null) {
-                                    Log.d(
-                                        "MainScreen",
-                                        " Current Location obtained: ${currentLoc.latitude}, ${currentLoc.longitude}"
-                                    )
-                                    viewModel.fetchCurrentLocationFromGps(
-                                        currentLoc.latitude,
-                                        currentLoc.longitude
-                                    )
-                                } else {
-                                    Log.e(
-                                        "MainScreen",
-                                        "Both lastLocation and currentLocation are null"
-                                    )
-                                    showGpsDialog = true
+                            )
+                                .addOnSuccessListener { currentLoc ->
+                                    if (currentLoc != null) {
+                                        viewModel.fetchCurrentLocationFromGps(
+                                            currentLoc.latitude,
+                                            currentLoc.longitude
+                                        )
+                                    } else {
+                                        showGpsDialog = true
+                                    }
                                 }
-                            }.addOnFailureListener { e ->
-                                Log.e("MainScreen", "getCurrentLocation failed: ${e.message}")
-                                showGpsDialog = true
-                            }
                         }
-                    }.addOnFailureListener { e ->
-                        Log.e("MainScreen", "getLastLocation failed: ${e.message}")
-                        showGpsDialog = true
                     }
                 } catch (e: SecurityException) {
-                    Log.e("MainScreen", "SecurityException: ${e.message}")
                     showPermissionDialog = true
                 }
             }
@@ -169,19 +161,15 @@ fun MainScreen(
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
             title = { Text("Konum İzni Gerekli") },
-            text = { Text("GPS konumunuzu almak için konum iznine ihtiyaç var. Lütfen izin verin.") },
+            text = { Text("GPS konumunuzu almak için konum iznine ihtiyaç var.") },
             confirmButton = {
                 TextButton(onClick = {
                     showPermissionDialog = false
                     locationPermissionState.launchPermissionRequest()
-                }) {
-                    Text("İzin Ver")
-                }
+                }) { Text("İzin Ver") }
             },
             dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("İptal")
-                }
+                TextButton(onClick = { showPermissionDialog = false }) { Text("İptal") }
             }
         )
     }
@@ -189,180 +177,701 @@ fun MainScreen(
     if (showGpsDialog) {
         AlertDialog(
             onDismissRequest = { showGpsDialog = false },
-            title = { Text("GPS Kapalı veya Konum Alınamadı") },
-            text = { Text("Konumunuzu alabilmek için GPS'inizi açmanız gerekir. Ayarlardan GPS'i açabilir veya manuel olarak konum seçebilirsiniz.") },
+            title = { Text("GPS Kapalı") },
+            text = { Text("Konumunuzu alabilmek için GPS'inizi açın veya manuel konum seçin.") },
             confirmButton = {
                 TextButton(onClick = {
                     showGpsDialog = false
-                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                    context.startActivity(intent)
-                }) {
-                    Text("GPS Ayarları")
-                }
+                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }) { Text("GPS Ayarları") }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showGpsDialog = false
                     onLocationClick()
-                }) {
-                    Text("Manuel Seç")
-                }
+                }) { Text("Manuel Seç") }
             }
         )
     }
 
-    RiasalieArkaPlan {
-        Scaffold(
-            containerColor = Color.Transparent,
-            contentWindowInsets = WindowInsets(0.dp),
-            topBar = {
-                TopAppBar(
-                    title = {
-                        val location = currentLocation
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        // Gradient Background
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(
+//                    brush = Brush.verticalGradient(
+//                        colors = listOf(
+//                            Color(0xFF1E3A8A), // Koyu mavi
+//                            Color(0xFF7C3AED), // Mor
+//                            Color(0xFFF97316)  // Turuncu (gün batımı)
+//                        )
+//                    )
+//                )
+//        )
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
 
-                        Column(
-                            modifier = Modifier.clickable(onClick = onLocationClick)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.LocationOn,
-                                    contentDescription = "Konum",
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = location?.placeName ?: "Konum Seç",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    maxLines = 1
-                                )
-                            }
-
-                            location?.let {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                                ) {
-                                    Text(
-                                        text = "${it.placeName}, ${it.region}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
-                                        contentDescription = "Konum Değiştir",
-                                        modifier = Modifier.size(12.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = onLocationClick) {
-                            Icon(
-                                Icons.Default.AddLocation,
-                                "Yer Ekle",
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        IconButton(onClick = onProfileClick) {
-                            Icon(
-                                Icons.Default.Person,
-                                "Profil",
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                    ),
-                    windowInsets = WindowInsets(0.dp)
-                )
-            }
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding())
-            ) {
-                when (val state = uiState) {
-                    is MainUiState.Loading -> {
-                        // DÜZELTME: Daha bilgilendirici loading mesajı
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                CircularProgressIndicator()
-                                Text(
-                                    text = "Konumunuz alınıyor ve namaz vakitleri yükleniyor...",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(horizontal = 32.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    is MainUiState.Success -> {
-                        val weeklyTimes by viewModel.getWeeklyPrayerTimes(state.prayerTimes.locationPlaceId)
-                            .collectAsState(initial = emptyList())
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState())
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            NextPrayerCard(
-                                nextPrayer = state.nextPrayer,
-                                countdown = countdown
-                            )
-
-                            PrayerTimesList(
-                                prayerTimes = state.prayerTimes,
-                                notificationSettings = notificationSettings,
-                                onNotificationToggle = { prayerName ->
-                                    viewModel.toggleNotification(prayerName)
-                                }
-                            )
-
-                            if (weeklyTimes.isNotEmpty()) {
-                                WeeklyPrayerTimesSection(weeklyTimes)
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-
-                    is MainUiState.Error -> {
-                        ErrorScreen(
-                            message = state.message,
-                            onRetry = {
-                                currentLocation?.let {
-                                    viewModel.refreshPrayerTimes()
-                                }
-                            }
-                        )
-                    }
-
-                    is MainUiState.NoLocation -> {
-                        NoLocationScreen(
-                            onSelectManualLocation = onLocationClick,
-                            onRequestGpsLocation = { requestGpsLocation() }
+        when (val state = uiState) {
+            is MainUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                        Text(
+                            text = "Namaz vakitleri yükleniyor...",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
+            }
+
+            is MainUiState.Success -> {
+                val weeklyTimes by viewModel.getWeeklyPrayerTimes(state.prayerTimes.locationPlaceId)
+                    .collectAsState(initial = emptyList())
+
+                Column(modifier = Modifier.fillMaxSize()) {
+                    GlassTopBar(
+                        location = currentLocation,
+                        currentDate = state.prayerTimes.date,
+                        onLocationClick = onLocationClick,
+                        onProfileClick = onProfileClick
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 16.dp, bottom = 32.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (currentQuote.isNotEmpty()) {
+                            RisaleQuoteExpandable(
+                                quote = currentQuote,
+                                isExpanded = isQuoteExpanded,
+                                onToggle = { isQuoteExpanded = !isQuoteExpanded }
+                            )
+                        }
+
+                        GlassHeroCard(
+                            nextPrayer = state.nextPrayer,
+                            countdown = countdown
+                        )
+
+                        CompactPrayerTimesCard(
+                            prayerTimes = state.prayerTimes,
+                            notificationSettings = notificationSettings,
+                            onNotificationToggle = { viewModel.toggleNotification(it) }
+                        )
+
+                        if (weeklyTimes.isNotEmpty()) {
+                            WeeklyPrayerTimesExpandable(
+                                weeklyTimes = weeklyTimes.take(5),
+                                isExpanded = isWeeklyExpanded,
+                                onToggle = { isWeeklyExpanded = !isWeeklyExpanded }
+                            )
+                        }
+                    }
+                }
+            }
+
+            is MainUiState.Error -> {
+                ErrorScreen(
+                    message = state.message,
+                    onRetry = { currentLocation?.let { viewModel.refreshPrayerTimes() } }
+                )
+            }
+
+            is MainUiState.NoLocation -> {
+                NoLocationScreen(
+                    onSelectManualLocation = onLocationClick,
+                    onRequestGpsLocation = { requestGpsLocation() }
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun GlassTopBar(
+    location: com.example.risaleezanvakticompose.data.local.entities.SavedLocation?,
+    currentDate: String,
+    onLocationClick: () -> Unit,
+    onProfileClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.10f))
+                    .clickable { onLocationClick() }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = location?.placeName ?: "Konum Seç",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
+                        )
+                    }
+                    Text(
+                        text = formatDateShort(currentDate),
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(
+                            Color.White.copy(alpha = 0.15f),
+                            RoundedCornerShape(8.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AddLocationAlt,
+                        contentDescription = "Konum Değiştir",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            IconButton(
+                onClick = onProfileClick,
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color.White.copy(alpha = 0.15f), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profil",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun RisaleQuoteExpandable(
+    quote: String,
+    isExpanded: Boolean,
+    onToggle: () -> Unit
+) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        label = "rotation"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() },
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.15f)
+        ),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MenuBook,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Column {
+                        Text(
+                            text = "Risale-i Nur'dan",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Günün Sözü",
+                            color = Color.White.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                Icon(
+                    imageVector = Icons.Default.ExpandMore,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .rotate(rotationAngle)
+                )
+            }
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.White.copy(alpha = 0.3f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "\"$quote\"",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        lineHeight = 24.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun GlassHeroCard(
+    nextPrayer: NextPrayerInfo,
+    countdown: CountdownTime?
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.15f)
+        ),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccessTime,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = "S O N R A K İ",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.6f),
+                    letterSpacing = 2.sp
+                )
+            }
+
+            Text(
+                text = nextPrayer.name.uppercase(),
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+
+            Text(
+                text = nextPrayer.time,
+                style = MaterialTheme.typography.displaySmall,
+                color = Color.White.copy(alpha = 0.9f)
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(2.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.White.copy(alpha = 0.5f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+
+            countdown?.let {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CountdownBox(value = it.hours, label = "SA")
+                    Text(":", color = Color.White, fontSize = 32.sp)
+                    CountdownBox(value = it.minutes, label = "DK")
+                    Text(":", color = Color.White, fontSize = 32.sp)
+                    CountdownBox(value = it.seconds, label = "SN")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CountdownBox(value: Int, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(horizontal = 8.dp)
+    ) {
+        Text(
+            text = value.toString().padStart(2, '0'),
+            color = Color.White,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = label,
+            color = Color.White.copy(alpha = 0.6f),
+            fontSize = 12.sp
+        )
+    }
+}
+
+
+@Composable
+fun CompactPrayerTimesCard(
+    prayerTimes: PrayerTimesEntity,
+    notificationSettings: NotificationSettings?,
+    onNotificationToggle: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.15f)
+        ),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "━━ Bugünün Vakitleri ━━",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                CompactPrayerColumn(
+                    "İmsak",
+                    prayerTimes.imsak,
+                    notificationSettings?.imsakEnabled ?: true
+                ) {
+                    onNotificationToggle("imsak")
+                }
+                CompactPrayerColumn(
+                    "Öğle",
+                    prayerTimes.ogle,
+                    notificationSettings?.ogleEnabled ?: true
+                ) {
+                    onNotificationToggle("ogle")
+                }
+                CompactPrayerColumn(
+                    "İkindi",
+                    prayerTimes.ikindi,
+                    notificationSettings?.ikindiEnabled ?: true
+                ) {
+                    onNotificationToggle("ikindi")
+                }
+                CompactPrayerColumn(
+                    "Yatsı",
+                    prayerTimes.yatsi,
+                    notificationSettings?.yatsiEnabled ?: true
+                ) {
+                    onNotificationToggle("yatsi")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CompactPrayerColumn(
+    name: String,
+    time: String,
+    isNotificationEnabled: Boolean,
+    onToggle: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = name,
+            color = Color.White.copy(alpha = 0.7f),
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            text = time,
+            color = Color.White,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        IconButton(
+            onClick = onToggle,
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(
+                imageVector = if (isNotificationEnabled) Icons.Default.Notifications else Icons.Default.NotificationsOff,
+                contentDescription = null,
+                tint = if (isNotificationEnabled) Color(0xFFFCD34D) else Color.White.copy(alpha = 0.4f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun WeeklyPrayerTimesExpandable(
+    weeklyTimes: List<PrayerTimesEntity>,
+    isExpanded: Boolean,
+    onToggle: () -> Unit
+) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        label = "rotation"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() },
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.15f)
+        ),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Gelecek 5 Gün",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Icon(
+                    imageVector = Icons.Default.ExpandMore,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .rotate(rotationAngle)
+                )
+            }
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        weeklyTimes.forEach { dayTimes ->
+                            WeeklyDayCard(dayTimes)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WeeklyDayCard(prayerTimes: PrayerTimesEntity) {
+    val date = try {
+        LocalDate.parse(prayerTimes.date)
+    } catch (e: Exception) {
+        null
+    }
+
+    val dayName = date?.dayOfWeek?.getDisplayName(
+        java.time.format.TextStyle.SHORT,
+        Locale("tr")
+    )?.replaceFirstChar { it.uppercase() } ?: ""
+
+    val formattedDate = date?.format(
+        DateTimeFormatter.ofPattern("dd MMM", Locale("tr"))
+    ) ?: ""
+
+    Card(
+        modifier = Modifier
+            .width(140.dp)
+            .height(200.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.1f)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = dayName,
+                color = Color.White,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = formattedDate,
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider(color = Color.White.copy(alpha = 0.2f))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                WeeklyTimeRow("İmsak", prayerTimes.imsak)
+                WeeklyTimeRow("Öğle", prayerTimes.ogle)
+                WeeklyTimeRow("İkindi", prayerTimes.ikindi)
+                WeeklyTimeRow("Akşam", prayerTimes.aksam)
+                WeeklyTimeRow("Yatsı", prayerTimes.yatsi)
+            }
+        }
+    }
+}
+
+@Composable
+fun WeeklyTimeRow(name: String, time: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = name,
+            color = Color.White.copy(alpha = 0.6f),
+            style = MaterialTheme.typography.bodySmall,
+            fontSize = 11.sp
+        )
+        Text(
+            text = time,
+            color = Color.White,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp
+        )
+    }
+}
+
+
+@Composable
+fun ErrorScreen(message: String, onRetry: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = null,
+                modifier = Modifier.size(80.dp),
+                tint = Color.White
+            )
+            Text(
+                text = "Bir Hata Oluştu",
+                color = Color.White,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = message,
+                color = Color.White.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center
+            )
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Tekrar Dene", color = Color(0xFF1E3A8A))
             }
         }
     }
@@ -373,457 +882,81 @@ fun NoLocationScreen(
     onSelectManualLocation: () -> Unit,
     onRequestGpsLocation: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.LocationOn,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "Konum Seçilmedi",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Namaz vakitlerini görmek için\nkonumunuzu seçin",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth(0.85f)
-        ) {
-            Button(
-                onClick = onRequestGpsLocation,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Default.MyLocation, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("GPS Konumumu Al")
-            }
-
-            OutlinedButton(
-                onClick = onSelectManualLocation,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Default.AddLocation, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Manuel Konum Seç")
-            }
-        }
-    }
-}
-
-@Composable
-fun NextPrayerCard(
-    nextPrayer: NextPrayerInfo,
-    countdown: CountdownTime?
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.padding(32.dp)
         ) {
-            Text(
-                text = "Sonraki Namaz",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = nextPrayer.name,
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Text(
-                text = nextPrayer.time,
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Normal
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outline
-            )
-
-            Text(
-                text = "Kalan Süre",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            countdown?.let {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    TimeUnit(value = it.hours, label = "Saat")
-                    Text(":", style = MaterialTheme.typography.headlineMedium)
-                    TimeUnit(value = it.minutes, label = "Dakika")
-                    Text(":", style = MaterialTheme.typography.headlineMedium)
-                    TimeUnit(value = it.seconds, label = "Saniye")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PrayerTimesList(
-    prayerTimes: PrayerTimesEntity,
-    notificationSettings: NotificationSettings?,
-    onNotificationToggle: (String) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Bugünün Vakitleri",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            PrayerTimeRow(
-                "İmsak",
-                prayerTimes.imsak,
-                isNotificationEnabled = notificationSettings?.imsakEnabled ?: true,
-                onNotificationToggle = { onNotificationToggle("imsak") }
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
-
-            PrayerTimeRow(
-                "Güneş",
-                prayerTimes.gunes,
-                isNotificationEnabled = notificationSettings?.gunesEnabled ?: false,
-                onNotificationToggle = { onNotificationToggle("gunes") }
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
-
-            PrayerTimeRow(
-                "Öğle",
-                prayerTimes.ogle,
-                isNotificationEnabled = notificationSettings?.ogleEnabled ?: true,
-                onNotificationToggle = { onNotificationToggle("ogle") }
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
-
-            PrayerTimeRow(
-                "İkindi",
-                prayerTimes.ikindi,
-                isNotificationEnabled = notificationSettings?.ikindiEnabled ?: true,
-                onNotificationToggle = { onNotificationToggle("ikindi") }
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
-
-            PrayerTimeRow(
-                "Akşam",
-                prayerTimes.aksam,
-                isNotificationEnabled = notificationSettings?.aksamEnabled ?: true,
-                onNotificationToggle = { onNotificationToggle("aksam") }
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
-
-            PrayerTimeRow(
-                "Yatsı",
-                prayerTimes.yatsi,
-                isNotificationEnabled = notificationSettings?.yatsiEnabled ?: true,
-                onNotificationToggle = { onNotificationToggle("yatsi") }
-            )
-        }
-    }
-}
-
-@Composable
-fun PrayerTimeRow(
-    name: String,
-    time: String,
-    isNotificationEnabled: Boolean,
-    onNotificationToggle: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium
-        )
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = time,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            IconButton(onClick = onNotificationToggle) {
-                Icon(
-                    imageVector = if (isNotificationEnabled)
-                        Icons.Default.Notifications
-                    else
-                        Icons.Default.NotificationsOff,
-                    contentDescription = if (isNotificationEnabled)
-                        "Bildirimi Kapat"
-                    else
-                        "Bildirimi Aç",
-                    tint = if (isNotificationEnabled)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun WeeklyPrayerTimesSection(weeklyTimes: List<PrayerTimesEntity>) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "Önümüzdeki 7 Gün",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            weeklyTimes.forEach { dayTimes ->
-                WeeklyDayItem(dayTimes)
-                if (dayTimes != weeklyTimes.last()) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 12.dp),
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun WeeklyDayItem(prayerTimes: PrayerTimesEntity) {
-    var expanded by remember { mutableStateOf(false) }
-
-    val date = try {
-        java.time.LocalDate.parse(prayerTimes.date)
-    } catch (e: Exception) {
-        null
-    }
-
-    val dayName = date?.dayOfWeek?.getDisplayName(
-        java.time.format.TextStyle.FULL,
-        java.util.Locale("tr")
-    )?.replaceFirstChar { it.uppercase() } ?: ""
-
-    val formattedDate = date?.format(
-        java.time.format.DateTimeFormatter.ofPattern("dd MMMM", java.util.Locale("tr"))
-    ) ?: ""
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = dayName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = prayerTimes.imsak,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
                 Icon(
-                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    modifier = Modifier.size(64.dp),
+                    tint = Color.White
                 )
             }
-        }
 
-        if (expanded) {
+            Text(
+                text = "Konum Seçilmedi",
+                color = Color.White,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Namaz vakitlerini görmek için\nkonumunuzu seçin",
+                color = Color.White.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center
+            )
+
             Column(
-                modifier = Modifier.padding(top = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth(0.85f)
             ) {
-                SimplePrayerRow("İmsak", prayerTimes.imsak)
-                SimplePrayerRow("Güneş", prayerTimes.gunes)
-                SimplePrayerRow("Öğle", prayerTimes.ogle)
-                SimplePrayerRow("İkindi", prayerTimes.ikindi)
-                SimplePrayerRow("Akşam", prayerTimes.aksam)
-                SimplePrayerRow("Yatsı", prayerTimes.yatsi)
+                Button(
+                    onClick = onRequestGpsLocation,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.MyLocation,
+                        contentDescription = null,
+                        tint = Color(0xFF1E3A8A)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("GPS Konumumu Al", color = Color(0xFF1E3A8A))
+                }
+
+                OutlinedButton(
+                    onClick = onSelectManualLocation,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.AddLocation, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Manuel Konum Seç")
+                }
             }
         }
     }
 }
 
-@Composable
-fun SimplePrayerRow(name: String, time: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = time,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
 
-@Composable
-fun TimeUnit(value: Int, label: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 8.dp)
-    ) {
-        Text(
-            text = value.toString().padStart(2, '0'),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-
-@Composable
-fun ErrorScreen(
-    message: String,
-    onRetry: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Error,
-            contentDescription = null,
-            modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Bir Hata Oluştu",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(onClick = onRetry) {
-            Icon(Icons.Default.Refresh, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Tekrar Dene")
-        }
+private fun formatDateShort(dateString: String): String {
+    return try {
+        val date = LocalDate.parse(dateString)
+        val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale("tr"))
+        date.format(formatter)
+    } catch (e: Exception) {
+        dateString
     }
 }

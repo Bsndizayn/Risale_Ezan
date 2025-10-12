@@ -1,7 +1,6 @@
 package com.example.risaleezanvakticompose.presentation.screen.onboardingScreen
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,10 +14,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -29,7 +36,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,94 +50,102 @@ import kotlinx.coroutines.launch
 data class OnboardingPage(
     val title: String,
     val description: String,
-    val imageRes: Int
+    val icon: ImageVector? = null,
+    val imageRes: Int? = null,
+    val primaryColor: Color
 )
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
-    modifier: Modifier = Modifier,
     onFinishOnboarding: () -> Unit,
     onSkipOnboarding: () -> Unit
 ) {
     val pages = listOf(
         OnboardingPage(
-            title = "Namaz Vakitlerini Takip Edin",
-            description = "Bulunduğunuz konuma göre güncel namaz vakitlerini öğrenin ve bildirim alın",
-            imageRes = R.drawable.ic_launcher_background
+            title = "Namaz Vakitleri",
+            description = "Bulunduğunuz konuma göre güncel namaz vakitlerini öğrenin. Vaktinden önce bildirim alarak hiçbir namazı kaçırmayın.",
+            icon = Icons.Default.Notifications,
+            primaryColor = Color(0xFFFFD700)
         ),
         OnboardingPage(
-            title = "Risale-i Nur Külliyatı",
-            description = "Bediüzzaman Said Nursi'nin eserlerini okuyun, not alın ve çalışın",
-            imageRes = R.drawable.ic_launcher_background
+            title = "Tesbihat Bilgileri",
+            description = "Sabah ve akşam tesbihatlarının fazileti, okunuşu ve anlamları hakkında detaylı bilgiler edinin.",
+            imageRes = R.drawable.ic_tasbih_filled,
+            primaryColor = Color(0xFFFFD700)
         ),
         OnboardingPage(
-            title = "Kur'an-ı Kerim",
-            description = "Kur'an-ı Kerim'i okuyun, meal ve tefsirlerle derinleşin",
-            imageRes = R.drawable.ic_launcher_background
+            title = "Kıble Yönü",
+            description = "Bulunduğunuz konumdan Kabe'nin yönünü hassas pusula sensörleriyle öğrenin ve doğru yöne yönelin.",
+            icon = Icons.Default.Explore,
+            primaryColor = Color(0xFFFFD700)
         )
     )
 
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
 
-    // Animasyonlu alpha değerleri
-    val skipButtonAlpha = animateFloatAsState(
-        targetValue = if (pagerState.currentPage < pages.size - 1) 1f else 0f,
-        label = "skipAlpha"
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.yeni_arkaplan),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
+        )
 
-    val backButtonAlpha = animateFloatAsState(
-        targetValue = if (pagerState.currentPage > 0) 1f else 0f,
-        label = "backAlpha"
-    )
-
-    Scaffold { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
+        Scaffold(
+            containerColor = Color.Transparent
+        ) { paddingValues ->
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .statusBarsPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Skip butonu - SABİT YER KAPLAR
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp),
                     contentAlignment = Alignment.CenterEnd
                 ) {
-                    TextButton(
-                        onClick = onSkipOnboarding,
-                        modifier = Modifier.graphicsLayer { alpha = skipButtonAlpha.value },
-                        enabled = pagerState.currentPage < pages.size - 1
-                    ) {
-                        Text(
-                            text = "Atla",
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    if (pagerState.currentPage < pages.size - 1) {
+                        TextButton(
+                            onClick = onSkipOnboarding,
+                            modifier = Modifier
+                                .background(
+                                    Color.White.copy(alpha = 0.1f),
+                                    RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            Text(
+                                text = "Atla",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 
-                // Horizontal Pager
-                HorizontalPager(
-                    state = pagerState,
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                ) { page ->
-                    OnboardingPageContent(pages[page])
+                ) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        OnboardingPageContent(pages[page])
+                    }
                 }
 
-                // Page indicators
                 Row(
                     modifier = Modifier
-                        .padding(bottom = 32.dp)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .height(48.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -145,39 +162,50 @@ fun OnboardingScreen(
                                 .clip(CircleShape)
                                 .background(
                                     if (pagerState.currentPage == index)
-                                        MaterialTheme.colorScheme.primary
+                                        Color(0xFFFFD700)
                                     else
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                                        Color.White.copy(alpha = 0.3f)
                                 )
                         )
                     }
                 }
 
-                // Navigation buttons
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 32.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .height(100.dp)
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .graphicsLayer { alpha = backButtonAlpha.value },
-                        enabled = pagerState.currentPage > 0
-                    ) {
-                        Text("Geri")
+                    if (pagerState.currentPage > 0) {
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color.White,
+                                containerColor = Color.White.copy(alpha = 0.1f)
+                            )
+                        ) {
+                            Text(
+                                "Geri",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
 
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    OutlinedButton(
+                    Button(
                         onClick = {
                             if (pagerState.currentPage < pages.size - 1) {
                                 scope.launch {
@@ -189,8 +217,18 @@ fun OnboardingScreen(
                         },
                         modifier = Modifier
                             .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFD700),
+                            contentColor = Color(0xFF5C1A1A)
+                        )
                     ) {
-                        Text("İleri")
+                        Text(
+                            text = if (pagerState.currentPage < pages.size - 1) "İleri" else "Başla",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -203,34 +241,58 @@ private fun OnboardingPageContent(page: OnboardingPage) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(
-            painter = painterResource(id = page.imageRes),
-            contentDescription = page.title,
+        Box(
             modifier = Modifier
-                .size(280.dp)
-                .padding(bottom = 48.dp)
-        )
+                .size(160.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                page.icon != null -> {
+                    Icon(
+                        imageVector = page.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = page.primaryColor
+                    )
+                }
+
+                page.imageRes != null -> {
+                    Icon(
+                        painter = painterResource(id = page.imageRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = page.primaryColor
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(48.dp))
 
         Text(
             text = page.title,
-            fontSize = 28.sp,
+            fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = 16.dp)
+            color = Color.White,
+            letterSpacing = 1.sp
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = page.description,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            color = Color.White.copy(alpha = 0.85f),
             lineHeight = 24.sp,
-            modifier = Modifier.padding(horizontal = 32.dp)
+            fontWeight = FontWeight.Medium
         )
     }
 }

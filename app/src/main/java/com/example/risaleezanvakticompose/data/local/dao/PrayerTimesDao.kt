@@ -45,9 +45,6 @@ interface PrayerTimesDao {
    @Query("SELECT COUNT(*) FROM prayer_times")
     suspend fun getPrayerTimesCount(): Int
 
-   @Query("SELECT MIN(date) as minDate, MAX(date) as maxDate FROM prayer_times WHERE location_place_id = :placeId")
-    suspend fun getDateRangeForLocation(placeId: Int): DateRange?
-
    @Query("SELECT EXISTS(SELECT 1 FROM prayer_times WHERE location_place_id = :placeId AND date > :afterDate)")
     suspend fun hasPrayerTimesAfterDate(placeId: Int, afterDate: String): Boolean
 

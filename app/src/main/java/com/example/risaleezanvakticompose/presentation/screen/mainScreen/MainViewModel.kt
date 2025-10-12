@@ -1,11 +1,10 @@
-// MainViewModel.kt - GPS Konum Alma Düzeltmesi
-
 package com.example.risaleezanvakticompose.presentation.screen.mainScreen
 
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.risaleezanvakticompose.R
 import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
 import com.example.risaleezanvakticompose.data.local.entities.PrayerTimesEntity
 import com.example.risaleezanvakticompose.data.local.entities.SavedLocation
@@ -47,6 +46,10 @@ class MainViewModel @Inject constructor(
     private val _notificationSettings = MutableStateFlow<NotificationSettings?>(null)
     val notificationSettings: StateFlow<NotificationSettings?> = _notificationSettings.asStateFlow()
 
+    private val _currentQuote = MutableStateFlow<String>("")
+    val currentQuote: StateFlow<String> = _currentQuote.asStateFlow()
+
+
     private var countdownJob: Job? = null
 
     private val alarmManager = PrayerAlarmManager(context)
@@ -56,6 +59,7 @@ class MainViewModel @Inject constructor(
         loadNotificationSettings()
         ensureDefaultNotificationSettings()
         MidnightAlarmReceiver.scheduleMidnightAlarm(context)
+        loadDailyQuote()
     }
 
     private fun ensureDefaultNotificationSettings() {
@@ -96,10 +100,12 @@ class MainViewModel @Inject constructor(
             _uiState.value = MainUiState.Loading
 
             val today = LocalDate.now().toString()
+            val tomorrow = LocalDate.now().plusDays(1).toString()
+
             var prayerTimes = repository.getPrayerTimesForDate(location.placeId, today)
+            var tomorrowPrayerTimes = repository.getPrayerTimesForDate(location.placeId, tomorrow)
 
-            if (prayerTimes == null) {
-
+            if (prayerTimes == null || tomorrowPrayerTimes == null) {
                 val result = repository.fetchAndSavePrayerTimes(
                     placeId = location.placeId,
                     lat = location.latitude,
@@ -110,6 +116,7 @@ class MainViewModel @Inject constructor(
 
                 if (result.isSuccess) {
                     prayerTimes = repository.getPrayerTimesForDate(location.placeId, today)
+                    tomorrowPrayerTimes = repository.getPrayerTimesForDate(location.placeId, tomorrow)
                 } else {
                     _uiState.value = MainUiState.Error(
                         result.exceptionOrNull()?.message ?: "Namaz vakitleri yüklenemedi"
@@ -118,8 +125,8 @@ class MainViewModel @Inject constructor(
                 }
             }
 
-            if (prayerTimes != null) {
-                val nextPrayer = findNextPrayer(prayerTimes)
+            if (prayerTimes != null && tomorrowPrayerTimes != null) {
+                val nextPrayer = findNextPrayer(prayerTimes, tomorrowPrayerTimes)
                 _uiState.value = MainUiState.Success(prayerTimes, nextPrayer)
                 startCountdown(nextPrayer)
                 scheduleAlarmsForToday()
@@ -127,6 +134,33 @@ class MainViewModel @Inject constructor(
                 _uiState.value = MainUiState.Error("Namaz vakitleri bulunamadı")
             }
         }
+    }
+
+    private fun findNextPrayer(
+        todayPrayerTimes: PrayerTimesEntity,
+        tomorrowPrayerTimes: PrayerTimesEntity
+    ): NextPrayerInfo {
+        val now = LocalTime.now()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
+
+        val prayers = listOf(
+            "İmsak" to todayPrayerTimes.imsak,
+            "Güneş" to todayPrayerTimes.gunes,
+            "Öğle" to todayPrayerTimes.ogle,
+            "İkindi" to todayPrayerTimes.ikindi,
+            "Akşam" to todayPrayerTimes.aksam,
+            "Yatsı" to todayPrayerTimes.yatsi
+        )
+
+        // Bugünün vakitlerini kontrol et
+        for ((name, time) in prayers) {
+            val prayerTime = LocalTime.parse(time, formatter)
+            if (now.isBefore(prayerTime)) {
+                return NextPrayerInfo(name, time, isNextDay = false)
+            }
+        }
+
+        return NextPrayerInfo("İmsak", tomorrowPrayerTimes.imsak, isNextDay = true)
     }
 
     fun fetchCurrentLocationFromGps(lat: Double, lng: Double) {
@@ -145,29 +179,6 @@ class MainViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    private fun findNextPrayer(prayerTimes: PrayerTimesEntity): NextPrayerInfo {
-        val now = LocalTime.now()
-        val formatter = DateTimeFormatter.ofPattern("HH:mm")
-
-        val prayers = listOf(
-            "İmsak" to prayerTimes.imsak,
-            "Güneş" to prayerTimes.gunes,
-            "Öğle" to prayerTimes.ogle,
-            "İkindi" to prayerTimes.ikindi,
-            "Akşam" to prayerTimes.aksam,
-            "Yatsı" to prayerTimes.yatsi
-        )
-
-        for ((name, time) in prayers) {
-            val prayerTime = LocalTime.parse(time, formatter)
-            if (now.isBefore(prayerTime)) {
-                return NextPrayerInfo(name, time)
-            }
-        }
-
-        return NextPrayerInfo("İmsak", prayerTimes.imsak)
     }
 
     fun refreshPrayerTimes() {
@@ -232,7 +243,14 @@ class MainViewModel @Inject constructor(
                 val targetTime = LocalTime.parse(nextPrayer.time, formatter)
                 val now = LocalTime.now()
 
-                val duration = java.time.Duration.between(now, targetTime)
+                val duration = if (nextPrayer.isNextDay) {
+                    val midnightTonight = LocalTime.MAX  // 23:59:59.999999999
+                    val durationUntilMidnight = java.time.Duration.between(now, midnightTonight)
+                    val durationAfterMidnight = java.time.Duration.between(LocalTime.MIN, targetTime)
+                    durationUntilMidnight.plus(durationAfterMidnight)
+                } else {
+                    java.time.Duration.between(now, targetTime)
+                }
 
                 if (duration.isNegative || duration.isZero) {
                     _currentLocation.value?.let { location ->
@@ -266,6 +284,39 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun loadDailyQuote() {
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                if (state is MainUiState.Success) {
+                    val quote = getQuoteForPrayer(state.nextPrayer.name)
+                    _currentQuote.value = quote
+                }
+            }
+        }
+    }
+
+    private fun getQuoteForPrayer(prayerName: String): String {
+        val quotes = context.resources.getStringArray(R.array.risale_quotes)
+        if (quotes.isEmpty()) return ""
+
+        // Her namaz için farklı bir alıntı seç (hash ile tutarlı)
+        val prayerIndex = when (prayerName.lowercase().replace("ı", "i").replace("ü", "u").replace("ö", "o").replace("ş", "s").replace("ğ", "g").replace("ç", "c")) {
+            "imsak" -> 0
+            "gunes" -> 1
+            "ogle" -> 2
+            "ikindi" -> 3
+            "aksam" -> 4
+            "yatsi" -> 5
+            else -> 0
+        }
+
+        // Günün tarihine göre de değişiklik ekle
+        val today = LocalDate.now().dayOfYear
+        val index = (prayerIndex + today) % quotes.size
+
+        return quotes[index]
+    }
+
     override fun onCleared() {
         super.onCleared()
         countdownJob?.cancel()
@@ -290,7 +341,8 @@ sealed class MainUiState {
 
 data class NextPrayerInfo(
     val name: String,
-    val time: String
+    val time: String,
+    val isNextDay: Boolean = false
 )
 
 data class CountdownTime(
