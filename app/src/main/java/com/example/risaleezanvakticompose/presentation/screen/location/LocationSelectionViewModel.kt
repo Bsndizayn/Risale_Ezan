@@ -56,6 +56,18 @@ class LocationSelectionViewModel @Inject constructor(
     private val _locationAdded = MutableStateFlow(false)
     val locationAdded: StateFlow<Boolean> = _locationAdded.asStateFlow()
 
+    private val _needsLocationPermission = MutableStateFlow(false)
+    val needsLocationPermission: StateFlow<Boolean> = _needsLocationPermission.asStateFlow()
+
+    private val _isLoadingGps = MutableStateFlow(false)
+    val isLoadingGps: StateFlow<Boolean> = _isLoadingGps.asStateFlow()
+
+    private val _locationSelected = MutableStateFlow(false)
+    val locationSelected: StateFlow<Boolean> = _locationSelected.asStateFlow()
+
+    private val _loadingMessage = MutableStateFlow<String?>(null)
+    val loadingMessage: StateFlow<String?> = _loadingMessage.asStateFlow()
+
     init {
         loadCountries()
     }
@@ -116,21 +128,14 @@ class LocationSelectionViewModel @Inject constructor(
     private fun searchRegions(country: CountriesItem, query: String) {
         viewModelScope.launch {
             _isSearching.value = true
-
-            println("Arama başladı: query='$query', country=${country.name}")
-
             repository.searchRegions(country.code, country.name, query).fold(
                 onSuccess = { regions ->
-                    println("Sonuç: ${regions.size} bölge bulundu")
-                    regions.forEach { println("  - $it") }
                     _searchResults.value = SearchResult.Regions(regions)
                 },
                 onFailure = { error ->
-                    println("Hata: ${error.message}")
                     _errorMessage.value = error.message
                 }
             )
-
             _isSearching.value = false
         }
     }
@@ -210,6 +215,7 @@ class LocationSelectionViewModel @Inject constructor(
     fun resetLocationAdded() {
         _locationAdded.value = false
     }
+
     fun onShowCities(country: CountriesItem, region: String) {
         _currentStep.value = SelectionStep.CitySelection(country, region)
         _searchQuery.value = ""
@@ -230,7 +236,6 @@ class LocationSelectionViewModel @Inject constructor(
             _isSearching.value = false
         }
     }
-
 
     fun goBackStep() {
         when (val step = _currentStep.value) {
@@ -253,8 +258,21 @@ class LocationSelectionViewModel @Inject constructor(
 
     fun selectLocation(location: SavedLocation) {
         viewModelScope.launch {
+            // Konum değiştiriliyor bildirimi
+            _loadingMessage.value = "Konum değiştiriliyor..."
+
             repository.setCurrentLocation(location.placeId)
+
+            // Kısa bir bekleme sonrası (data yeniden yüklensin diye)
+            kotlinx.coroutines.delay(300)
+
+            _loadingMessage.value = null
+            _locationSelected.value = true
         }
+    }
+
+    fun resetLocationSelected() {
+        _locationSelected.value = false
     }
 
     fun toggleFavorite(placeId: Int) {
@@ -264,28 +282,53 @@ class LocationSelectionViewModel @Inject constructor(
     }
 
     fun useGpsLocation() {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            _needsLocationPermission.value = true
+            return
+        }
+
+        _isLoadingGps.value = true
         viewModelScope.launch {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                try {
-                    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                        location?.let {
-                            viewModelScope.launch {
-                                repository.fetchAndSaveGpsLocation(it.latitude, it.longitude)
+            try {
+                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    if (location != null) {
+                        viewModelScope.launch {
+                            val result = repository.fetchAndSaveGpsLocation(location.latitude, location.longitude)
+                            _isLoadingGps.value = false
+                            if (result.isSuccess) {
+                                _locationAdded.value = true
+                            } else {
+                                _errorMessage.value = result.exceptionOrNull()?.message ?: "Konum alınamadı"
                             }
                         }
+                    } else {
+                        _isLoadingGps.value = false
+                        _errorMessage.value = "Konum bilgisi alınamadı. GPS açık mı?"
                     }
-                } catch (e: SecurityException) {
-                    _errorMessage.value = "Konum izni gerekli"
+                }.addOnFailureListener { e ->
+                    _isLoadingGps.value = false
+                    _errorMessage.value = "Konum hatası: ${e.message}"
                 }
-            } else {
-                _errorMessage.value = "Konum izni verilmemiş"
+            } catch (e: SecurityException) {
+                _isLoadingGps.value = false
+                _errorMessage.value = "Konum izni gerekli"
             }
         }
+    }
+
+    fun onPermissionGranted() {
+        _needsLocationPermission.value = false
+        useGpsLocation()
+    }
+
+    fun onPermissionDenied() {
+        _needsLocationPermission.value = false
+        _errorMessage.value = "Konum izni verilmedi"
     }
 
     fun clearError() {

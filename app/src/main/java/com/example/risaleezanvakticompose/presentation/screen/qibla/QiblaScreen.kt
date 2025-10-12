@@ -1,5 +1,11 @@
 package com.example.risaleezanvakticompose.presentation.screen.qibla
 
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,26 +20,102 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.risaleezanvakticompose.R
+import com.example.risaleezanvakticompose.presentation.navigation.Screen
 import com.example.risaleezanvakticompose.util.QiblaAccuracy
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QiblaScreen(
-    onBackClick: () -> Unit = {},
+    navController: NavController,
     viewModel: QiblaViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val qiblaDirection by viewModel.qiblaDirection.collectAsState()
     val qiblaArrowRotation by viewModel.qiblaArrowRotation.collectAsState()
     val qiblaAccuracy by viewModel.qiblaAccuracy.collectAsState()
     val isPhoneFlat by viewModel.isPhoneFlat.collectAsState()
     val isSensorAvailable by viewModel.isSensorAvailable.collectAsState()
+    val hasLocation by viewModel.hasLocation.collectAsState()
+
+    var showPermissionDialog by remember { mutableStateOf(false) }
+    var showLocationSettingsDialog by remember { mutableStateOf(false) }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.checkLocationAndRefresh()
+        } else {
+            showPermissionDialog = true
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (!hasPermission) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Konum İzni Gerekli") },
+            text = { Text("Kıble yönünü gösterebilmek için konum izni gereklidir. Lütfen ayarlardan konum iznini verin.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPermissionDialog = false
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }) {
+                    Text("Ayarlara Git")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("İptal")
+                }
+            }
+        )
+    }
+
+    if (showLocationSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { showLocationSettingsDialog = false },
+            title = { Text("GPS Kapalı") },
+            text = { Text("GPS servisiniz kapalı görünüyor. Kıble yönünü gösterebilmek için GPS'i açmanız gerekir.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLocationSettingsDialog = false
+                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    context.startActivity(intent)
+                }) {
+                    Text("GPS'i Aç")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLocationSettingsDialog = false }) {
+                    Text("İptal")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -46,18 +128,116 @@ fun QiblaScreen(
             )
         }
     ) { padding ->
-        if (!isSensorAvailable) {
-            NoSensorAvailable(modifier = Modifier.padding(padding))
-        } else if (qiblaDirection == null) {
-            LoadingQibla(modifier = Modifier.padding(padding))
-        } else {
-            QiblaContent(
-                qiblaDirection = qiblaDirection!!,
-                qiblaAccuracy = qiblaAccuracy,
-                isPhoneFlat = isPhoneFlat,
-                qiblaArrowRotation = qiblaArrowRotation,
-                modifier = Modifier.padding(padding)
+        when {
+            !isSensorAvailable -> {
+                NoSensorAvailable(modifier = Modifier.padding(padding))
+            }
+            !hasLocation -> {
+                NoLocationAvailable(
+                    modifier = Modifier.padding(padding),
+                    onAddLocation = {
+                        navController.navigate(Screen.Main.LocationSelection.ROUTE)
+                    },
+                    onCheckGPS = {
+                        showLocationSettingsDialog = true
+                    }
+                )
+            }
+            qiblaDirection == null -> {
+                LoadingQibla(modifier = Modifier.padding(padding))
+            }
+            else -> {
+                QiblaContent(
+                    qiblaDirection = qiblaDirection!!,
+                    qiblaArrowRotation = qiblaArrowRotation,
+                    qiblaAccuracy = qiblaAccuracy,
+                    isPhoneFlat = isPhoneFlat,
+                    modifier = Modifier.padding(padding)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NoLocationAvailable(
+    modifier: Modifier = Modifier,
+    onAddLocation: () -> Unit,
+    onCheckGPS: () -> Unit
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.LocationOff,
+                contentDescription = null,
+                modifier = Modifier.size(80.dp),
+                tint = MaterialTheme.colorScheme.error
             )
+
+            Text(
+                text = "Konum Bulunamadı",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Kıble yönünü gösterebilmek için:",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "• GPS'iniz açık olmalı",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "• Konum izni verilmiş olmalı",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "• Kayıtlı bir konumunuz olmalı",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            Button(
+                onClick = onCheckGPS,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(Icons.Default.GpsFixed, null)
+                Spacer(Modifier.width(8.dp))
+                Text("GPS Ayarlarını Kontrol Et")
+            }
+
+            OutlinedButton(
+                onClick = onAddLocation,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.AddLocation, null)
+                Spacer(Modifier.width(8.dp))
+                Text("Konum Ekle")
+            }
         }
     }
 }
@@ -65,129 +245,136 @@ fun QiblaScreen(
 @Composable
 fun QiblaContent(
     qiblaDirection: Float,
+    qiblaArrowRotation: Float,
     qiblaAccuracy: QiblaAccuracy?,
     isPhoneFlat: Boolean,
-    qiblaArrowRotation: Float,
     modifier: Modifier = Modifier
 ) {
-    val animatedRotation by animateFloatAsState(
-        targetValue = qiblaArrowRotation,
-        animationSpec = tween(
-            durationMillis = 200,
-            easing = LinearEasing
-        ),
-        label = "qibla_rotation",
-        visibilityThreshold = 0.5f
-    )
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
+                brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         MaterialTheme.colorScheme.surface
                     )
                 )
-            ),
+            )
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "KIBLE PUSULASI",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            if (!isPhoneFlat) {
+        if (!isPhoneFlat) {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFFF5722).copy(alpha = 0.9f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.Warning,
+                        imageVector = Icons.Default.ScreenRotation,
                         contentDescription = null,
-                        tint = Color(0xFFFF9800),
-                        modifier = Modifier.size(20.dp)
+                        tint = Color.White
                     )
                     Text(
                         text = "Telefonu yatay tutun",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFFFF9800)
+                        color = Color.White
                     )
                 }
-            } else {
-                Text(
-                    text = "Kıble Yönü: ${qiblaDirection.toInt()}°",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            }
+        }
 
-                when (qiblaAccuracy) {
-                    QiblaAccuracy.EXACT -> {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "KIBLE YÖNÜNDESİNİZ",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4CAF50)
-                            )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Kıble Yönü",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    when (qiblaAccuracy) {
+                        QiblaAccuracy.EXACT -> {
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    Icons.Default.Lock,
+                                    imageVector = Icons.Default.CheckCircle,
                                     contentDescription = null,
                                     tint = Color(0xFF4CAF50),
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(28.dp)
                                 )
                                 Text(
-                                    text = "Kilitlendi",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    text = "DOĞRU YÖN",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
                                     color = Color(0xFF4CAF50)
                                 )
                             }
                         }
-                    }
-                    QiblaAccuracy.VERY_CLOSE, QiblaAccuracy.CLOSE -> {
-                        Text(
-                            text = "YAKLAŞIYORSUNUZ",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color(0xFFFF9800)
-                        )
-                    }
-                    QiblaAccuracy.TURN_RIGHT -> {
-                        Text(
-                            text = "SAĞA DÖNÜN",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-                    }
-                    QiblaAccuracy.TURN_LEFT -> {
-                        Text(
-                            text = "SOLA DÖNÜN",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-                    }
-                    else -> {
-                        Text(
-                            text = "Doğruluk: Bekleniyor...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        QiblaAccuracy.VERY_CLOSE, QiblaAccuracy.CLOSE -> {
+                            Text(
+                                text = "YAKLAŞIYORSUNUZ",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color(0xFFFF9800)
+                            )
+                        }
+                        QiblaAccuracy.TURN_RIGHT -> {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TurnRight,
+                                    contentDescription = null
+                                )
+                                Text(
+                                    text = "SAĞA DÖNÜN",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                        QiblaAccuracy.TURN_LEFT -> {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TurnLeft,
+                                    contentDescription = null
+                                )
+                                Text(
+                                    text = "SOLA DÖNÜN",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                        else -> {
+                            Text(
+                                text = "Doğruluk: Bekleniyor...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -207,79 +394,29 @@ fun QiblaContent(
 
             Image(
                 painter = painterResource(id = R.drawable.qibla_arrow),
-                contentDescription = "Kıble Yönü",
+                contentDescription = "Kıble Ok",
                 modifier = Modifier
-                    .fillMaxSize()
-                    .rotate(animatedRotation),
-                colorFilter = if (qiblaAccuracy == QiblaAccuracy.EXACT) {
-                    androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFF4CAF50))
-                } else {
-                    null
-                }
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .background(
-                        if (qiblaAccuracy == QiblaAccuracy.EXACT)
-                            Color(0xFF4CAF50)
-                        else
-                            MaterialTheme.colorScheme.primary,
-                        CircleShape
-                    )
+                    .size(280.dp)
+                    .rotate(qiblaArrowRotation)
             )
         }
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-            )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                InstructionRow(
-                    icon = Icons.Default.PhoneAndroid,
-                    text = "Telefonu yatay tutun"
-                )
-                InstructionRow(
-                    icon = Icons.Default.CheckCircle,
-                    text = "Seccade yeşil olunca Kıbleyi gösterir"
-                )
-                InstructionRow(
-                    icon = Icons.Default.TrendingUp,
-                    text = "Doğruluk için telefonu 8 şeklinde hareket ettirin"
-                )
-            }
+            Text(
+                text = "Kıble: ${qiblaDirection.toInt()}°",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = "Pusulayı kalibre etmek için telefonu 8 şeklinde hareket ettirin",
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
-    }
-}
-
-
-@Composable
-fun InstructionRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    text: String
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium
-        )
     }
 }
 
@@ -295,7 +432,7 @@ fun LoadingQibla(modifier: Modifier = Modifier) {
         ) {
             CircularProgressIndicator()
             Text(
-                text = "Konum bilgisi bekleniyor...",
+                text = "Konum bilgisi yükleniyor...",
                 style = MaterialTheme.typography.bodyLarge
             )
         }

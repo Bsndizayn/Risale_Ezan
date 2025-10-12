@@ -86,7 +86,6 @@ fun RootNavigationGraph(
             )
         }
 
-        // Onboarding ekranı
         composable(
             route = Screen.Auth.OnBoarding.ROUTE,
             enterTransition = { scaleIn(initialScale = 0.9f) }
@@ -109,7 +108,6 @@ fun RootNavigationGraph(
             )
         }
 
-        // Ana ekran - içinde nested navigation var
         composable(route = Screen.Auth.Main.ROUTE) {
             MainScreenContent()
         }
@@ -198,7 +196,6 @@ fun BottomNavigationBar(
         tonalElevation = 8.dp,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
-        // Ana Sayfa
         NavigationBarItem(
             icon = {
                 Icon(
@@ -274,7 +271,6 @@ fun BottomNavigationBar(
             )
         )
 
-        // Kıble
         NavigationBarItem(
             icon = {
                 Icon(
@@ -311,7 +307,6 @@ fun BottomNavigationBar(
             )
         )
 
-        // Profil
         NavigationBarItem(
             icon = {
                 Icon(
@@ -419,7 +414,6 @@ fun MainScreenNavHost(
             )
         }
 
-        // Kıble Ekranı - YENİ
         composable(
             route = Screen.Main.Qibla.ROUTE,
             enterTransition = {
@@ -429,12 +423,7 @@ fun MainScreenNavHost(
                 fadeOut(animationSpec = tween(300))
             }
         ) {
-            QiblaScreen(
-                onBackClick = {
-                    // Bottom nav'den gelindiyse back yapmıyoruz
-                    // navController.popBackStack()
-                }
-            )
+            QiblaScreen(navController = navController)
         }
 
         // Konum Seçimi
@@ -453,17 +442,7 @@ fun MainScreenNavHost(
                 )
             }
         ) {
-            LocationSelectionScreen(
-                onLocationSelected = { location ->
-                    navController.navigate(Screen.Main.Home.ROUTE) {
-                        popUpTo(Screen.Main.Home.ROUTE) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onBack = {
-                    navController.popBackStack()
-                }
-            )
+            LocationSelectionScreen(navController = navController)
         }
 
         // Ayarlar Ekranı

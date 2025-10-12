@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.example.risaleezanvakticompose.data.local.AppDatabase
+import com.example.risaleezanvakticompose.data.repository.PrayerTimesRepository
 import com.example.risaleezanvakticompose.util.PrayerAlarmManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -19,27 +20,21 @@ import java.time.ZoneId
 import java.util.Calendar
 import javax.inject.Inject
 
-/**
- * Her gece 00:01'de çalışarak ertesi günün alarmlarını kuran receiver.
- * Bu sayede:
- * - Geçmişte kalan alarmlar temizlenir
- * - Yeni günün vakitleri için alarmlar kurulur
- * - Saat değişiklikleri düzeltilir
- */
+
 @AndroidEntryPoint
 class MidnightAlarmReceiver : BroadcastReceiver() {
 
     @Inject
     lateinit var database: AppDatabase
 
+    @Inject
+    lateinit var repository: PrayerTimesRepository
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     companion object {
         private const val MIDNIGHT_ALARM_REQUEST_CODE = 9999
 
-        /**
-         * Gece yarısı alarmını kur (her gün 00:01'de çalışacak)
-         */
         fun scheduleMidnightAlarm(context: Context) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -97,16 +92,49 @@ class MidnightAlarmReceiver : BroadcastReceiver() {
 
             currentLocation?.let { location ->
                 val today = LocalDate.now().toString()
-                val todayPrayerTimes = prayerTimesDao.getPrayerTimesForDate(location.placeId, today)
+                var todayPrayerTimes = prayerTimesDao.getPrayerTimesForDate(location.placeId, today)
+
+                if (todayPrayerTimes == null) {
+                    android.util.Log.d("MidnightAlarm", "Bugünün vakitleri yok, API'den çekiliyor...")
+
+                    val result = repository.fetchAndSavePrayerTimes(
+                        placeId = location.placeId,
+                        lat = location.latitude,
+                        lng = location.longitude,
+                        startDate = today,
+                        days = 365
+                    )
+
+                    if (result.isSuccess) {
+                        todayPrayerTimes = prayerTimesDao.getPrayerTimesForDate(location.placeId, today)
+                    } else {
+                        android.util.Log.e("MidnightAlarm", "API'den veri çekilemedi: ${result.exceptionOrNull()?.message}")
+                        return
+                    }
+                }
+
+                val oneMonthLater = LocalDate.now().plusMonths(1).toString()
+                val hasDataAfterOneMonth = prayerTimesDao.hasPrayerTimesAfterDate(location.placeId, oneMonthLater)
+
+                if (!hasDataAfterOneMonth) {
+                    android.util.Log.d("MidnightAlarm", "1 ay sonrası için veri yok, güncelleniyor...")
+
+                    repository.fetchAndSavePrayerTimes(
+                        placeId = location.placeId,
+                        lat = location.latitude,
+                        lng = location.longitude,
+                        startDate = today,
+                        days = 365
+                    )
+                }
+
                 val settings = notificationSettingsDao.getSettingsOnce()
 
                 if (todayPrayerTimes != null && settings != null) {
                     val alarmManager = PrayerAlarmManager(context)
 
-                    // Eski alarmları iptal et
                     alarmManager.cancelAllAlarms()
 
-                    // Bugünün alarmlarını kur
                     alarmManager.scheduleAlarmsForToday(todayPrayerTimes, settings)
 
                     android.util.Log.d("MidnightAlarm", "Bugünün alarmları kuruldu: $today")

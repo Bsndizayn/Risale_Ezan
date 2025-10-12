@@ -1,132 +1,188 @@
 package com.example.risaleezanvakticompose.presentation.screen.location
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.SoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.risaleezanvakticompose.data.local.entities.SavedLocation
 import com.example.risaleezanvakticompose.data.model.CountriesItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationSelectionScreen(
-    onLocationSelected: (SavedLocation) -> Unit,
-    onBack: () -> Unit,
+    navController: NavController,
     viewModel: LocationSelectionViewModel = hiltViewModel()
 ) {
-    val savedLocations by viewModel.savedLocations.collectAsState(initial = emptyList())
-    val currentLocation by viewModel.currentLocation.collectAsState(initial = null)
     val currentStep by viewModel.currentStep.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val locationAdded by viewModel.locationAdded.collectAsState()
+    val savedLocations by viewModel.savedLocations.collectAsState(initial = emptyList())
+    val currentLocation by viewModel.currentLocation.collectAsState(initial = null)
+    val needsLocationPermission by viewModel.needsLocationPermission.collectAsState()
+    val isLoadingGps by viewModel.isLoadingGps.collectAsState()
+    val locationSelected by viewModel.locationSelected.collectAsState()
 
-    var selectedTabIndex by remember { mutableStateOf(0) }
+    var selectedTabIndex by remember { mutableStateOf(1) }
+
     val keyboardController = LocalSoftwareKeyboardController.current
-    val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let { error ->
-            snackbarHostState.showSnackbar(error)
-            viewModel.clearError()
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.onPermissionGranted()
+        } else {
+            viewModel.onPermissionDenied()
         }
     }
 
     LaunchedEffect(locationAdded) {
         if (locationAdded) {
-            snackbarHostState.showSnackbar("✅ Konum eklendi")
+            navController.popBackStack()
             viewModel.resetLocationAdded()
-            onBack()
+        }
+    }
+
+    LaunchedEffect(locationSelected) {
+        if (locationSelected) {
+            navController.popBackStack()
+            viewModel.resetLocationSelected()
+        }
+    }
+
+    LaunchedEffect(needsLocationPermission) {
+        if (needsLocationPermission) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+    errorMessage?.let { message ->
+        LaunchedEffect(message) {
+            kotlinx.coroutines.delay(3000)
+            viewModel.clearError()
         }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            Column {
-                TopAppBar(
-                    title = { Text("Konum Yönetimi") },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            if (selectedTabIndex == 0 && currentStep is SelectionStep.CountrySelection) {
-                                onBack()
-                            } else if (selectedTabIndex == 0) {
-                                viewModel.goBackStep()
-                            } else {
-                                onBack()
-                            }
-                        }) {
-                            Icon(Icons.Default.ArrowBack, "Geri")
+            TopAppBar(
+                title = { Text("Konum Seçimi") },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        if (selectedTabIndex == 1 && currentStep !is SelectionStep.CountrySelection) {
+                            viewModel.goBackStep()
+                        } else {
+                            navController.popBackStack()
+                        }
+                    }) {
+                        Icon(Icons.Default.ArrowBack, "Geri")
+                    }
+                },
+                actions = {
+                    if (isLoadingGps) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .padding(end = 16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        IconButton(onClick = { viewModel.useGpsLocation() }) {
+                            Icon(Icons.Default.MyLocation, "GPS Konumumu Al")
                         }
                     }
-                )
-
-                TabRow(selectedTabIndex = selectedTabIndex) {
-                    Tab(
-                        selected = selectedTabIndex == 0,
-                        onClick = { selectedTabIndex = 0 },
-                        text = { Text("Yeni Ekle") },
-                        icon = { Icon(Icons.Default.Add, null) }
-                    )
-                    Tab(
-                        selected = selectedTabIndex == 1,
-                        onClick = { selectedTabIndex = 1 },
-                        text = { Text("Kayıtlı (${savedLocations.size})") },
-                        icon = { Icon(Icons.Default.List, null) }
-                    )
                 }
-            }
+            )
         },
-        floatingActionButton = {
-            if (selectedTabIndex == 0 && currentStep is SelectionStep.CountrySelection) {
-                FloatingActionButton(onClick = { viewModel.useGpsLocation() }) {
-                    Icon(Icons.Default.MyLocation, "GPS Konumu")
+        snackbarHost = {
+            errorMessage?.let { message ->
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    action = {
+                        TextButton(onClick = { viewModel.clearError() }) {
+                            Text("Tamam")
+                        }
+                    }
+                ) {
+                    Text(message)
                 }
             }
         }
-    ) { padding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(paddingValues)
         ) {
+            TabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                Tab(
+                    selected = selectedTabIndex == 0,
+                    onClick = {
+                        selectedTabIndex = 0
+                    },
+                    text = { Text("Kayıtlı Konumlar") }
+                )
+                Tab(
+                    selected = selectedTabIndex == 1,
+                    onClick = {
+                        selectedTabIndex = 1
+                    },
+                    text = { Text("Yeni Ekle") }
+                )
+            }
+
             when (selectedTabIndex) {
                 0 -> {
-                    NewLocationTab(
-                        currentStep = currentStep,
-                        searchQuery = searchQuery,
-                        searchResults = searchResults,
-                        isSearching = isSearching,
-                        viewModel = viewModel,
-                        keyboardController = keyboardController
-                    )
-                }
-                1 -> {
                     SavedLocationsTab(
                         savedLocations = savedLocations,
                         currentLocation = currentLocation,
                         onLocationSelected = { location ->
                             viewModel.selectLocation(location)
-                            onLocationSelected(location)
-                            onBack()
                         },
                         onFavoriteToggle = { viewModel.toggleFavorite(it) },
                         onDeleteLocation = { }
+                    )
+                }
+                1 -> {
+                    NewLocationTab(
+                        currentStep = currentStep,
+                        searchQuery = searchQuery,
+                        onQueryChange = { viewModel.onSearchQueryChange(it) },
+                        searchResults = searchResults,
+                        isSearching = isSearching,
+                        keyboardController = keyboardController,
+                        onCountrySelected = { viewModel.onCountrySelected(it) },
+                        onRegionSelected = { country, region -> viewModel.onRegionSelected(country, region) },
+                        onShowCities = { country, region -> viewModel.onShowCities(country, region) },
+                        onAddRegionAsLocation = { country, region -> viewModel.onAddRegionAsLocation(country, region) },
+                        onCitySelected = { country, region, city -> viewModel.onCitySelected(country, region, city) }
                     )
                 }
             }
@@ -138,17 +194,22 @@ fun LocationSelectionScreen(
 fun NewLocationTab(
     currentStep: SelectionStep,
     searchQuery: String,
+    onQueryChange: (String) -> Unit,
     searchResults: SearchResult?,
     isSearching: Boolean,
-    viewModel: LocationSelectionViewModel,
-    keyboardController: SoftwareKeyboardController?
+    keyboardController: androidx.compose.ui.platform.SoftwareKeyboardController?,
+    onCountrySelected: (CountriesItem) -> Unit,
+    onRegionSelected: (CountriesItem, String) -> Unit,
+    onShowCities: (CountriesItem, String) -> Unit,
+    onAddRegionAsLocation: (CountriesItem, String) -> Unit,
+    onCitySelected: (CountriesItem, String, String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         BreadcrumbBar(currentStep = currentStep)
 
         SearchBar(
             query = searchQuery,
-            onQueryChange = { viewModel.onSearchQueryChange(it) },
+            onQueryChange = { onQueryChange(it) },
             onSearch = { keyboardController?.hide() },
             isSearching = isSearching,
             placeholder = getPlaceholder(currentStep),
@@ -162,7 +223,7 @@ fun NewLocationTab(
                 CountryList(
                     searchResults = searchResults,
                     isSearching = isSearching,
-                    onCountrySelected = { viewModel.onCountrySelected(it) }
+                    onCountrySelected = { onCountrySelected(it) }
                 )
             }
             is SelectionStep.RegionSelection -> {
@@ -171,7 +232,7 @@ fun NewLocationTab(
                     isSearching = isSearching,
                     country = currentStep.country,
                     onRegionSelected = { country, region ->
-                        viewModel.onRegionSelected(country, region)
+                        onRegionSelected(country, region)
                     }
                 )
             }
@@ -180,10 +241,10 @@ fun NewLocationTab(
                     country = currentStep.country,
                     region = currentStep.region,
                     onAddAsLocation = {
-                        viewModel.onAddRegionAsLocation(currentStep.country, currentStep.region)
+                        onAddRegionAsLocation(currentStep.country, currentStep.region)
                     },
                     onShowCities = {
-                        viewModel.onShowCities(currentStep.country, currentStep.region)
+                        onShowCities(currentStep.country, currentStep.region)
                     }
                 )
             }
@@ -194,7 +255,7 @@ fun NewLocationTab(
                     country = currentStep.country,
                     region = currentStep.region,
                     onCitySelected = { country, region, city ->
-                        viewModel.onCitySelected(country, region, city)
+                        onCitySelected(country, region, city)
                     }
                 )
             }
@@ -243,7 +304,8 @@ fun SavedLocationsTab(
                         Text(
                             text = "Yeni Ekle sekmesinden konum ekleyebilirsiniz",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -273,99 +335,10 @@ fun SavedLocationsTab(
                 SavedLocationCard(
                     location = location,
                     isSelected = location.placeId == currentLocation?.placeId,
-                    onClick = { onLocationSelected(location) },
-                    onFavoriteToggle = { onFavoriteToggle(location.placeId) }
+                    onLocationSelected = { onLocationSelected(location) },
+                    onFavoriteToggle = { onFavoriteToggle(location.placeId) },
+                    onDelete = { onDeleteLocation(location) }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun SavedLocationCard(
-    location: SavedLocation,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    onFavoriteToggle: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected)
-                MaterialTheme.colorScheme.primaryContainer
-            else
-                MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    imageVector = if (location.isCurrentLocation)
-                        Icons.Default.LocationOn
-                    else
-                        Icons.Default.Place,
-                    contentDescription = null,
-                    tint = if (isSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(32.dp)
-                )
-
-                Column {
-                    Text(
-                        text = location.placeName,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (isSelected)
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        else
-                            MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "${location.region}, ${location.country}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isSelected)
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                IconButton(onClick = onFavoriteToggle) {
-                    Icon(
-                        imageVector = if (location.isFavorite)
-                            Icons.Default.Star
-                        else
-                            Icons.Default.StarBorder,
-                        contentDescription = "Favori",
-                        tint = if (location.isFavorite)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Aktif",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
             }
         }
     }
@@ -373,56 +346,93 @@ fun SavedLocationCard(
 
 @Composable
 fun BreadcrumbBar(currentStep: SelectionStep) {
-    if (currentStep !is SelectionStep.CountrySelection) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        tonalElevation = 2.dp
+    ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                .padding(16.dp)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Public,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
-            )
-
             when (currentStep) {
+                is SelectionStep.CountrySelection -> {
+                    Text(
+                        text = "Ülke Seçin",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
                 is SelectionStep.RegionSelection -> {
                     Text(
                         text = currentStep.country.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = "Bölge Seçin",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
                 is SelectionStep.RegionAction -> {
                     Text(
                         text = currentStep.country.name,
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    Icon(Icons.Default.ChevronRight, null, Modifier.size(16.dp))
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(16.dp)
+                    )
                     Text(
                         text = currentStep.region,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
                 is SelectionStep.CitySelection -> {
                     Text(
                         text = currentStep.country.name,
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    Icon(Icons.Default.ChevronRight, null, Modifier.size(16.dp))
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(16.dp)
+                    )
                     Text(
                         text = currentStep.region,
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = "Şehir Seçin",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
-                else -> {}
             }
         }
-        HorizontalDivider()
     }
 }
 
@@ -435,7 +445,6 @@ fun getPlaceholder(step: SelectionStep): String {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
     query: String,
@@ -451,7 +460,7 @@ fun SearchBar(
         modifier = modifier,
         placeholder = { Text(placeholder) },
         leadingIcon = {
-            Icon(Icons.Default.Search, contentDescription = "Ara")
+            Icon(Icons.Default.Search, "Ara")
         },
         trailingIcon = {
             if (isSearching) {
@@ -461,14 +470,12 @@ fun SearchBar(
                 )
             } else if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Default.Close, contentDescription = "Temizle")
+                    Icon(Icons.Default.Clear, "Temizle")
                 }
             }
         },
         singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-        shape = MaterialTheme.shapes.large
+        shape = RoundedCornerShape(12.dp)
     )
 }
 
@@ -486,9 +493,7 @@ fun CountryList(
         if (isSearching) {
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -548,9 +553,7 @@ fun RegionList(
         if (isSearching) {
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -712,9 +715,7 @@ fun CityList(
         if (isSearching) {
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -749,12 +750,96 @@ fun CityList(
                             )
                         }
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Default.Check,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SavedLocationCard(
+    location: SavedLocation,
+    isSelected: Boolean,
+    onLocationSelected: (SavedLocation) -> Unit,
+    onFavoriteToggle: (Int) -> Unit,
+    onDelete: (SavedLocation) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onLocationSelected(location) },
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 4.dp else 2.dp
+        )
+    )  {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Seçili",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Column {
+                    Text(
+                        text = location.placeName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    )
+                    Text(
+                        text = "${location.placeName}, ${location.region}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            IconButton(
+                onClick = { onFavoriteToggle(location.placeId) }
+            ) {
+                Icon(
+                    imageVector = if (location.isFavorite)
+                        Icons.Default.Star
+                    else
+                        Icons.Default.StarBorder,
+                    contentDescription = "Favori",
+                    tint = if (location.isFavorite)
+                        MaterialTheme.colorScheme.secondary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

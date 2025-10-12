@@ -132,7 +132,7 @@ fun TesbihatCategoryCard(
     }
 
     val containerColor = when (category) {
-        TesbihatCategory.SABAH -> MaterialTheme.colorScheme.tertiaryContainer
+       // TesbihatCategory.SABAH -> MaterialTheme.colorScheme.tertiaryContainer
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 

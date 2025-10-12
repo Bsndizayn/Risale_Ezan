@@ -23,7 +23,6 @@ interface NotificationSettingsDao {
     @Update
     suspend fun updateSettings(settings: NotificationSettings)
 
-    // Helper fonksiyonlar - Tek tek vakitleri açıp kapatmak için
     @Query("UPDATE notification_settings SET imsak_enabled = :enabled WHERE id = 1")
     suspend fun toggleImsak(enabled: Boolean)
 

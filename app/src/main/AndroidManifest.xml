@@ -57,7 +57,10 @@
 
         <receiver
             android:name=".service.StopSoundReceiver"
-            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
+            android:name=".service.DismissNotificationReceiver"
             android:exported="false" />
 
         <receiver

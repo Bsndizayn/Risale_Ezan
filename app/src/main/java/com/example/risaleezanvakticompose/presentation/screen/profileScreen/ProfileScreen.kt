@@ -1,45 +1,17 @@
 package com.example.risaleezanvakticompose.presentation.screen.profileScreen
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.risaleezanvakticompose.ui.components.RiasalieArkaPlan
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,154 +21,109 @@ fun ProfileScreen(
     onSaveSettings: (settings: String) -> Unit,
     onNavigateToSettings: () -> Unit = {}
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Profil") },
-                windowInsets = WindowInsets(0.dp)
-            )
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                // Profil başlığı
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+    RiasalieArkaPlan {
+        Scaffold(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Ayarlar") },
+                    windowInsets = WindowInsets(0.dp),
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
                     )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(80.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-
-                        Text(
-                            text = "Kullanıcı",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                )
+            }
+        ) { padding ->
+            LazyColumn(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Genel Ayarlar Başlığı
+                item {
+                    Text(
+                        text = "Genel Ayarlar",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+                    )
                 }
-            }
 
-            item {
-                Text(
-                    text = "Ayarlar",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-
-            // Bildirim Ayarları
-            item {
-                ProfileMenuItem(
-                    icon = Icons.Default.Notifications,
-                    title = "Bildirim Ayarları",
-                    subtitle = "Ezan sesleri ve bildirim ayarları",
-                    onClick = onNavigateToSettings
-                )
-            }
-
-            // Tema Ayarları
-            item {
-                ProfileMenuItem(
-                    icon = Icons.Default.DarkMode,
-                    title = "Tema",
-                    subtitle = "Açık/Koyu tema seçimi",
-                    onClick = { /* Tema ayarları */ }
-                )
-            }
-
-            // Dil Ayarları
-            item {
-                ProfileMenuItem(
-                    icon = Icons.Default.Language,
-                    title = "Dil",
-                    subtitle = "Uygulama dili",
-                    onClick = { /* Dil ayarları */ }
-                )
-            }
-
-            item {
-                HorizontalDivider()
-            }
-
-            item {
-                Text(
-                    text = "Hakkında",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-
-            // Uygulama Hakkında
-            item {
-                ProfileMenuItem(
-                    icon = Icons.Default.Info,
-                    title = "Uygulama Hakkında",
-                    subtitle = "Versiyon 1.0.0",
-                    onClick = { /* Hakkında */ }
-                )
-            }
-
-            // Gizlilik Politikası
-            item {
-                ProfileMenuItem(
-                    icon = Icons.Default.PrivacyTip,
-                    title = "Gizlilik Politikası",
-                    subtitle = "Verilerinizi nasıl kullanıyoruz",
-                    onClick = { /* Gizlilik */ }
-                )
-            }
-
-            // İletişim
-            item {
-                ProfileMenuItem(
-                    icon = Icons.Default.Email,
-                    title = "İletişim",
-                    subtitle = "Bize ulaşın",
-                    onClick = { /* İletişim */ }
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Çıkış Yap Butonu
-            item {
-                Button(
-                    onClick = onLogout,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                // Bildirimler - Artık Settings'e gidiyor
+                item {
+                    SettingsItem(
+                        icon = Icons.Default.Notifications,
+                        title = "Bildirimler",
+                        subtitle = "Namaz vakti hatırlatmaları",
+                        onClick = onNavigateToSettings // Settings ekranına git
                     )
-                ) {
-                    Icon(
-                        Icons.Default.Logout,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                }
+
+                // Tema
+                item {
+                    SettingsItem(
+                        icon = Icons.Default.DarkMode,
+                        title = "Tema",
+                        subtitle = "Aydınlık / Karanlık mod",
+                        onClick = { }
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Çıkış Yap")
+                }
+
+                // Dil
+                item {
+                    SettingsItem(
+                        icon = Icons.Default.Language,
+                        title = "Dil",
+                        subtitle = "Türkçe",
+                        onClick = { }
+                    )
+                }
+
+                // Hakkında Başlığı
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Hakkında",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+                    )
+                }
+
+                // Uygulama Hakkında
+                item {
+                    SettingsItem(
+                        icon = Icons.Default.Info,
+                        title = "Uygulama Hakkında",
+                        subtitle = "Sürüm 1.0.0",
+                        onClick = { }
+                    )
+                }
+
+                // Gizlilik Politikası
+                item {
+                    SettingsItem(
+                        icon = Icons.Default.PrivacyTip,
+                        title = "Gizlilik Politikası",
+                        subtitle = "Verilerinizi nasıl kullanıyoruz",
+                        onClick = { }
+                    )
+                }
+
+                // İletişim
+                item {
+                    SettingsItem(
+                        icon = Icons.Default.Email,
+                        title = "İletişim",
+                        subtitle = "destek@risaleezan.com",
+                        onClick = { }
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
@@ -204,7 +131,7 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileMenuItem(
+fun SettingsItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String,
@@ -213,37 +140,41 @@ fun ProfileMenuItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface // OPAK YAPILDI
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = title,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(24.dp)
             )
-
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (subtitle.isNotEmpty()) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,

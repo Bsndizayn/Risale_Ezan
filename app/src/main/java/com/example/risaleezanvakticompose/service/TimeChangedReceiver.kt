@@ -14,14 +14,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
-/**
- * Sistem saati değiştiğinde veya timezone değiştiğinde alarmları yeniden kuran receiver.
- *
- * Dinlediği broadcast'ler:
- * - ACTION_TIME_CHANGED: Manuel saat değişikliği
- * - ACTION_TIMEZONE_CHANGED: Timezone değişikliği
- * - ACTION_DATE_CHANGED: Gece yarısı tarih değişikliği
- */
+
 @AndroidEntryPoint
 class TimeChangedReceiver : BroadcastReceiver() {
 

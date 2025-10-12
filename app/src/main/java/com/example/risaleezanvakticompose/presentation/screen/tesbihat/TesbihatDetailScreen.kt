@@ -1,63 +1,18 @@
 package com.example.risaleezanvakticompose.presentation.screen.tesbihat
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,8 +31,10 @@ fun TesbihatDetailScreen(
     val totalProgress by remember {
         derivedStateOf { viewModel.getTotalProgress() }
     }
+
     RiasalieArkaPlan {
         Scaffold(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
             topBar = {
                 TopAppBar(
                     title = {
@@ -104,7 +61,10 @@ fun TesbihatDetailScreen(
                         IconButton(onClick = { viewModel.resetAllCounters() }) {
                             Icon(Icons.Default.RestartAlt, "Tümünü Sıfırla")
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                    )
                 )
             }
         ) { padding ->
@@ -116,7 +76,7 @@ fun TesbihatDetailScreen(
                 // İlerleme çubuğu
                 if (totalProgress > 0) {
                     LinearProgressIndicator(
-                        progress = totalProgress,
+                        progress = { totalProgress },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(6.dp),
@@ -136,8 +96,6 @@ fun TesbihatDetailScreen(
                             TesbihatItemCard(
                                 item = item,
                                 currentCount = counters[item.id] ?: 0,
-                                onIncrement = { viewModel.incrementCounter(item.id) },
-                                onReset = { viewModel.resetCounter(item.id) },
                                 isCompleted = viewModel.isItemCompleted(item.id)
                             )
                         }
@@ -149,7 +107,7 @@ fun TesbihatDetailScreen(
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
                                 )
                             ) {
                                 Column(
@@ -189,16 +147,12 @@ fun TesbihatDetailScreen(
 fun TesbihatItemCard(
     item: TesbihatItem,
     currentCount: Int,
-    onIncrement: () -> Unit,
-    onReset: () -> Unit,
     isCompleted: Boolean
 ) {
-    val haptic = LocalHapticFeedback.current
     var showDetails by remember { mutableStateOf(false) }
 
-    // Animasyon için
     val scale by animateFloatAsState(
-        targetValue = if (isCompleted) 1.05f else 1f,
+        targetValue = if (isCompleted) 1.02f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -209,15 +163,16 @@ fun TesbihatItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .scale(scale),
+            .scale(scale)
+            .clickable { showDetails = !showDetails },
         colors = CardDefaults.cardColors(
             containerColor = if (isCompleted)
-                MaterialTheme.colorScheme.primaryContainer
+                MaterialTheme.colorScheme.primaryContainer 
             else
-                MaterialTheme.colorScheme.surface
+                MaterialTheme.colorScheme.surface 
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isCompleted) 4.dp else 2.dp
+            defaultElevation = if (isCompleted) 3.dp else 2.dp
         )
     ) {
         Column(
@@ -225,34 +180,48 @@ fun TesbihatItemCard(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // Başlık ve tamamlanma durumu
+            // Başlık satırı
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
+                    // Tamamlanma ikonu
                     if (isCompleted) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Tamamlandı",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+
+                    Column {
+                        Text(
+                            text = item.title,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isCompleted)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Text(
+                            text = "${item.count} kez",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 IconButton(
-                    onClick = { showDetails = !showDetails },
-                    modifier = Modifier.size(32.dp)
+                    onClick = { showDetails = !showDetails }
                 ) {
                     Icon(
                         imageVector = if (showDetails)
@@ -264,138 +233,48 @@ fun TesbihatItemCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Arapça metin
-            Text(
-                text = item.arabicText,
-                style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-                lineHeight = MaterialTheme.typography.headlineSmall.lineHeight * 1.5f
-            )
-
-            // Detaylar (açılır/kapanır)
+            // Detaylar (açılabilir)
             AnimatedVisibility(
                 visible = showDetails,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut()
             ) {
                 Column(
-                    modifier = Modifier.padding(top = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    if (item.transcription != null) {
+                    HorizontalDivider()
+
+                    if (item.arabicText.isNotEmpty()) {
                         Text(
-                            text = "Okunuşu:",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            text = item.arabicText,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth(),
+                            fontWeight = FontWeight.SemiBold
                         )
+                    }
+
+                    if (item.transcription?.isNotEmpty() == true) {
                         Text(
                             text = item.transcription,
                             style = MaterialTheme.typography.bodyMedium,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
 
-                    if (item.translation != null) {
-                        Text(
-                            text = "Anlamı:",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    if (item.translation?.isNotEmpty() == true) {
                         Text(
                             text = item.translation,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth()
                         )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Sayaç bölümü
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Sayaç göstergesi
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Sayaç",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "$currentCount / ${item.count}",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isCompleted)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                // Butonlar
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Sıfırla butonu
-                    OutlinedButton(
-                        onClick = onReset,
-                        enabled = currentCount > 0,
-                        modifier = Modifier.height(56.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.RestartAlt,
-                            contentDescription = "Sıfırla",
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    // Artır butonu (Büyük yuvarlak buton)
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isCompleted)
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                                else
-                                    MaterialTheme.colorScheme.primary
-                            )
-                            .border(
-                                width = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = CircleShape
-                            )
-                            .clickable(enabled = !isCompleted) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onIncrement()
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isCompleted) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Tamamlandı",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Artır",
-                                tint = Color.White,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
                     }
                 }
             }

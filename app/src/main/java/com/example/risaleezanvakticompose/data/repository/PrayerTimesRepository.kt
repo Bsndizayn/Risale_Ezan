@@ -98,9 +98,10 @@ class PrayerTimesRepository @Inject constructor(
         lat: Double,
         lng: Double,
         startDate: String,
-        days: Int = 365  // 7'den 365'e çıkardım 1 yıllık çeksin diye
+        days: Int = 365
     ): Result<Unit> {
         return try {
+
             val response = apiService.getPrayerTimesForGPS(
                 lat = lat,
                 lng = lng,
@@ -111,24 +112,34 @@ class PrayerTimesRepository @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 val data = response.body()!!
                 val prayerTimesList = data.times.map { (date, times) ->
+                    android.util.Log.d("Repository", "  - $date: ${times.size} vakit")
+
+                    if (times.size != 6) {
+                        android.util.Log.e("Repository", " HATA: $date için ${times.size} vakit var (6 olmalı)!")
+                    }
+
                     PrayerTimesEntity(
                         locationPlaceId = placeId,
                         date = date,
-                        imsak = times[0],
-                        gunes = times[1],
-                        ogle = times[2],
-                        ikindi = times[3],
-                        aksam = times[4],
-                        yatsi = times[5]
+                        imsak = times.getOrNull(0) ?: "00:00",
+                        gunes = times.getOrNull(1) ?: "00:00",
+                        ogle = times.getOrNull(2) ?: "00:00",
+                        ikindi = times.getOrNull(3) ?: "00:00",
+                        aksam = times.getOrNull(4) ?: "00:00",
+                        yatsi = times.getOrNull(5) ?: "00:00"
                     )
                 }
 
                 prayerTimesDao.insertAll(*prayerTimesList.toTypedArray())
+                android.util.Log.d("Repository", " Database'e yazma başarılı!")
+
                 Result.success(Unit)
             } else {
+                android.util.Log.e("Repository", " API hatası: ${response.code()}")
                 Result.failure(Exception("API error: ${response.code()}"))
             }
         } catch (e: Exception) {
+            android.util.Log.e("Repository", " Exception: ${e.message}", e)
             Result.failure(e)
         }
     }

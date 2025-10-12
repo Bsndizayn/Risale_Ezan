@@ -1,8 +1,5 @@
 package com.example.risaleezanvakticompose.domain.model
 
-/**
- * Tesbihat kategorileri - Her namaz vakti ve özel tesbihatlar
- */
 enum class TesbihatCategory(val displayName: String, val description: String) {
     SABAH("Sabah Namazı Tesbihatı", "Sabah namazı sonrası okunan zikirler"),
     OGLE("Öğle Namazı Tesbihatı", "Öğle namazı sonrası okunan zikirler"),
@@ -12,9 +9,7 @@ enum class TesbihatCategory(val displayName: String, val description: String) {
     GENEL("Genel Tesbihat", "Her namazda ortak okunan zikirler")
 }
 
-/**
- * Tesbihat tipi - Zikir mi, dua mı, sure mi?
- */
+
 enum class TesbihatType {
     TESBIH,      // Sübhanallah, Elhamdülillah, Allahu Ekber
     DUA,         // Dualar
@@ -23,9 +18,7 @@ enum class TesbihatType {
     ZIKIR        // Diğer zikirler
 }
 
-/**
- * Tek bir tesbihat öğesi
- */
+
 data class TesbihatItem(
     val id: String,
     val title: String,                    // "Sübhanallah" veya "Ayet-el Kürsi"
@@ -37,17 +30,13 @@ data class TesbihatItem(
     val order: Int                        // Sıralama için
 )
 
-/**
- * Bir kategorinin tüm tesbihat listesi
- */
+
 data class TesbihatContent(
     val category: TesbihatCategory,
     val items: List<TesbihatItem>
 )
 
-/**
- * Kullanıcının tesbihat ilerleme durumu
- */
+
 data class TesbihatProgress(
     val categoryId: String,               // Hangi kategori
     val itemId: String,                   // Hangi tesbihat öğesi

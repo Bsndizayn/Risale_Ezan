@@ -8,6 +8,7 @@ import android.hardware.SensorManager
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlin.math.abs
 
 class CompassSensorManager(context: Context) {
 
@@ -21,6 +22,10 @@ class CompassSensorManager(context: Context) {
     private var isLastMagnetometerArrayCopied = false
     private val rotationMatrix = FloatArray(9)
     private val orientation = FloatArray(3)
+
+    companion object {
+        private const val FLAT_THRESHOLD = 25f
+    }
 
     fun getCompassFlow(): Flow<CompassData> = callbackFlow {
         val sensorEventListener = object : SensorEventListener {
@@ -52,11 +57,17 @@ class CompassSensorManager(context: Context) {
                         val azimuthInDegrees = Math.toDegrees(azimuthInRadians.toDouble()).toFloat()
                         val normalizedAzimuth = (azimuthInDegrees + 360) % 360
 
+                        val pitch = Math.toDegrees(orientation[1].toDouble()).toFloat()
+                        val roll = Math.toDegrees(orientation[2].toDouble()).toFloat()
+
+                        val isFlat = abs(pitch) < FLAT_THRESHOLD && abs(roll) < FLAT_THRESHOLD
+
                         trySend(
                             CompassData(
                                 azimuth = normalizedAzimuth,
-                                pitch = Math.toDegrees(orientation[1].toDouble()).toFloat(),
-                                roll = Math.toDegrees(orientation[2].toDouble()).toFloat()
+                                pitch = pitch,
+                                roll = roll,
+                                isFlat = isFlat
                             )
                         )
                     }
@@ -70,7 +81,7 @@ class CompassSensorManager(context: Context) {
             sensorManager.registerListener(
                 sensorEventListener,
                 it,
-                SensorManager.SENSOR_DELAY_GAME 
+                SensorManager.SENSOR_DELAY_GAME
             )
         }
 
@@ -78,13 +89,17 @@ class CompassSensorManager(context: Context) {
             sensorManager.registerListener(
                 sensorEventListener,
                 it,
-                SensorManager.SENSOR_DELAY_GAME 
+                SensorManager.SENSOR_DELAY_GAME
             )
         }
 
         awaitClose {
             sensorManager.unregisterListener(sensorEventListener)
         }
+    }
+
+    fun stopListening() {
+        // İleride manuel durdurma gerekirse diye
     }
 
     fun isSensorAvailable(): Boolean {
@@ -95,5 +110,6 @@ class CompassSensorManager(context: Context) {
 data class CompassData(
     val azimuth: Float,
     val pitch: Float,
-    val roll: Float
+    val roll: Float,
+    val isFlat: Boolean
 )

@@ -1,6 +1,9 @@
+// MainViewModel.kt - GPS Konum Alma Düzeltmesi
+
 package com.example.risaleezanvakticompose.presentation.screen.mainScreen
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
@@ -52,7 +55,6 @@ class MainViewModel @Inject constructor(
         loadCurrentLocation()
         loadNotificationSettings()
         ensureDefaultNotificationSettings()
-
         MidnightAlarmReceiver.scheduleMidnightAlarm(context)
     }
 
@@ -69,8 +71,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             notificationSettingsDao.getSettings().collect { settings ->
                 _notificationSettings.value = settings
-
-                // Alarmları güncelle
                 if (settings != null) {
                     scheduleAlarmsForToday()
                 }
@@ -99,6 +99,7 @@ class MainViewModel @Inject constructor(
             var prayerTimes = repository.getPrayerTimesForDate(location.placeId, today)
 
             if (prayerTimes == null) {
+
                 val result = repository.fetchAndSavePrayerTimes(
                     placeId = location.placeId,
                     lat = location.latitude,
@@ -111,33 +112,82 @@ class MainViewModel @Inject constructor(
                     prayerTimes = repository.getPrayerTimesForDate(location.placeId, today)
                 } else {
                     _uiState.value = MainUiState.Error(
-                        result.exceptionOrNull()?.message ?: "Vakitler yüklenemedi"
+                        result.exceptionOrNull()?.message ?: "Namaz vakitleri yüklenemedi"
                     )
                     return@launch
                 }
             }
 
-            prayerTimes?.let {
-                val nextPrayer = calculateNextPrayer(it)
-                _uiState.value = MainUiState.Success(
-                    location = location,
-                    prayerTimes = it,
-                    nextPrayer = nextPrayer
-                )
+            if (prayerTimes != null) {
+                val nextPrayer = findNextPrayer(prayerTimes)
+                _uiState.value = MainUiState.Success(prayerTimes, nextPrayer)
                 startCountdown(nextPrayer)
                 scheduleAlarmsForToday()
-            } ?: run {
-                _uiState.value = MainUiState.Error("Vakitler bulunamadı")
+            } else {
+                _uiState.value = MainUiState.Error("Namaz vakitleri bulunamadı")
             }
         }
     }
 
-    private fun scheduleAlarmsForToday() {
+    fun fetchCurrentLocationFromGps(lat: Double, lng: Double) {
         viewModelScope.launch {
-            val state = _uiState.value
-            if (state is MainUiState.Success) {
-                val settings = _notificationSettings.value ?: return@launch
-                alarmManager.scheduleAlarmsForToday(state.prayerTimes, settings)
+            _uiState.value = MainUiState.Loading
+
+            val result = repository.fetchAndSaveGpsLocation(lat, lng)
+
+            if (result.isSuccess) {
+                val savedLocation = result.getOrNull()
+                Log.d("MainViewModel", "GPS location saved: ${savedLocation?.placeName}")
+                // currentLocation flow'u otomatik güncellenir ve loadPrayerTimes çağrılır
+            } else {
+                _uiState.value = MainUiState.Error(
+                    result.exceptionOrNull()?.message ?: "GPS konumu alınamadı"
+                )
+            }
+        }
+    }
+
+    private fun findNextPrayer(prayerTimes: PrayerTimesEntity): NextPrayerInfo {
+        val now = LocalTime.now()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
+
+        val prayers = listOf(
+            "İmsak" to prayerTimes.imsak,
+            "Güneş" to prayerTimes.gunes,
+            "Öğle" to prayerTimes.ogle,
+            "İkindi" to prayerTimes.ikindi,
+            "Akşam" to prayerTimes.aksam,
+            "Yatsı" to prayerTimes.yatsi
+        )
+
+        for ((name, time) in prayers) {
+            val prayerTime = LocalTime.parse(time, formatter)
+            if (now.isBefore(prayerTime)) {
+                return NextPrayerInfo(name, time)
+            }
+        }
+
+        return NextPrayerInfo("İmsak", prayerTimes.imsak)
+    }
+
+    fun refreshPrayerTimes() {
+        _currentLocation.value?.let { location ->
+            viewModelScope.launch {
+                _uiState.value = MainUiState.Loading
+
+                val result = repository.refreshPrayerTimes(
+                    location.placeId,
+                    location.latitude,
+                    location.longitude
+                )
+
+                if (result.isSuccess) {
+                    loadPrayerTimes(location)
+                } else {
+                    _uiState.value = MainUiState.Error(
+                        result.exceptionOrNull()?.message ?: "Yenileme başarısız"
+                    )
+                }
             }
         }
     }
@@ -170,8 +220,6 @@ class MainViewModel @Inject constructor(
                     notificationSettingsDao.toggleYatsi(!current)
                 }
             }
-
-            // Alarmları yeniden kur
             scheduleAlarmsForToday()
         }
     }
@@ -208,6 +256,16 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun scheduleAlarmsForToday() {
+        viewModelScope.launch {
+            val state = _uiState.value
+            if (state is MainUiState.Success) {
+                val settings = _notificationSettings.value ?: return@launch
+                alarmManager.scheduleAlarmsForToday(state.prayerTimes, settings)
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         countdownJob?.cancel()
@@ -218,88 +276,12 @@ class MainViewModel @Inject constructor(
         val nextWeek = LocalDate.now().plusDays(7).toString()
         return repository.getPrayerTimesRange(placeId, tomorrow, nextWeek)
     }
-
-    fun fetchCurrentLocationFromGps(lat: Double, lng: Double) {
-        viewModelScope.launch {
-            _uiState.value = MainUiState.Loading
-
-            val result = repository.fetchAndSaveGpsLocation(lat, lng)
-
-            if (result.isFailure) {
-                _uiState.value = MainUiState.Error(
-                    result.exceptionOrNull()?.message ?: "Konum alınamadı"
-                )
-            }
-        }
-    }
-
-    fun refreshPrayerTimes() {
-        _currentLocation.value?.let { location ->
-            viewModelScope.launch {
-                _uiState.value = MainUiState.Loading
-
-                val result = repository.refreshPrayerTimes(
-                    location.placeId,
-                    location.latitude,
-                    location.longitude
-                )
-
-                if (result.isSuccess) {
-                    loadPrayerTimes(location)
-                } else {
-                    _uiState.value = MainUiState.Error(
-                        result.exceptionOrNull()?.message ?: "Yenileme başarısız"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun calculateNextPrayer(prayerTimes: PrayerTimesEntity): NextPrayerInfo {
-        val now = LocalTime.now()
-        val formatter = DateTimeFormatter.ofPattern("HH:mm")
-
-        val prayers = listOf(
-            "İmsak" to LocalTime.parse(prayerTimes.imsak, formatter),
-            "Güneş" to LocalTime.parse(prayerTimes.gunes, formatter),
-            "Öğle" to LocalTime.parse(prayerTimes.ogle, formatter),
-            "İkindi" to LocalTime.parse(prayerTimes.ikindi, formatter),
-            "Akşam" to LocalTime.parse(prayerTimes.aksam, formatter),
-            "Yatsı" to LocalTime.parse(prayerTimes.yatsi, formatter)
-        )
-
-        for ((name, time) in prayers) {
-            if (now.isBefore(time)) {
-                val minutesUntil = java.time.Duration.between(now, time).toMinutes()
-                return NextPrayerInfo(
-                    name = name,
-                    time = time.format(formatter),
-                    minutesRemaining = minutesUntil.toInt()
-                )
-            }
-        }
-
-        return NextPrayerInfo(
-            name = "İmsak",
-            time = prayerTimes.imsak,
-            minutesRemaining = 0
-        )
-    }
-
-    fun checkPermissions(): PermissionsStatus {
-        return PermissionsStatus(
-            locationGranted = permissionManager.isLocationPermissionGranted(),
-            notificationGranted = permissionManager.isNotificationPermissionGranted(),
-            batteryOptimizationDisabled = permissionManager.isBatteryOptimizationDisabled()
-        )
-    }
 }
 
 sealed class MainUiState {
-    data object Loading : MainUiState()
-    data object NoLocation : MainUiState()
+    object Loading : MainUiState()
+    object NoLocation : MainUiState()
     data class Success(
-        val location: SavedLocation,
         val prayerTimes: PrayerTimesEntity,
         val nextPrayer: NextPrayerInfo
     ) : MainUiState()
@@ -308,18 +290,11 @@ sealed class MainUiState {
 
 data class NextPrayerInfo(
     val name: String,
-    val time: String,
-    val minutesRemaining: Int
+    val time: String
 )
 
 data class CountdownTime(
     val hours: Int,
     val minutes: Int,
     val seconds: Int
-)
-
-data class PermissionsStatus(
-    val locationGranted: Boolean,
-    val notificationGranted: Boolean,
-    val batteryOptimizationDisabled: Boolean
 )

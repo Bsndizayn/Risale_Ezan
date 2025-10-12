@@ -19,7 +19,7 @@ class QiblaViewModel @Inject constructor(
 
     companion object {
         private const val ALPHA = 0.15f
-        private const val LOCK_THRESHOLD = 10f // ±10 derece içinde kilitlenme
+        private const val LOCK_THRESHOLD = 10f
     }
 
     private val compassSensorManager = CompassSensorManager(application)
@@ -31,7 +31,7 @@ class QiblaViewModel @Inject constructor(
     val currentAzimuth: StateFlow<Float> = _currentAzimuth.asStateFlow()
 
     private var smoothedAzimuth = 0f
-    private var lastRotation = 0f // Önceki rotation değeri (360° geçiş için)
+    private var lastRotation = 0f
 
     private val _qiblaArrowRotation = MutableStateFlow(0f)
     val qiblaArrowRotation: StateFlow<Float> = _qiblaArrowRotation.asStateFlow()
@@ -45,6 +45,9 @@ class QiblaViewModel @Inject constructor(
     private val _isSensorAvailable = MutableStateFlow(false)
     val isSensorAvailable: StateFlow<Boolean> = _isSensorAvailable.asStateFlow()
 
+    private val _hasLocation = MutableStateFlow(false)
+    val hasLocation: StateFlow<Boolean> = _hasLocation.asStateFlow()
+
     init {
         _isSensorAvailable.value = compassSensorManager.isSensorAvailable()
         loadCurrentLocationAndCalculateQibla()
@@ -55,14 +58,22 @@ class QiblaViewModel @Inject constructor(
         viewModelScope.launch {
             repository.getCurrentLocation().collect { location ->
                 if (location != null) {
+                    _hasLocation.value = true
                     val qibla = QiblaCalculator.calculateQiblaDirection(
                         location.latitude,
                         location.longitude
                     )
                     _qiblaDirection.value = qibla
+                } else {
+                    _hasLocation.value = false
+                    _qiblaDirection.value = null
                 }
             }
         }
+    }
+
+    fun checkLocationAndRefresh() {
+        loadCurrentLocationAndCalculateQibla()
     }
 
     private fun startCompassSensor() {
@@ -72,19 +83,16 @@ class QiblaViewModel @Inject constructor(
                     val normalizedAzimuth = compassData.azimuth
                     _currentAzimuth.value = normalizedAzimuth
 
-                    // Low-pass filter
-                    smoothedAzimuth = normalizedAzimuth * ALPHA + smoothedAzimuth * (1.0f - ALPHA)
+                    smoothedAzimuth = smoothAzimuth(smoothedAzimuth, normalizedAzimuth)
 
-                    // Telefonun yatay olup olmadığını kontrol et
-                    val isFlat = abs(compassData.pitch) < 30 && abs(compassData.roll) < 30
-                    _isPhoneFlat.value = isFlat
+                    _isPhoneFlat.value = compassData.isFlat
 
-                    // Kıble yönünü hesapla
-                    val qibla = _qiblaDirection.value
-                    if (qibla != null) {
-                        updateQiblaRotation(qibla, smoothedAzimuth)
+                    _qiblaDirection.value?.let { qibla ->
+                        val targetRotation = qibla - smoothedAzimuth
+                        val smoothedRotation = smoothRotation(lastRotation, targetRotation)
+                        lastRotation = smoothedRotation
+                        _qiblaArrowRotation.value = smoothedRotation
 
-                        // Doğruluk hesapla
                         val accuracy = QiblaCalculator.getQiblaAccuracy(qibla, smoothedAzimuth)
                         _qiblaAccuracy.value = accuracy
                     }
@@ -92,37 +100,22 @@ class QiblaViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Kıble rotation'ını hesaplar - ±5° içinde kilitler
-     */
-    private fun updateQiblaRotation(qibla: Float, azimuth: Float) {
-        // Kıble ile azimuth arasındaki en kısa farkı hesapla
-        val diff = getShortestAngleDifference(qibla, azimuth)
-        val absDiff = abs(diff)
+    private fun smoothAzimuth(currentSmoothed: Float, newValue: Float): Float {
+        val diff = ((newValue - currentSmoothed + 540) % 360) - 180
+        return (currentSmoothed + ALPHA * diff + 360) % 360
+    }
 
-        // ±5° İÇİNDE Mİ? → KİLİTLE
-        if (absDiff <= LOCK_THRESHOLD) {
-            _qiblaArrowRotation.value = 0f // Tam kıble yönü, sıfırda kilitle
+    private fun smoothRotation(current: Float, target: Float): Float {
+        val diff = ((target - current + 540) % 360) - 180
+        return if (abs(diff) <= LOCK_THRESHOLD) {
+            target
         } else {
-            // ±5° DIŞINDA → Normal takip et
-            var newRotation = (qibla - azimuth + 360) % 360
-
-            // 360° DÖNME FİX'İ - En kısa yolu seç
-            val rotationDiff = getShortestAngleDifference(newRotation, lastRotation)
-            newRotation = lastRotation + rotationDiff
-
-            lastRotation = newRotation
-            _qiblaArrowRotation.value = newRotation
+            (current + ALPHA * diff + 360) % 360
         }
     }
 
-    /**
-     * İki açı arasındaki en kısa farkı hesaplar (-180 ile +180 arası)
-     */
-    private fun getShortestAngleDifference(target: Float, current: Float): Float {
-        var diff = target - current
-        while (diff > 180) diff -= 360
-        while (diff < -180) diff += 360
-        return diff
+    override fun onCleared() {
+        super.onCleared()
+        compassSensorManager.stopListening()
     }
 }

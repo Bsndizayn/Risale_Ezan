@@ -61,13 +61,12 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ayarlar") },
+                title = { Text("Vakitler") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Geri")
                     }
                 },
-
                 windowInsets = WindowInsets(0.dp)
             )
         }
@@ -79,13 +78,6 @@ fun SettingsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                Text(
-                    text = "Bildirim Ayarları",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
 
             settings?.let { s ->
                 item {
@@ -220,9 +212,12 @@ fun PrayerNotificationCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (enabled)
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.primaryContainer
             else
-                MaterialTheme.colorScheme.surface
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (enabled) 4.dp else 2.dp
         )
     ) {
         Column(
@@ -238,7 +233,11 @@ fun PrayerNotificationCard(
                 Text(
                     text = prayerName,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (enabled)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
 
                 Switch(
@@ -250,7 +249,6 @@ fun PrayerNotificationCard(
             if (enabled) {
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Ses seçimi
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -270,18 +268,21 @@ fun PrayerNotificationCard(
                         )
                         Text(
                             text = getSoundDisplayName(soundName),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                     Icon(
                         Icons.Default.ChevronRight,
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     )
                 }
 
-                HorizontalDivider()
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)
+                )
 
-                // Dakika önce ayarı
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -291,7 +292,8 @@ fun PrayerNotificationCard(
                 ) {
                     Text(
                         text = "Kaç dakika önce?",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
 
                     Row(
@@ -302,20 +304,36 @@ fun PrayerNotificationCard(
                             onClick = { if (minutesBefore > 0) onMinutesChange(minutesBefore - 1) },
                             enabled = minutesBefore > 0
                         ) {
-                            Icon(Icons.Default.Remove, "Azalt")
+                            Icon(
+                                Icons.Default.Remove,
+                                "Azalt",
+                                tint = if (minutesBefore > 0)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f)
+                            )
                         }
 
                         Text(
                             text = "$minutesBefore dk",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.widthIn(min = 50.dp)
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.widthIn(min = 50.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
 
                         IconButton(
                             onClick = { if (minutesBefore < 30) onMinutesChange(minutesBefore + 1) },
                             enabled = minutesBefore < 30
                         ) {
-                            Icon(Icons.Default.Add, "Artır")
+                            Icon(
+                                Icons.Default.Add,
+                                "Artır",
+                                tint = if (minutesBefore < 30)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f)
+                            )
                         }
                     }
                 }
@@ -333,7 +351,12 @@ fun SoundPickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Ezan Sesi Seç") },
+        title = {
+            Text(
+                "Ezan Sesi Seç",
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
         text = {
             LazyColumn {
                 items(sounds) { sound ->
@@ -347,7 +370,8 @@ fun SoundPickerDialog(
                     ) {
                         Text(
                             text = getSoundDisplayName(sound),
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         if (sound == currentSound) {

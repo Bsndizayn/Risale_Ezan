@@ -26,7 +26,6 @@ class SettingsViewModel @Inject constructor(
     private val _availableSounds = MutableStateFlow<List<String>>(emptyList())
     val availableSounds: StateFlow<List<String>> = _availableSounds.asStateFlow()
 
-    private val alarmManager = PrayerAlarmManager(context)
 
     init {
         loadSettings()

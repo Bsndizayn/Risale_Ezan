@@ -22,7 +22,6 @@ class TesbihatViewModel @Inject constructor(
     private val _selectedContent = MutableStateFlow<TesbihatContent?>(null)
     val selectedContent: StateFlow<TesbihatContent?> = _selectedContent.asStateFlow()
 
-    // Her tesbihat öğesi için sayaç durumları
     private val _counters = MutableStateFlow<Map<String, Int>>(emptyMap())
     val counters: StateFlow<Map<String, Int>> = _counters.asStateFlow()
 
