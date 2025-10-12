@@ -22,15 +22,14 @@ interface PrayerTimesDao {
     @Query("SELECT * FROM prayer_times WHERE location_place_id = :placeId AND date = :date LIMIT 1")
     suspend fun getPrayerTimesForDate(placeId: Int, date: String): PrayerTimesEntity?
 
-    @Query("""
-        SELECT * FROM prayer_times 
-        WHERE location_place_id = :placeId 
-        AND date BETWEEN :startDate AND :endDate 
-        ORDER BY date ASC
-    """)
-    fun getPrayerTimesRange(placeId: Int, startDate: String, endDate: String): Flow<List<PrayerTimesEntity>>
+    @Query("SELECT DISTINCT * FROM prayer_times WHERE location_place_id = :placeId AND date BETWEEN :startDate AND :endDate ORDER BY date ASC")
+    fun getPrayerTimesRange(
+        placeId: Int,
+        startDate: String,
+        endDate: String
+    ): Flow<List<PrayerTimesEntity>>
 
-   @Query("SELECT * FROM prayer_times WHERE location_place_id = :placeId ORDER BY date ASC")
+    @Query("SELECT * FROM prayer_times WHERE location_place_id = :placeId ORDER BY date ASC")
     fun getAllPrayerTimesForLocation(placeId: Int): Flow<List<PrayerTimesEntity>>
 
     @Query("DELETE FROM prayer_times WHERE date < :beforeDate")
@@ -42,14 +41,17 @@ interface PrayerTimesDao {
     @Query("DELETE FROM prayer_times")
     suspend fun deleteAllPrayerTimes()
 
-   @Query("SELECT COUNT(*) FROM prayer_times")
+    @Query("SELECT COUNT(*) FROM prayer_times")
     suspend fun getPrayerTimesCount(): Int
 
-   @Query("SELECT EXISTS(SELECT 1 FROM prayer_times WHERE location_place_id = :placeId AND date > :afterDate)")
+    @Query("SELECT EXISTS(SELECT 1 FROM prayer_times WHERE location_place_id = :placeId AND date > :afterDate)")
     suspend fun hasPrayerTimesAfterDate(placeId: Int, afterDate: String): Boolean
 
-   @Query("SELECT * FROM prayer_times WHERE location_place_id IN (:placeIds) AND date = :date")
-    suspend fun getPrayerTimesForMultipleLocations(placeIds: List<Int>, date: String): List<PrayerTimesEntity>
+    @Query("SELECT * FROM prayer_times WHERE location_place_id IN (:placeIds) AND date = :date")
+    suspend fun getPrayerTimesForMultipleLocations(
+        placeIds: List<Int>,
+        date: String
+    ): List<PrayerTimesEntity>
 
     @Transaction
     suspend fun deleteAllAndInsert(vararg prayerTimes: PrayerTimesEntity) {
