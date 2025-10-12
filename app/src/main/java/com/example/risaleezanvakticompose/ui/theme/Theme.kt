@@ -15,59 +15,70 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = BurgundyPrimary,
-    onPrimary = Color.White,
-    primaryContainer = WhiteSmoke,
-    onPrimaryContainer = TextDark,
+    // Ana Kırmızı Renkler
+    primary = IslamicRed,                   // Ana kırmızı
+    onPrimary = TextOnRed,                  // Beyaz text
+    primaryContainer = LightRed,            // Çok açık kırmızı container
+    onPrimaryContainer = DeepRed,           // Koyu kırmızı text
 
-    secondary = TextMedium,
-    onSecondary = Color.White,
-    secondaryContainer = BeigeLight,
+    // İkincil Renkler (Altın)
+    secondary = GoldAccent,                 // Altın
+    onSecondary = TextDark,                 // Koyu text
+    secondaryContainer = GoldLight.copy(alpha = 0.2f), // Açık altın container
     onSecondaryContainer = TextDark,
 
-    tertiary = GoldAccent,
-    onTertiary = Color.White,
-    tertiaryContainer = WarmWhite,
-    onTertiaryContainer = TextDark,
+    // Üçüncül Renkler
+    tertiary = BrightRed,                   // Parlak kırmızı
+    onTertiary = TextOnRed,
+    tertiaryContainer = MediumRed,          // Orta açık kırmızı
+    onTertiaryContainer = DeepRed,
 
-    background = CreamBackground,
+    // Arka Plan ve Yüzeyler
+    background = CreamBackground,           // Açık krem (pattern üzerine)
     onBackground = TextDark,
 
-    surface = Color.White,
+    surface = WarmWhite,                    // Beyaz kartlar
     onSurface = TextDark,
-    surfaceVariant = WarmWhite,
+    surfaceVariant = LightCream,            // Açık krem variant
     onSurfaceVariant = TextMedium,
 
-    error = Color(0xFFBA1A1A),
+    // Hata Renkleri
+    error = ErrorRed,
     onError = Color.White,
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF410002),
+    errorContainer = Color(0xFFFFEBEE),
+    onErrorContainer = DeepRed,
 
-    outline = DividerColor,
-    outlineVariant = BeigeLight,
-    scrim = Color.Black,
+    // Outline ve Scrim
+    outline = DividerLight,
+    outlineVariant = OutlineLight,
+    scrim = Color.Black.copy(alpha = 0.32f),
 
-    inverseSurface = TextDark,
-    inverseOnSurface = WarmWhite,
-    inversePrimary = SoftBurgundy
+    // Inverse Renkler
+    inverseSurface = DarkBackground,
+    inverseOnSurface = CreamBackground,
+    inversePrimary = SoftRed
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = LightBurgundy,
+    // Ana Kırmızı Renkler (Dark)
+    primary = LightRedDark,
     onPrimary = DarkBackground,
-    primaryContainer = MutedBurgundy,
-    onPrimaryContainer = SoftRose,
+    primaryContainer = DeepRed,
+    onPrimaryContainer = SoftRedDark,
 
-    secondary = GoldLight,
+    // İkincil Renkler (Dark)
+    secondary = GoldDark,
     onSecondary = DarkBackground,
     secondaryContainer = DarkSurfaceVariant,
-    onSecondaryContainer = TextDarkMode,
+    onSecondaryContainer = GoldSoftDark,
 
-    tertiary = GoldAccent,
+    // Üçüncül Renkler (Dark)
+    tertiary = BrightRedDark,
     onTertiary = DarkBackground,
     tertiaryContainer = DarkSurfaceVariant,
-    onTertiaryContainer = GoldLight,
+    onTertiaryContainer = SoftRedDark,
 
+    // Arka Plan ve Yüzeyler (Dark)
     background = DarkBackground,
     onBackground = TextDarkMode,
 
@@ -76,18 +87,21 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = DarkSurfaceVariant,
     onSurfaceVariant = TextDarkSecondary,
 
-    error = Color(0xFFFFB4AB),
+    // Hata Renkleri (Dark)
+    error = ErrorRed,
     onError = Color(0xFF690005),
     errorContainer = Color(0xFF93000A),
     onErrorContainer = Color(0xFFFFDAD6),
 
+    // Outline ve Scrim (Dark)
     outline = DividerDark,
     outlineVariant = DarkSurfaceVariant,
-    scrim = Color.Black,
+    scrim = Color.Black.copy(alpha = 0.5f),
 
+    // Inverse Renkler (Dark)
     inverseSurface = TextDarkMode,
     inverseOnSurface = DarkBackground,
-    inversePrimary = BurgundyPrimary
+    inversePrimary = IslamicRed
 )
 
 @Composable
@@ -102,7 +116,12 @@ fun RisaleEzanVaktiComposeTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.surface.toArgb()
+            // Status bar için hafif transparan arka plan
+            window.statusBarColor = if (darkTheme) {
+                colorScheme.background.toArgb()
+            } else {
+                Color(0xFFFFFBF5).copy(alpha = 0.95f).toArgb()
+            }
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }

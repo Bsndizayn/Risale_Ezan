@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
@@ -27,10 +28,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.risaleezanvakticompose.util.PermissionManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -41,6 +46,9 @@ fun PermissionsScreen(
     onAllPermissionsGranted: () -> Unit,
     onSkip: () -> Unit
 ) {
+    val context = LocalContext.current
+    val permissionManager = remember { PermissionManager(context) }
+
     val locationPermissionState = rememberPermissionState(
         Manifest.permission.ACCESS_FINE_LOCATION
     )
@@ -49,8 +57,13 @@ fun PermissionsScreen(
         rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
     } else null
 
+    val canScheduleExactAlarms = remember {
+        mutableStateOf(permissionManager.canScheduleExactAlarms())
+    }
+
     val allPermissionsGranted = locationPermissionState.status.isGranted &&
-            (notificationPermissionState?.status?.isGranted != false)
+            (notificationPermissionState?.status?.isGranted != false) &&
+            canScheduleExactAlarms.value
 
     LaunchedEffect(allPermissionsGranted) {
         if (allPermissionsGranted) {
@@ -106,6 +119,20 @@ fun PermissionsScreen(
                     description = "Ezan vakitlerinde sizi uyarmak için",
                     isGranted = notificationPermissionState.status.isGranted,
                     onRequestPermission = { notificationPermissionState.launchPermissionRequest() }
+                )
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PermissionCard(
+                    icon = Icons.Default.Alarm,
+                    title = "Tam Zamanlı Alarm",
+                    description = "Ezan vakitlerinde tam zamanında bildirim için",
+                    isGranted = canScheduleExactAlarms.value,
+                    onRequestPermission = {
+                        permissionManager.requestExactAlarmPermission()
+                        // İzin verildikten sonra kontrol et
+                        canScheduleExactAlarms.value = permissionManager.canScheduleExactAlarms()
+                    }
                 )
             }
 

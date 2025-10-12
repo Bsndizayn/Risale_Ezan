@@ -3,6 +3,7 @@ package com.example.risaleezanvakticompose.di
 import com.example.risaleezanvakticompose.data.local.dao.*
 import com.example.risaleezanvakticompose.data.remote.ApiService
 import com.example.risaleezanvakticompose.data.repository.PrayerTimesRepository
+import com.example.risaleezanvakticompose.data.repository.TesbihatRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,5 +32,11 @@ object RepositoryModule {
             cachedRegionDao,
             cachedCityDao
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideTesbihatRepository(): TesbihatRepository {
+        return TesbihatRepository()
     }
 }

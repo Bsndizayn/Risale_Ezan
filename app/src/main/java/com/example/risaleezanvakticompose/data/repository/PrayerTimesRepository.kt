@@ -92,12 +92,13 @@ class PrayerTimesRepository @Inject constructor(
         }
     }
 
+
     suspend fun fetchAndSavePrayerTimes(
         placeId: Int,
         lat: Double,
         lng: Double,
         startDate: String,
-        days: Int = 7
+        days: Int = 365  // 7'den 365'e çıkardım 1 yıllık çeksin diye
     ): Result<Unit> {
         return try {
             val response = apiService.getPrayerTimesForGPS(
@@ -132,14 +133,56 @@ class PrayerTimesRepository @Inject constructor(
         }
     }
 
-    suspend fun deleteOldPrayerTimes(beforeDate: String) {
-        prayerTimesDao.deleteOldPrayerTimes(beforeDate)
-    }
-
     suspend fun refreshPrayerTimes(placeId: Int, lat: Double, lng: Double): Result<Unit> {
         prayerTimesDao.deletePrayerTimesForLocation(placeId)
-        return fetchAndSavePrayerTimes(placeId, lat, lng, LocalDate.now().toString(), 30)
+        return fetchAndSavePrayerTimes(placeId, lat, lng, LocalDate.now().toString(), 365)
     }
+
+    suspend fun addLocationByName(
+        country: String,
+        region: String,
+        city: String
+    ): Result<SavedLocation> {
+        return try {
+            val response = apiService.getCoordinates(country, region, city)
+
+            if (response.isSuccessful && response.body() != null) {
+                val coords = response.body()!!
+
+                val placeId = "${coords.countryCode}_${region}_${city}".hashCode()
+
+                val savedLocation = SavedLocation(
+                    placeId = placeId,
+                    placeName = city,
+                    country = country,
+                    region = region,
+                    countryCode = coords.countryCode,
+                    latitude = coords.latitude,
+                    longitude = coords.longitude,
+                    timezone = null,
+                    isCurrentLocation = false,
+                    isFavorite = false
+                )
+
+                savedLocationDao.insert(savedLocation)
+
+                fetchAndSavePrayerTimes(
+                    placeId = placeId,
+                    lat = coords.latitude,
+                    lng = coords.longitude,
+                    startDate = LocalDate.now().toString(),
+                    days = 365  // 30'dan 365'e
+                )
+
+                Result.success(savedLocation)
+            } else {
+                Result.failure(Exception("Coordinates fetch failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
     suspend fun getCountries(forceRefresh: Boolean = false): Result<List<CountriesItem>> {
         return try {
@@ -324,48 +367,4 @@ class PrayerTimesRepository @Inject constructor(
         }
     }
 
-    suspend fun addLocationByName(
-        country: String,
-        region: String,
-        city: String
-    ): Result<SavedLocation> {
-        return try {
-            val response = apiService.getCoordinates(country, region, city)
-
-            if (response.isSuccessful && response.body() != null) {
-                val coords = response.body()!!
-
-                val placeId = "${coords.countryCode}_${region}_${city}".hashCode()
-
-                val savedLocation = SavedLocation(
-                    placeId = placeId,
-                    placeName = city,
-                    country = country,
-                    region = region,
-                    countryCode = coords.countryCode,
-                    latitude = coords.latitude,
-                    longitude = coords.longitude,
-                    timezone = null,
-                    isCurrentLocation = false,
-                    isFavorite = false
-                )
-
-                savedLocationDao.insert(savedLocation)
-
-                fetchAndSavePrayerTimes(
-                    placeId = placeId,
-                    lat = coords.latitude,
-                    lng = coords.longitude,
-                    startDate = LocalDate.now().toString(),
-                    days = 30
-                )
-
-                Result.success(savedLocation)
-            } else {
-                Result.failure(Exception("Coordinates fetch failed: ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 }

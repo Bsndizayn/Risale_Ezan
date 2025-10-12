@@ -2,27 +2,33 @@ package com.example.risaleezanvakticompose.presentation.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -30,14 +36,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.risaleezanvakticompose.R
 import com.example.risaleezanvakticompose.presentation.screen.location.LocationSelectionScreen
 import com.example.risaleezanvakticompose.presentation.screen.mainScreen.MainScreen
 import com.example.risaleezanvakticompose.presentation.screen.onboardingScreen.OnboardingScreen
 import com.example.risaleezanvakticompose.presentation.screen.permissions.PermissionsScreen
 import com.example.risaleezanvakticompose.presentation.screen.profileScreen.ProfileScreen
-import com.example.risaleezanvakticompose.presentation.screen.readBook.Kulliyat
+import com.example.risaleezanvakticompose.presentation.screen.qibla.QiblaScreen
 import com.example.risaleezanvakticompose.presentation.screen.readBook.NoteScreen
-import com.example.risaleezanvakticompose.presentation.screen.readBook.ReadingScreen
+import com.example.risaleezanvakticompose.presentation.screen.settings.SettingsScreen
+import com.example.risaleezanvakticompose.presentation.screen.tesbihat.TesbihatDetailScreen
+import com.example.risaleezanvakticompose.presentation.screen.tesbihat.TesbihatListScreen
+import com.example.risaleezanvakticompose.presentation.screen.tesbihat.TesbihatViewModel
 
 
 @Composable
@@ -108,154 +118,27 @@ fun RootNavigationGraph(
 
 @Composable
 fun MainScreenContent() {
-    /**
-     * İç navigation için ayrı NavController
-     *
-     * rememberNavController Composition'da NavController yaratıyor ve
-     * configuration change'lerde korunmasını sağlıyor.
-     *
-     * Bu controller root controller'dan tamamen bağımsız.
-     * Kendi back stack'i var, kendi lifecycle'ı var.
-     * Root controller'a hiç dokunmuyor, touch etmiyor.
-     *
-     * Bu separation sayesinde:
-     * • Logout yapınca sadece root controller'ı resetliyoruz
-     * • Main navigation karmaşık hale gelince root etkilenmiyor
-     * • Her NavHost bağımsız test edilebiliyor
-     */
     val mainNavController = rememberNavController()
 
-    /**
-     * Current destination tracking
-     *
-     * currentBackStackEntryAsState() NavController'ın current entry'sini
-     * Compose State olarak dönüştürüyor.
-     *
-     * ┌─ STATE OBSERVATION ─────────────────────────────────────────────────┐
-     * │                                                                      │
-     * │ NavController observable değil ama currentBackStackEntry property'si│
-     * │ StateFlow. currentBackStackEntryAsState() bu Flow'u Compose State'e│
-     * │ çeviriyor.                                                           │
-     * │                                                                      │
-     * │ Her navigation işleminde:                                           │
-     * │ 1. NavController back stack'i güncelliyor                           │
-     * │ 2. currentBackStackEntry StateFlow'u emit ediyor                    │
-     * │ 3. Compose bu değişikliği görüyor                                   │
-     * │ 4. Bu state'i kullanan composable'lar recompose oluyor             │
-     * │                                                                      │
-     * │ Bu sayede bottom navigation'daki selected state otomatik            │
-     * │ güncelleniyor, manuel state management gereksiz.                    │
-     * │                                                                      │
-     * └──────────────────────────────────────────────────────────────────────┘
-     */
     val navBackStackEntry by mainNavController.currentBackStackEntryAsState()
-
-    /**
-     * Current route extraction
-     *
-     * NavDestination'dan route string'i alıyoruz.
-     * Null olabilir çünkü destination henüz set edilmemiş olabilir
-     * (ilk composition'da).
-     */
     val currentRoute = navBackStackEntry?.destination?.route
 
-    /**
-     * Scaffold - Material Design Layout Structure
-     *
-     * Scaffold Material 3'ün layout template'i. Şunları sağlıyor:
-     * • TopAppBar slot
-     * • BottomBar slot
-     * • FloatingActionButton slot
-     * • Drawer slot
-     * • Content slot (lambda)
-     * • Snackbar host
-     *
-     * Scaffold otomatik padding hesaplıyor, bottom bar ile content
-     * overlap etmiyor. Content lambda PaddingValues alıyor,
-     * bu değerleri content'e apply etmemiz gerekiyor.
-     */
     Scaffold(
-        /**
-         * Bottom bar slot
-         *
-         * Bu slot'a composable geçiyoruz, persistent olarak kalıyor.
-         * Yani navigation değişse bile bottom bar yerinde duruyor.
-         *
-         * Conditional rendering yapıyoruz: sadece main screen'lerde
-         * bottom bar gösteriyoruz, detail screen'lerde gizliyoruz.
-         */
         bottomBar = {
-            /**
-             * Bottom bar visibility logic
-             *
-             * Main screen'lerde (Home, Profile, MyLibrary) göster.
-             * Detail screen'lerde (BookDetail, Quiz vb.) gizle.
-             *
-             * When expression kullanıyoruz, exhaustive olmasına gerek yok
-             * çünkü default case (else) var.
-             */
             val shouldShowBottomBar = when (currentRoute) {
                 Screen.Main.Home.ROUTE,
-                Screen.Main.Profile.ROUTE,
-                Screen.Main.MyLibrary.ROUTE -> true
+                Screen.Main.MyLibrary.ROUTE,
+                Screen.Main.Qibla.ROUTE,      // Kıble ekranı eklendi
+                Screen.Main.Profile.ROUTE -> true
 
                 else -> false
             }
 
-            /**
-             * Conditional composition
-             *
-             * If kullanarak composable conditionally render ediyoruz.
-             * False olduğunda NavigationBar hiç compose edilmiyor,
-             * memory'de bile yok. Bu performans için önemli.
-             *
-             * Alternatif: AnimatedVisibility ile animasyonlu göster/gizle
-             * ama bottom bar için gerekli değil, instant toggle yeterli.
-             */
             if (shouldShowBottomBar) {
                 BottomNavigationBar(
                     currentRoute = currentRoute,
-                    /**
-                     * Navigation callback'leri
-                     *
-                     * Her tab için ayrı callback. Bu callback'lerde
-                     * bottom navigation pattern'ini uyguluyoruz:
-                     * • popUpTo start destination
-                     * • saveState ve restoreState
-                     * • launchSingleTop
-                     */
                     onHomeClick = {
                         mainNavController.navigate(Screen.Main.Home.ROUTE) {
-                            /**
-                             * ┌─ BOTTOM NAVIGATION PATTERN ────────────────────┐
-                             * │                                                 │
-                             * │ Bottom navigation'da tab değişimi özel:        │
-                             * │                                                 │
-                             * │ popUpTo(startDestinationId):                   │
-                             * │ • Start destination'a kadar pop et             │
-                             * │ • Start destination'ı tut (inclusive = false)  │
-                             * │ • Örnek: Home → Profile → Detail → Profile    │
-                             * │   Stack: [Home, Profile] olur                  │
-                             * │                                                 │
-                             * │ saveState = true:                              │
-                             * │ • Pop edilen ekranların state'ini kaydet       │
-                             * │ • Scroll position, form data korunur           │
-                             * │ • Memory efficient: sadece state, UI değil     │
-                             * │                                                 │
-                             * │ restoreState = true:                           │
-                             * │ • Önceki state'i geri yükle                   │
-                             * │ • Profile'dayken scroll yaptıysan, Home'a     │
-                             * │   gidip tekrar Profile'a dönünce scroll       │
-                             * │   pozisyonu korunuyor                          │
-                             * │                                                 │
-                             * │ launchSingleTop = true:                        │
-                             * │ • Aynı destination zaten stack'te varsa        │
-                             * │   yeni instance yaratma                        │
-                             * │ • Home'dayken Home tab'ına tekrar tıklarsan   │
-                             * │   hiçbir şey olmasın                           │
-                             * │                                                 │
-                             * └─────────────────────────────────────────────────┘
-                             */
                             popUpTo(mainNavController.graph.startDestinationId) {
                                 saveState = true
                             }
@@ -264,12 +147,16 @@ fun MainScreenContent() {
                         }
                     },
                     onLibraryClick = {
-                        /**
-                         * Aynı pattern, farklı destination
-                         * Code duplication var ama bottom navigation için
-                         * kabul edilebilir. Her tab için logic aynı.
-                         */
                         mainNavController.navigate(Screen.Main.MyLibrary.ROUTE) {
+                            popUpTo(mainNavController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onQiblaClick = {
+                        mainNavController.navigate(Screen.Main.Qibla.ROUTE) {
                             popUpTo(mainNavController.graph.startDestinationId) {
                                 saveState = true
                             }
@@ -290,13 +177,6 @@ fun MainScreenContent() {
             }
         }
     ) { paddingValues ->
-        /**
-         * Content area - NavHost burada yaşıyor
-         *
-         * paddingValues Scaffold'dan geliyor, bottom bar'ın yüksekliğini
-         * içeriyor. Bu padding'i NavHost'a apply ediyoruz ki content
-         * bottom bar'ın altında kalmasın.
-         */
         MainScreenNavHost(
             navController = mainNavController,
             modifier = Modifier.padding(paddingValues)
@@ -304,51 +184,172 @@ fun MainScreenContent() {
     }
 }
 
+
 @Composable
 fun BottomNavigationBar(
     currentRoute: String?,
     onHomeClick: () -> Unit,
     onLibraryClick: () -> Unit,
+    onQiblaClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+        tonalElevation = 8.dp,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
+        // Ana Sayfa
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Home,
-                    contentDescription = "Ana Sayfa"
+                    imageVector = if (currentRoute == Screen.Main.Home.ROUTE)
+                        Icons.Filled.Home
+                    else
+                        Icons.Outlined.Home,
+                    contentDescription = "Ana Sayfa",
+                    tint = if (currentRoute == Screen.Main.Home.ROUTE)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
-            label = { Text("Ana Sayfa") },
+            label = {
+                Text(
+                    "Ana Sayfa",
+                    fontSize = 11.sp,
+                    color = if (currentRoute == Screen.Main.Home.ROUTE)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             selected = currentRoute == Screen.Main.Home.ROUTE,
-            onClick = onHomeClick
+            onClick = onHomeClick,
+            alwaysShowLabel = false,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         )
 
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.LibraryBooks,
-                    contentDescription = "Kütüphanem"
+                    painter = painterResource(
+                        id = if (currentRoute == Screen.Main.MyLibrary.ROUTE)
+                            R.drawable.ic_tasbih_filled
+                        else
+                            R.drawable.ic_tasbih_outlined
+                    ),
+                    contentDescription = "Tesbihatlar",
+                    tint = if (currentRoute == Screen.Main.MyLibrary.ROUTE)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
                 )
             },
-            label = { Text("Kütüphanem") },
+            label = {
+                Text(
+                    "Tesbihat",
+                    fontSize = 11.sp,
+                    color = if (currentRoute == Screen.Main.MyLibrary.ROUTE)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             selected = currentRoute == Screen.Main.MyLibrary.ROUTE,
-            onClick = onLibraryClick
+            onClick = onLibraryClick,
+            alwaysShowLabel = false,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         )
 
+        // Kıble
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Person,
-                    contentDescription = "Profil"
+                    imageVector = if (currentRoute == Screen.Main.Qibla.ROUTE)
+                        Icons.Filled.Explore
+                    else
+                        Icons.Outlined.Explore,
+                    contentDescription = "Kıble",
+                    tint = if (currentRoute == Screen.Main.Qibla.ROUTE)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
-            label = { Text("Profil") },
+            label = {
+                Text(
+                    "Kıble",
+                    fontSize = 11.sp,
+                    color = if (currentRoute == Screen.Main.Qibla.ROUTE)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            selected = currentRoute == Screen.Main.Qibla.ROUTE,
+            onClick = onQiblaClick,
+            alwaysShowLabel = false,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        )
+
+        // Profil
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = if (currentRoute == Screen.Main.Profile.ROUTE)
+                        Icons.Filled.Person
+                    else
+                        Icons.Outlined.Person,
+                    contentDescription = "Profil",
+                    tint = if (currentRoute == Screen.Main.Profile.ROUTE)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            label = {
+                Text(
+                    "Profil",
+                    fontSize = 11.sp,
+                    color = if (currentRoute == Screen.Main.Profile.ROUTE)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             selected = currentRoute == Screen.Main.Profile.ROUTE,
-            onClick = onProfileClick
+            onClick = onProfileClick,
+            alwaysShowLabel = false,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         )
     }
 }
+
 
 @Composable
 fun MainScreenNavHost(
@@ -363,6 +364,7 @@ fun MainScreenNavHost(
         exitTransition = { fadeOut(animationSpec = tween(200)) }
     ) {
 
+        // Ana Sayfa
         composable(
             route = Screen.Main.Home.ROUTE,
             enterTransition = {
@@ -388,6 +390,7 @@ fun MainScreenNavHost(
             )
         }
 
+        // Profil
         composable(
             route = Screen.Main.Profile.ROUTE,
             enterTransition = { scaleIn(initialScale = 0.95f) },
@@ -395,28 +398,46 @@ fun MainScreenNavHost(
         ) {
             ProfileScreen(
                 onLogout = { },
-                onSaveSettings = { settings -> }
-            )
-        }
-
-        composable(route = Screen.Main.MyLibrary.ROUTE) {
-            Kulliyat(
-                onBookClick = { bookId ->
-                    val route = Screen.Detail.BookDetail.createRoute(bookId)
-                    navController.navigate(route)
-                },
-                onProfileClick = {
-                    navController.navigate(Screen.Main.Profile.ROUTE) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                onSaveSettings = { settings -> },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Main.Settings.ROUTE)
                 }
             )
         }
 
+        // Tesbihatlar (eski Kütüphane)
+        composable(route = Screen.Main.MyLibrary.ROUTE) {
+            TesbihatListScreen(
+                onCategoryClick = { category ->
+                    val route = Screen.Detail.TesbihatDetail.createRoute(category.name)
+                    navController.navigate(route)
+                },
+                onBackClick = {
+                    // Bottom nav'den gelindiyse back yapmıyoruz
+                    // navController.popBackStack()
+                }
+            )
+        }
+
+        // Kıble Ekranı - YENİ
+        composable(
+            route = Screen.Main.Qibla.ROUTE,
+            enterTransition = {
+                scaleIn(initialScale = 0.95f, animationSpec = tween(300))
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            QiblaScreen(
+                onBackClick = {
+                    // Bottom nav'den gelindiyse back yapmıyoruz
+                    // navController.popBackStack()
+                }
+            )
+        }
+
+        // Konum Seçimi
         composable(
             route = Screen.Main.LocationSelection.ROUTE,
             enterTransition = {
@@ -445,43 +466,71 @@ fun MainScreenNavHost(
             )
         }
 
+        // Ayarlar Ekranı
         composable(
-            route = Screen.Detail.BookDetail.ROUTE,
+            route = Screen.Main.Settings.ROUTE,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                )
+            }
+        ) {
+            SettingsScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Kitap Detay (Tesbihat Detay)
+        composable(
+            route = Screen.Detail.TesbihatDetail.ROUTE,
             arguments = listOf(
-                navArgument(Screen.Detail.BookDetail.ARG_BOOK_ID) {
+                navArgument(Screen.Detail.TesbihatDetail.ARG_CATEGORY_NAME) {
                     type = NavType.StringType
                     nullable = false
                 }
             ),
             enterTransition = {
-                expandIn(
-                    expandFrom = Alignment.Center,
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
                     animationSpec = tween(300)
                 )
             },
             exitTransition = {
-                shrinkOut(
-                    shrinkTowards = Alignment.Center,
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
                     animationSpec = tween(300)
                 )
             }
         ) { backStackEntry ->
-            val bookId = Screen.Detail.BookDetail.getBookID(backStackEntry)
-            val rememberedBookId = remember(bookId) { bookId }
+            val categoryName = Screen.Detail.TesbihatDetail.getCategoryName(backStackEntry)
+            val category = com.example.risaleezanvakticompose.domain.model.TesbihatCategory.valueOf(
+                categoryName
+            )
 
-            ReadingScreen(
-                bookID = rememberedBookId,
-                onNotesClick = {
-                    navController.navigate(
-                        Screen.Detail.Note.createRoute(rememberedBookId)
-                    )
-                },
+            val viewModel: TesbihatViewModel = hiltViewModel()
+
+            LaunchedEffect(category) {
+                viewModel.selectCategory(category)
+            }
+
+            TesbihatDetailScreen(
                 onBackClick = {
-                    navController.navigateUp()
+                    navController.popBackStack()
                 },
+                viewModel = viewModel
             )
         }
 
+        // Not Ekranı
         composable(
             route = Screen.Detail.Note.ROUTE,
             arguments = listOf(

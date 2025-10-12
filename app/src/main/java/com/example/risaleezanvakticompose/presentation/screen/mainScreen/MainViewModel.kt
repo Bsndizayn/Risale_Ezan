@@ -1,12 +1,17 @@
 package com.example.risaleezanvakticompose.presentation.screen.mainScreen
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
 import com.example.risaleezanvakticompose.data.local.entities.PrayerTimesEntity
 import com.example.risaleezanvakticompose.data.local.entities.SavedLocation
 import com.example.risaleezanvakticompose.data.repository.PrayerTimesRepository
+import com.example.risaleezanvakticompose.service.MidnightAlarmReceiver
 import com.example.risaleezanvakticompose.util.PermissionManager
+import com.example.risaleezanvakticompose.util.PrayerAlarmManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +27,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val repository: PrayerTimesRepository,
-    private val permissionManager: PermissionManager
+    private val permissionManager: PermissionManager,
+    private val notificationSettingsDao: com.example.risaleezanvakticompose.data.local.dao.NotificationSettingsDao,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MainUiState>(MainUiState.Loading)
@@ -34,10 +41,41 @@ class MainViewModel @Inject constructor(
     private val _countdown = MutableStateFlow<CountdownTime?>(null)
     val countdown: StateFlow<CountdownTime?> = _countdown.asStateFlow()
 
+    private val _notificationSettings = MutableStateFlow<NotificationSettings?>(null)
+    val notificationSettings: StateFlow<NotificationSettings?> = _notificationSettings.asStateFlow()
+
     private var countdownJob: Job? = null
+
+    private val alarmManager = PrayerAlarmManager(context)
 
     init {
         loadCurrentLocation()
+        loadNotificationSettings()
+        ensureDefaultNotificationSettings()
+
+        MidnightAlarmReceiver.scheduleMidnightAlarm(context)
+    }
+
+    private fun ensureDefaultNotificationSettings() {
+        viewModelScope.launch {
+            val settings = notificationSettingsDao.getSettingsOnce()
+            if (settings == null) {
+                notificationSettingsDao.insertSettings(NotificationSettings())
+            }
+        }
+    }
+
+    private fun loadNotificationSettings() {
+        viewModelScope.launch {
+            notificationSettingsDao.getSettings().collect { settings ->
+                _notificationSettings.value = settings
+
+                // Alarmları güncelle
+                if (settings != null) {
+                    scheduleAlarmsForToday()
+                }
+            }
+        }
     }
 
     private fun loadCurrentLocation() {
@@ -66,7 +104,7 @@ class MainViewModel @Inject constructor(
                     lat = location.latitude,
                     lng = location.longitude,
                     startDate = today,
-                    days = 7
+                    days = 365
                 )
 
                 if (result.isSuccess) {
@@ -87,9 +125,54 @@ class MainViewModel @Inject constructor(
                     nextPrayer = nextPrayer
                 )
                 startCountdown(nextPrayer)
+                scheduleAlarmsForToday()
             } ?: run {
                 _uiState.value = MainUiState.Error("Vakitler bulunamadı")
             }
+        }
+    }
+
+    private fun scheduleAlarmsForToday() {
+        viewModelScope.launch {
+            val state = _uiState.value
+            if (state is MainUiState.Success) {
+                val settings = _notificationSettings.value ?: return@launch
+                alarmManager.scheduleAlarmsForToday(state.prayerTimes, settings)
+            }
+        }
+    }
+
+    fun toggleNotification(prayerName: String) {
+        viewModelScope.launch {
+            when (prayerName.lowercase()) {
+                "imsak" -> {
+                    val current = _notificationSettings.value?.imsakEnabled ?: true
+                    notificationSettingsDao.toggleImsak(!current)
+                }
+                "gunes", "güneş" -> {
+                    val current = _notificationSettings.value?.gunesEnabled ?: false
+                    notificationSettingsDao.toggleGunes(!current)
+                }
+                "ogle", "öğle" -> {
+                    val current = _notificationSettings.value?.ogleEnabled ?: true
+                    notificationSettingsDao.toggleOgle(!current)
+                }
+                "ikindi" -> {
+                    val current = _notificationSettings.value?.ikindiEnabled ?: true
+                    notificationSettingsDao.toggleIkindi(!current)
+                }
+                "aksam", "akşam" -> {
+                    val current = _notificationSettings.value?.aksamEnabled ?: true
+                    notificationSettingsDao.toggleAksam(!current)
+                }
+                "yatsi", "yatsı" -> {
+                    val current = _notificationSettings.value?.yatsiEnabled ?: true
+                    notificationSettingsDao.toggleYatsi(!current)
+                }
+            }
+
+            // Alarmları yeniden kur
+            scheduleAlarmsForToday()
         }
     }
 
@@ -131,9 +214,9 @@ class MainViewModel @Inject constructor(
     }
 
     fun getWeeklyPrayerTimes(placeId: Int): Flow<List<PrayerTimesEntity>> {
-        val today = LocalDate.now().toString()
-        val nextWeek = LocalDate.now().plusDays(6).toString()
-        return repository.getPrayerTimesRange(placeId, today, nextWeek)
+        val tomorrow = LocalDate.now().plusDays(1).toString()
+        val nextWeek = LocalDate.now().plusDays(7).toString()
+        return repository.getPrayerTimesRange(placeId, tomorrow, nextWeek)
     }
 
     fun fetchCurrentLocationFromGps(lat: Double, lng: Double) {

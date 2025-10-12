@@ -49,4 +49,10 @@ object DatabaseModule {
     fun provideCachedCityDao(database: AppDatabase): CachedCityDao {
         return database.cachedCityDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideNotificationSettingsDao(database: AppDatabase): NotificationSettingsDao {
+        return database.notificationSettingsDao()
+    }
 }

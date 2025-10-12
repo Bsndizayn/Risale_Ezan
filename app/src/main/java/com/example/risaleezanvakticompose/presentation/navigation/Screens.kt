@@ -95,71 +95,34 @@ sealed class Screen {
      * • Her biri kendi state'ini koruyor (saveState/restoreState ile)
      */
     sealed class Main : Screen() {
-
-        /**
-         * HOME SCREEN - Kitap Arama ve Keşfet
-         *
-         * Bu ekran uygulamanın "landing page"i. Kullanıcı ana uygulamaya
-         * girdiğinde ilk gördüğü yer. StartDestination olarak kullanılıyor
-         * MainScreenNavHost'ta.
-         *
-         * Burada kitap arama, filtreleme, öneriler gibi discovery özellikleri var.
-         * Kullanıcı bir kitaba tıklayınca BookDetail ekranına navigate ediliyor.
-         */
         data object Home : Main() {
             override val route = "home"
             const val ROUTE = "home"
-
-            /**
-             * Route string'ler generic tutuyoruz. "search_book_screen" yerine
-             * sadece "home" yazıyoruz çünkü:
-             *
-             * 1. KISALIK: Route'lar URL gibi, kısa olması iyi
-             * 2. ESNEKLİK: İleride ekranın implementasyonu değişse route aynı kalıyor
-             * 3. ANLAMLILIK: "home" kullanıcı için anlamlı, "search_book_screen" teknik detay
-             *
-             * Deep link'lerde de "booknest://home" daha temiz görünüyor.
-             */
         }
 
-        /**
-         * PROFILE SCREEN - Kullanıcı Bilgileri ve Ayarlar
-         *
-         * Kullanıcının profilini görüntülediği, ayarlarını değiştirdiği ekran.
-         * Genelde şunları içerir:
-         * • Kullanıcı bilgileri (ad, email, avatar)
-         * • Uygulama ayarları (tema, dil, bildirimler)
-         * • Hesap yönetimi (şifre değiştirme, çıkış yapma)
-         * • İstatistikler (okunan kitap sayısı, geçirilen süre)
-         */
         data object Profile : Main() {
             override val route = "profile"
             const val ROUTE = "profile"
         }
 
-        /**
-         * MY LIBRARY SCREEN - Kullanıcının Kütüphanesi
-         *
-         * Kullanıcının kaydettiği, okuduğu ve okumak istediği kitapların
-         * listelendiği ekran. Bu ekran "hub" görevi görüyor, birçok farklı
-         * ekrana navigation başlatılıyor buradan:
-         *
-         * • Kitaba tıklayınca → BookDetail
-         * • Edit ikonuna tıklayınca → BookEdit
-         * • Note ikonuna tıklayınca → Note
-         * • Quiz butonuna tıklayınca → Quiz
-         *
-         * Bu yüzden bu ekran NavController yerine callback'ler alıyor.
-         * Navigation kararları navigation graph'ta veriliyor.
-         */
         data object MyLibrary : Main() {
             override val route = "my_library"
             const val ROUTE = "my_library"
         }
 
+        data object Qibla : Main() {
+            override val route = "qibla"
+            const val ROUTE = "qibla"
+        }
+
         data object LocationSelection : Main() {
             override val route = "location_selection"
             const val ROUTE = "location_selection"
+        }
+
+        data object Settings : Main() {
+            override val route = "settings"
+            const val ROUTE = "settings"
         }
     }
 
@@ -446,195 +409,20 @@ sealed class Screen {
             }
         }
 
-        /**
-         * ────────────────────────────────────────────────────────────────────────
-         * BOOK EDIT SCREEN - Kitap Düzenleme
-         * ────────────────────────────────────────────────────────────────────────
-         *
-         * Mevcut bir kitabın bilgilerini düzenleme ekranı. BookDetail'den farklı
-         * çünkü burada form elemanları, save/cancel butonları var.
-         *
-         * BookDetail ile aynı parametreyi alıyor ama farklı UI. Bu pattern'e
-         * "Edit mode" deniyor ve birçok uygulamada kullanılıyor:
-         * • View mode: Read-only, detay gösterme
-         * • Edit mode: Editable fields, kaydetme işlemi
-         */
-        data class BookEdit(val bookID: String = "") : Detail() {
-            override val route = "book_edit/{bookID}"
+        data class TesbihatDetail(val categoryName: String = "") : Detail() {
+            override val route = "tesbihat_detail/{categoryName}"
 
             companion object {
-                const val ROUTE = "book_edit/{bookID}"
-                const val ARG_BOOK_ID = "bookID"
+                const val ROUTE = "tesbihat_detail/{categoryName}"
+                const val ARG_CATEGORY_NAME = "categoryName"
 
-                fun createRoute(bookID: String): String {
-                    require(bookID.isNotEmpty()) {
-                        "Book ID cannot be empty for BookEdit navigation"
-                    }
-                    return "book_edit/$bookID"
+                fun createRoute(categoryName: String): String {
+                    return "tesbihat_detail/$categoryName"
                 }
 
-                fun getBookID(entry: NavBackStackEntry): String {
-                    return entry.arguments?.getString(ARG_BOOK_ID)
-                        ?: throw IllegalStateException(
-                            "Book ID is required for BookEdit screen"
-                        )
-                }
-            }
-        }
-
-        /**
-         * ────────────────────────────────────────────────────────────────────────
-         * QUIZ SCREEN - Kitap Hakkında Quiz
-         * ────────────────────────────────────────────────────────────────────────
-         *
-         * Belirli bir kitap hakkında interaktif quiz soruları. Muhtemelen AI
-         * tarafından oluşturulan sorular ve kullanıcının kitabı ne kadar
-         * anladığını test ediyor.
-         *
-         * Bu ekran bookID yerine bookName alıyor.
-         *
-         * ┌─ BOOKID VS BOOKNAME TERCİHİ ──────────────────────────────────────────┐
-         * │                                                                        │
-         * │ Ne zaman ID, ne zaman Name kullanmalı?                                 │
-         * │                                                                        │
-         * │ ID KULLAN:                                                             │
-         * │ • Database işlemi gerekiyorsa (CRUD)                                  │
-         * │ • İlişkisel veri çekeceksen (foreign key)                             │
-         * │ • Unique identifier olarak gerekiyorsa                                │
-         * │                                                                        │
-         * │ NAME KULLAN:                                                           │
-         * │ • Sadece UI'da gösterilecekse                                         │
-         * │ • Database sorgusu gereksizse                                         │
-         * │ • Değişken bir veri değilse (immutable)                              │
-         * │                                                                        │
-         * │ Quiz ekranında bookName kullanmamızın nedenleri:                      │
-         * │ 1. Quiz sorularında kitap ismini göstermemiz lazım                   │
-         * │ 2. ID ile database'den ismi çekmek gereksiz overhead                 │
-         * │ 3. Quiz verisi muhtemelen cache'li veya static, ID'ye ihtiyaç yok   │
-         * │                                                                        │
-         * │ Dezavantajı: Kitap ismi değişirse sorun olabilir                     │
-         * │ Alternatif: Hem ID hem Name geçebilirdik, daha güvenli olurdu       │
-         * │                                                                        │
-         * └────────────────────────────────────────────────────────────────────────┘
-         */
-        data class Quiz(val bookName: String = "") : Detail() {
-            override val route = "quiz/{bookName}"
-
-            companion object {
-                const val ROUTE = "quiz/{bookName}"
-                const val ARG_BOOK_NAME = "bookName"
-
-                /**
-                 * Book name için özel handling gerekiyor çünkü isimler
-                 * özel karakterler içerebilir.
-                 *
-                 * ┌─ URL ENCODING NEDİR VE NEDEN GEREKLİ? ────────────────────┐
-                 * │                                                            │
-                 * │ URL'lerde bazı karakterler özel anlam taşıyor:            │
-                 * │ • / → Path separator                                       │
-                 * │ • ? → Query string başlangıcı                             │
-                 * │ • & → Query parameter separator                           │
-                 * │ • # → Fragment identifier                                 │
-                 * │ • Boşluk → Geçersiz karakter                              │
-                 * │                                                            │
-                 * │ Kitap isimleri şunları içerebilir:                        │
-                 * │ • "Harry Potter & The Philosopher's Stone"                │
-                 * │ • "1984: A Novel"                                         │
-                 * │ • "Brave New World/Yeni Dünya"                           │
-                 * │ • Türkçe karakterler: "İçimizdeki Şeytan"                │
-                 * │                                                            │
-                 * │ Bu karakterler encode edilmezse:                          │
-                 * │ • Route parse hata verir                                  │
-                 * │ • Navigation çalışmaz                                     │
-                 * │ • Crash veya yanlış ekran açılır                         │
-                 * │                                                            │
-                 * │ URL Encoding çözümü:                                       │
-                 * │ Özel karakterler % ve hex code'a çevriliyor:             │
-                 * │ • Boşluk → %20                                            │
-                 * │ • & → %26                                                 │
-                 * │ • ş → %C5%9F                                             │
-                 * │                                                            │
-                 * └────────────────────────────────────────────────────────────┘
-                 */
-                fun createRoute(bookName: String): String {
-                    require(bookName.isNotEmpty()) {
-                        "Book name cannot be empty for Quiz navigation"
-                    }
-
-                    /**
-                     * URLEncoder.encode() kullanımı:
-                     *
-                     * Java'nın standard utility'si, URL-safe string'e çeviriyor.
-                     * İkinci parametre charset, UTF-8 kullanıyoruz çünkü:
-                     * • Unicode karakterleri destekliyor (Türkçe, emoji vb.)
-                     * • Web standard, her yerde destekleniyor
-                     * • Backward compatible
-                     *
-                     * Alternatif: Uri.encode() Android API'si ama benzer iş yapıyor
-                     */
-                    val encodedName = URLEncoder.encode(bookName, "UTF-8")
-                    return "quiz/$encodedName"
-                }
-
-                /**
-                 * Decode işlemi - Encode'un tersi
-                 *
-                 * Navigation kütüphanesi route'u parse ederken otomatik decode
-                 * etmiyor, biz manuel yapıyoruz.
-                 */
-                fun getBookName(entry: NavBackStackEntry): String {
-                    val encodedName = entry.arguments?.getString(ARG_BOOK_NAME)
-                        ?: throw IllegalStateException(
-                            "Book name is required for Quiz screen"
-                        )
-
-                    /**
-                     * URLDecoder.decode() ile orijinal string'e dönüyoruz.
-                     *
-                     * Örnek dönüşüm:
-                     * Input: "Harry%20Potter%20%26%20The%20Philosopher%27s%20Stone"
-                     * Output: "Harry Potter & The Philosopher's Stone"
-                     *
-                     * Charset yine UTF-8, encode ile aynı olmalı.
-                     * Farklı charset kullanırsan karakterler bozulur.
-                     */
-                    return URLDecoder.decode(encodedName, "UTF-8")
-                }
-            }
-        }
-
-        /**
-         * ────────────────────────────────────────────────────────────────────────
-         * GEMINI CHAT SCREEN - AI Sohbet
-         * ────────────────────────────────────────────────────────────────────────
-         *
-         * Google Gemini AI ile kitap hakkında sohbet ekranı. Kullanıcı kitap
-         * hakkında sorular sorabiliyor, AI cevaplıyor.
-         *
-         * Bu ekran da bookName kullanıyor Quiz gibi, aynı mantıkla.
-         * AI'a prompt gönderirken kitap ismini kullanacağız muhtemelen.
-         */
-        data class GeminiChat(val bookName: String = "") : Detail() {
-            override val route = "gemini_chat/{bookName}"
-
-            companion object {
-                const val ROUTE = "gemini_chat/{bookName}"
-                const val ARG_BOOK_NAME = "bookName"
-
-                fun createRoute(bookName: String): String {
-                    require(bookName.isNotEmpty()) {
-                        "Book name cannot be empty for GeminiChat navigation"
-                    }
-                    val encodedName = URLEncoder.encode(bookName, "UTF-8")
-                    return "gemini_chat/$encodedName"
-                }
-
-                fun getBookName(entry: NavBackStackEntry): String {
-                    val encodedName = entry.arguments?.getString(ARG_BOOK_NAME)
-                        ?: throw IllegalStateException(
-                            "Book name is required for GeminiChat screen"
-                        )
-                    return URLDecoder.decode(encodedName, "UTF-8")
+                fun getCategoryName(entry: androidx.navigation.NavBackStackEntry): String {
+                    return entry.arguments?.getString(ARG_CATEGORY_NAME)
+                        ?: throw IllegalStateException("Category name required")
                 }
             }
         }
