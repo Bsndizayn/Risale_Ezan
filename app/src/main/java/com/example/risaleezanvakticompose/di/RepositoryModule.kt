@@ -1,12 +1,18 @@
 package com.example.risaleezanvakticompose.di
 
-import com.example.risaleezanvakticompose.data.local.dao.*
+import android.content.Context
+import com.example.risaleezanvakticompose.data.local.dao.CachedCityDao
+import com.example.risaleezanvakticompose.data.local.dao.CachedCountryDao
+import com.example.risaleezanvakticompose.data.local.dao.CachedRegionDao
+import com.example.risaleezanvakticompose.data.local.dao.PrayerTimesDao
+import com.example.risaleezanvakticompose.data.local.dao.SavedLocationDao
 import com.example.risaleezanvakticompose.data.remote.ApiService
 import com.example.risaleezanvakticompose.data.repository.PrayerTimesRepository
 import com.example.risaleezanvakticompose.data.repository.TesbihatRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -36,7 +42,9 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideTesbihatRepository(): TesbihatRepository {
-        return TesbihatRepository()
+    fun provideTesbihatRepository(
+        @ApplicationContext context: Context
+    ): TesbihatRepository {
+        return TesbihatRepository(context)
     }
 }

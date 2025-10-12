@@ -5,8 +5,7 @@ enum class TesbihatCategory(val displayName: String, val description: String) {
     OGLE("Öğle Namazı Tesbihatı", "Öğle namazı sonrası okunan zikirler"),
     IKINDI("İkindi Namazı Tesbihatı", "İkindi namazı sonrası okunan zikirler"),
     AKSAM("Akşam Namazı Tesbihatı", "Akşam namazı sonrası okunan zikirler"),
-    YATSI("Yatsı Namazı Tesbihatı", "Yatsı namazı sonrası okunan zikirler"),
-    GENEL("Genel Tesbihat", "Her namazda ortak okunan zikirler")
+    YATSI("Yatsı Namazı Tesbihatı", "Yatsı namazı sonrası okunan zikirler")
 }
 
 
@@ -34,4 +33,11 @@ data class TesbihatItem(
 data class TesbihatContent(
     val category: TesbihatCategory,
     val items: List<TesbihatItem>
+)
+
+data class TesbihatSection(
+    val id: String,
+    val title: String,
+    val description: String,
+    val scrollId: String
 )

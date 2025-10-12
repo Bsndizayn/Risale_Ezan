@@ -47,6 +47,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.risaleezanvakticompose.R
+import com.example.risaleezanvakticompose.domain.model.TesbihatCategory
 import com.example.risaleezanvakticompose.presentation.screen.location.LocationSelectionScreen
 import com.example.risaleezanvakticompose.presentation.screen.mainScreen.MainScreen
 import com.example.risaleezanvakticompose.presentation.screen.onboardingScreen.OnboardingScreen
@@ -55,6 +56,7 @@ import com.example.risaleezanvakticompose.presentation.screen.qibla.QiblaScreen
 import com.example.risaleezanvakticompose.presentation.screen.settings.SettingsScreen
 import com.example.risaleezanvakticompose.presentation.screen.tesbihat.TesbihatDetailScreen
 import com.example.risaleezanvakticompose.presentation.screen.tesbihat.TesbihatListScreen
+import com.example.risaleezanvakticompose.presentation.screen.tesbihat.TesbihatSectionScreen
 import com.example.risaleezanvakticompose.presentation.screen.tesbihat.TesbihatViewModel
 
 
@@ -118,12 +120,15 @@ fun MainScreenContent() {
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets.statusBars,
             bottomBar = {
-                val shouldShowBottomBar = when (currentRoute) {
-                    Screen.Main.Home.ROUTE,
-                    Screen.Main.MyLibrary.ROUTE,
-                    Screen.Main.Qibla.ROUTE,
-                    Screen.Main.Profile.ROUTE -> true
-
+                val shouldShowBottomBar = when {
+                    currentRoute == Screen.Main.Home.ROUTE -> true
+                    currentRoute == Screen.Main.MyLibrary.ROUTE -> true
+                    currentRoute == Screen.Main.Qibla.ROUTE -> true
+                    currentRoute == Screen.Main.Profile.ROUTE -> true
+                    // Section ekranında bottom bar göster
+                    currentRoute?.startsWith("tesbihat_section/") == true -> true
+                    // Detail ekranında bottom bar gizle
+                    currentRoute?.startsWith("tesbihat_detail/") == true -> false
                     else -> false
                 }
 
@@ -234,7 +239,8 @@ fun RisaleBottomNavigationBar(
                 icon = {
                     Icon(
                         painter = painterResource(
-                            id = if (currentRoute == Screen.Main.MyLibrary.ROUTE)
+                            id = if (currentRoute == Screen.Main.MyLibrary.ROUTE ||
+                                currentRoute?.startsWith("tesbihat_section/") == true)
                                 R.drawable.ic_tasbih_filled
                             else
                                 R.drawable.ic_tasbih_outlined
@@ -244,7 +250,8 @@ fun RisaleBottomNavigationBar(
                     )
                 },
                 label = null,
-                selected = currentRoute == Screen.Main.MyLibrary.ROUTE,
+                selected = currentRoute == Screen.Main.MyLibrary.ROUTE ||
+                        currentRoute?.startsWith("tesbihat_section/") == true,
                 onClick = onLibraryClick,
                 alwaysShowLabel = false,
                 colors = NavigationBarItemDefaults.colors(
@@ -354,13 +361,117 @@ fun MainScreenNavHost(
             )
         }
 
+        // Tesbihat List Screen - Kategorileri gösterir
         composable(route = Screen.Main.MyLibrary.ROUTE) {
             TesbihatListScreen(
                 onCategoryClick = { category ->
-                    val route = Screen.Detail.TesbihatDetail.createRoute(category.name)
+                    // Kategori seçilince Section ekranına git
+                    val route = Screen.Detail.TesbihatSection.createRoute(category.name)
                     navController.navigate(route)
                 },
                 onBackClick = { }
+            )
+        }
+
+        // Tesbihat Section Screen - Seçilen kategorinin bölümlerini gösterir
+        composable(
+            route = Screen.Detail.TesbihatSection.ROUTE,
+            arguments = listOf(
+                navArgument(Screen.Detail.TesbihatSection.ARG_CATEGORY_NAME) {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                )
+            }
+        ) { backStackEntry ->
+            val categoryName = Screen.Detail.TesbihatSection.getCategoryName(backStackEntry)
+            val category = TesbihatCategory.valueOf(categoryName)
+
+            val viewModel: TesbihatViewModel = hiltViewModel()
+
+            LaunchedEffect(category) {
+                viewModel.selectCategory(category)
+            }
+
+            TesbihatSectionScreen(
+                onSectionClick = { section ->
+                    // Bölüm seçilince Detail ekranına git ve scroll yap
+                    val route = Screen.Detail.TesbihatDetail.createRoute(
+                        categoryName = category.name,
+                        scrollId = section.scrollId
+                    )
+                    navController.navigate(route)
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                viewModel = viewModel
+            )
+        }
+
+        // Tesbihat Detail Screen - WebView ile tesbihatı gösterir
+        composable(
+            route = Screen.Detail.TesbihatDetail.ROUTE,
+            arguments = listOf(
+                navArgument(Screen.Detail.TesbihatDetail.ARG_CATEGORY_NAME) {
+                    type = NavType.StringType
+                    nullable = false
+                },
+                navArgument(Screen.Detail.TesbihatDetail.ARG_SCROLL_ID) {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                )
+            }
+        ) { backStackEntry ->
+            val categoryName = Screen.Detail.TesbihatDetail.getCategoryName(backStackEntry)
+            val scrollId = Screen.Detail.TesbihatDetail.getScrollId(backStackEntry)
+            val category = TesbihatCategory.valueOf(categoryName)
+
+            val viewModel: TesbihatViewModel = hiltViewModel()
+
+            LaunchedEffect(category, scrollId) {
+                viewModel.selectCategory(category)
+                // ScrollId'yi manuel olarak ayarla
+                if (scrollId.isNotEmpty()) {
+                    viewModel.selectSection(
+                        com.example.risaleezanvakticompose.domain.model.TesbihatSection(
+                            id = scrollId,
+                            title = "",
+                            description = "",
+                            scrollId = scrollId
+                        )
+                    )
+                }
+            }
+
+            TesbihatDetailScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                viewModel = viewModel
             )
         }
 
@@ -409,46 +520,6 @@ fun MainScreenNavHost(
                 onBack = {
                     navController.popBackStack()
                 }
-            )
-        }
-
-        composable(
-            route = Screen.Detail.TesbihatDetail.ROUTE,
-            arguments = listOf(
-                navArgument(Screen.Detail.TesbihatDetail.ARG_CATEGORY_NAME) {
-                    type = NavType.StringType
-                    nullable = false
-                }
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = tween(300)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = tween(300)
-                )
-            }
-        ) { backStackEntry ->
-            val categoryName = Screen.Detail.TesbihatDetail.getCategoryName(backStackEntry)
-            val category = com.example.risaleezanvakticompose.domain.model.TesbihatCategory.valueOf(
-                categoryName
-            )
-
-            val viewModel: TesbihatViewModel = hiltViewModel()
-
-            LaunchedEffect(category) {
-                viewModel.selectCategory(category)
-            }
-
-            TesbihatDetailScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                viewModel = viewModel
             )
         }
     }

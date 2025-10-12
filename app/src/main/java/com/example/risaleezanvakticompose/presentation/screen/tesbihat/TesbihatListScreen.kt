@@ -1,6 +1,5 @@
 package com.example.risaleezanvakticompose.presentation.screen.tesbihat
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,11 +19,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AllInclusive
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.NightlightRound
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.WbTwilight
@@ -41,12 +40,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.risaleezanvakticompose.R
 import com.example.risaleezanvakticompose.domain.model.TesbihatCategory
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,8 +57,6 @@ fun TesbihatListScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-
-
         Column(modifier = Modifier.fillMaxSize()) {
             GlassTesbihatListTopBar()
 
@@ -88,7 +82,10 @@ fun TesbihatListScreen(
                 items(categories) { category ->
                     GlassTesbihatCategoryCard(
                         category = category,
-                        onClick = { onCategoryClick(category) }
+                        onClick = {
+                            viewModel.selectCategory(category)
+                            onCategoryClick(category)
+                        }
                     )
                 }
 
@@ -113,7 +110,7 @@ fun GlassTesbihatListTopBar() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.MenuBook,
+                imageVector = Icons.AutoMirrored.Filled.MenuBook,
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(24.dp)
@@ -153,7 +150,7 @@ fun TesbihatHeaderCard() {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.MenuBook,
+                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(36.dp)
@@ -191,7 +188,6 @@ fun GlassTesbihatCategoryCard(
         TesbihatCategory.IKINDI -> Icons.Default.WbTwilight
         TesbihatCategory.AKSAM -> Icons.Default.NightlightRound
         TesbihatCategory.YATSI -> Icons.Default.DarkMode
-        TesbihatCategory.GENEL -> Icons.Default.AllInclusive
     }
 
     val iconColor = when (category) {
@@ -200,7 +196,6 @@ fun GlassTesbihatCategoryCard(
         TesbihatCategory.IKINDI -> Color(0xFFFF9800)
         TesbihatCategory.AKSAM -> Color(0xFFFF5722)
         TesbihatCategory.YATSI -> Color(0xFF9C27B0)
-        TesbihatCategory.GENEL -> Color(0xFF00BCD4)
     }
 
     Card(

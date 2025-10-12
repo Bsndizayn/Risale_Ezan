@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @AndroidEntryPoint
 class PrayerTimeAlarmReceiver : BroadcastReceiver() {
@@ -103,14 +104,29 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
 
         scope.launch {
             try {
+                val vecize = getRandomVecize(context)
                 createNotificationChannel(context)
                 currentNotificationId = prayerName.hashCode()
                 setupMediaSession(context)
                 playPrayerSound(context, soundName)
-                showNotification(context, prayerName, prayerTime)
+                showNotification(context, prayerName, prayerTime, vecize)
             } finally {
                 pendingResult.finish()
             }
+        }
+    }
+
+    private fun getRandomVecize(context: Context): String {
+        return try {
+            val quotesArray = context.resources.getStringArray(R.array.risale_quotes)
+            if (quotesArray.isNotEmpty()) {
+                quotesArray[Random.nextInt(quotesArray.size)]
+            } else {
+                "Allah'ı çokça zikredin ki kurtuluşa eresiniz."
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("PrayerAlarm", "Vecize çekme hatası", e)
+            "Allah'ı çokça zikredin ki kurtuluşa eresiniz."
         }
     }
 
@@ -157,14 +173,14 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
 
     private fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_HIGH // MAX yerine HIGH
+            val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
                 description = "Namaz vakitleri için bildirimler"
                 enableLights(true)
                 lightColor = android.graphics.Color.GREEN
                 enableVibration(true)
-                vibrationPattern = longArrayOf(0, 500, 200, 500) // Titreşim deseni
-                setSound(null, null) // Ezan sesi zaten MediaPlayer'dan çalıyor
+                vibrationPattern = longArrayOf(0, 500, 200, 500)
+                setSound(null, null)
                 setShowBadge(true)
                 lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
             }
@@ -289,7 +305,7 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun showNotification(context: Context, prayerName: String, prayerTime: String) {
+    private fun showNotification(context: Context, prayerName: String, prayerTime: String, vecize: String) {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -317,25 +333,47 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val shareIntent = Intent(context, ShareVecizeReceiver::class.java).apply {
+            putExtra("vecize", vecize)
+            putExtra("prayer_name", prayerName)
+            putExtra("prayer_time", prayerTime)
+        }
+        val sharePendingIntent = PendingIntent.getBroadcast(
+            context,
+            2,
+            shareIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ok)
             .setContentTitle("$prayerName Vakti")
             .setContentText("Vakit: $prayerTime")
-            .setPriority(NotificationCompat.PRIORITY_MAX) // En yüksek öncelik
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText("$vecize\n\nVakit: $prayerTime")
+                    .setBigContentTitle("$prayerName Vakti")
+            )
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
-            .setOngoing(true) // false yerine true - kullanıcı kapatana kadar kalır
+            .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setDeleteIntent(dismissPendingIntent)
             .setSound(null)
-            .setVibrate(longArrayOf(0, 500, 200, 500)) // Titreşim ekle
+            .setVibrate(longArrayOf(0, 500, 200, 500))
             .addAction(
                 R.drawable.ok,
                 "Sesi Durdur",
                 stopSoundPendingIntent
             )
+            .addAction(
+                android.R.drawable.ic_menu_share,
+                "Paylaş",
+                sharePendingIntent
+            )
             .setFullScreenIntent(pendingIntent, true)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // Kilit ekranında göster
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
 
         val notificationManager =
@@ -358,5 +396,32 @@ class DismissNotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         android.util.Log.d("DismissReceiver", "Bildirim kaydırıldı")
         PrayerTimeAlarmReceiver.stopSound()
+    }
+}
+
+class ShareVecizeReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        android.util.Log.d("ShareReceiver", "Paylaş butonu basıldı")
+
+        val vecize = intent.getStringExtra("vecize") ?: ""
+        val prayerName = intent.getStringExtra("prayer_name") ?: ""
+        val prayerTime = intent.getStringExtra("prayer_time") ?: ""
+
+        val shareText = "$prayerName Vakti - $prayerTime\n\n$vecize\n\n#NamazVakti #RisaleiNur"
+
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        val chooserIntent = Intent.createChooser(shareIntent, "Vecizeyi Paylaş").apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        context.startActivity(chooserIntent)
+
+        android.util.Log.d("ShareReceiver", "Paylaşım penceresi açıldı")
     }
 }

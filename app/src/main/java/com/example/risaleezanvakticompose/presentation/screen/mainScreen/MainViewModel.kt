@@ -353,8 +353,8 @@ class MainViewModel @Inject constructor(
 
     fun getWeeklyPrayerTimes(placeId: Int): Flow<List<PrayerTimesEntity>> {
         val tomorrow = LocalDate.now().plusDays(1).toString()
-        val fiveDaysLater = LocalDate.now().plusDays(5).toString()
-        return repository.getPrayerTimesRange(placeId, tomorrow, fiveDaysLater)
+        val thirtyDaysLater = LocalDate.now().plusDays(30).toString()
+        return repository.getPrayerTimesRange(placeId, tomorrow, thirtyDaysLater)
     }
 }
 

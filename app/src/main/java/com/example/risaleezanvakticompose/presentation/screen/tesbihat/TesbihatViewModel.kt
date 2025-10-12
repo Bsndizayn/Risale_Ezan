@@ -3,7 +3,8 @@ package com.example.risaleezanvakticompose.presentation.screen.tesbihat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.risaleezanvakticompose.data.repository.TesbihatRepository
-import com.example.risaleezanvakticompose.domain.model.*
+import com.example.risaleezanvakticompose.domain.model.TesbihatCategory
+import com.example.risaleezanvakticompose.domain.model.TesbihatSection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,11 +20,17 @@ class TesbihatViewModel @Inject constructor(
     private val _categories = MutableStateFlow<List<TesbihatCategory>>(emptyList())
     val categories: StateFlow<List<TesbihatCategory>> = _categories.asStateFlow()
 
-    private val _selectedContent = MutableStateFlow<TesbihatContent?>(null)
-    val selectedContent: StateFlow<TesbihatContent?> = _selectedContent.asStateFlow()
+    private val _selectedCategory = MutableStateFlow<TesbihatCategory?>(null)
+    val selectedCategory: StateFlow<TesbihatCategory?> = _selectedCategory.asStateFlow()
 
-    private val _counters = MutableStateFlow<Map<String, Int>>(emptyMap())
-    val counters: StateFlow<Map<String, Int>> = _counters.asStateFlow()
+    private val _sections = MutableStateFlow<List<TesbihatSection>>(emptyList())
+    val sections: StateFlow<List<TesbihatSection>> = _sections.asStateFlow()
+
+    private val _htmlContent = MutableStateFlow<String>("")
+    val htmlContent: StateFlow<String> = _htmlContent.asStateFlow()
+
+    private val _scrollToId = MutableStateFlow<String?>(null)
+    val scrollToId: StateFlow<String?> = _scrollToId.asStateFlow()
 
     init {
         loadCategories()
@@ -37,54 +44,20 @@ class TesbihatViewModel @Inject constructor(
 
     fun selectCategory(category: TesbihatCategory) {
         viewModelScope.launch {
-            val content = repository.getTesbihatContent(category)
-            _selectedContent.value = content
-
-            // Sayaçları sıfırla
-            val initialCounters = content.items.associate { it.id to 0 }
-            _counters.value = initialCounters
+            _selectedCategory.value = category
+            _sections.value = repository.getSections(category)
+            _htmlContent.value = repository.getHtmlContent(category)
+            _scrollToId.value = null // Reset scroll
         }
     }
 
-    fun incrementCounter(itemId: String) {
-        val current = _counters.value[itemId] ?: 0
-        val item = _selectedContent.value?.items?.find { it.id == itemId }
-
-        if (item != null && current < item.count) {
-            _counters.value = _counters.value.toMutableMap().apply {
-                put(itemId, current + 1)
-            }
+    fun selectSection(section: TesbihatSection) {
+        viewModelScope.launch {
+            _scrollToId.value = section.scrollId
         }
     }
 
-    fun resetCounter(itemId: String) {
-        _counters.value = _counters.value.toMutableMap().apply {
-            put(itemId, 0)
-        }
-    }
-
-    fun resetAllCounters() {
-        val content = _selectedContent.value ?: return
-        val initialCounters = content.items.associate { it.id to 0 }
-        _counters.value = initialCounters
-    }
-
-    fun isItemCompleted(itemId: String): Boolean {
-        val current = _counters.value[itemId] ?: 0
-        val item = _selectedContent.value?.items?.find { it.id == itemId }
-        return item != null && current >= item.count
-    }
-
-    fun getTotalProgress(): Float {
-        val content = _selectedContent.value ?: return 0f
-        if (content.items.isEmpty()) return 0f
-
-        val totalRequired = content.items.sumOf { it.count }
-        val totalCompleted = content.items.sumOf { item ->
-            val current = _counters.value[item.id] ?: 0
-            minOf(current, item.count)
-        }
-
-        return totalCompleted.toFloat() / totalRequired.toFloat()
+    fun clearScrollId() {
+        _scrollToId.value = null
     }
 }
