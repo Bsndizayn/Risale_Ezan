@@ -102,10 +102,10 @@ class MainViewModel @Inject constructor(
             val today = LocalDate.now().toString()
             val tomorrow = LocalDate.now().plusDays(1).toString()
 
-            var prayerTimes = repository.getPrayerTimesForDate(location.placeId, today)
+            var todayPrayerTimes = repository.getPrayerTimesForDate(location.placeId, today)
             var tomorrowPrayerTimes = repository.getPrayerTimesForDate(location.placeId, tomorrow)
 
-            if (prayerTimes == null || tomorrowPrayerTimes == null) {
+            if (todayPrayerTimes == null || tomorrowPrayerTimes == null) {
                 val result = repository.fetchAndSavePrayerTimes(
                     placeId = location.placeId,
                     lat = location.latitude,
@@ -115,7 +115,7 @@ class MainViewModel @Inject constructor(
                 )
 
                 if (result.isSuccess) {
-                    prayerTimes = repository.getPrayerTimesForDate(location.placeId, today)
+                    todayPrayerTimes = repository.getPrayerTimesForDate(location.placeId, today)
                     tomorrowPrayerTimes = repository.getPrayerTimesForDate(location.placeId, tomorrow)
                 } else {
                     _uiState.value = MainUiState.Error(
@@ -125,14 +125,35 @@ class MainViewModel @Inject constructor(
                 }
             }
 
-            if (prayerTimes != null && tomorrowPrayerTimes != null) {
-                val nextPrayer = findNextPrayer(prayerTimes, tomorrowPrayerTimes)
-                _uiState.value = MainUiState.Success(prayerTimes, nextPrayer)
+            if (todayPrayerTimes != null && tomorrowPrayerTimes != null) {
+                // Hangi günün vakitlerini göstereceğimize karar ver
+                val displayPrayerTimes = decideWhichDayToShow(todayPrayerTimes, tomorrowPrayerTimes)
+                val nextPrayer = findNextPrayer(todayPrayerTimes, tomorrowPrayerTimes)
+
+                _uiState.value = MainUiState.Success(displayPrayerTimes, nextPrayer)
                 startCountdown(nextPrayer)
                 scheduleAlarmsForToday()
             } else {
                 _uiState.value = MainUiState.Error("Namaz vakitleri bulunamadı")
             }
+        }
+    }
+
+    private fun decideWhichDayToShow(
+        todayPrayerTimes: PrayerTimesEntity,
+        tomorrowPrayerTimes: PrayerTimesEntity
+    ): PrayerTimesEntity {
+        val now = LocalTime.now()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
+
+        // Yatsı vaktini kontrol et
+        val yatsiTime = LocalTime.parse(todayPrayerTimes.yatsi, formatter)
+
+        // Eğer yatsıdan sonraysa, yarının vakitlerini göster
+        return if (now.isAfter(yatsiTime)) {
+            tomorrowPrayerTimes
+        } else {
+            todayPrayerTimes
         }
     }
 
@@ -210,22 +231,27 @@ class MainViewModel @Inject constructor(
                     val current = _notificationSettings.value?.imsakEnabled ?: true
                     notificationSettingsDao.toggleImsak(!current)
                 }
+
                 "gunes", "güneş" -> {
                     val current = _notificationSettings.value?.gunesEnabled ?: false
                     notificationSettingsDao.toggleGunes(!current)
                 }
+
                 "ogle", "öğle" -> {
                     val current = _notificationSettings.value?.ogleEnabled ?: true
                     notificationSettingsDao.toggleOgle(!current)
                 }
+
                 "ikindi" -> {
                     val current = _notificationSettings.value?.ikindiEnabled ?: true
                     notificationSettingsDao.toggleIkindi(!current)
                 }
+
                 "aksam", "akşam" -> {
                     val current = _notificationSettings.value?.aksamEnabled ?: true
                     notificationSettingsDao.toggleAksam(!current)
                 }
+
                 "yatsi", "yatsı" -> {
                     val current = _notificationSettings.value?.yatsiEnabled ?: true
                     notificationSettingsDao.toggleYatsi(!current)
@@ -246,7 +272,8 @@ class MainViewModel @Inject constructor(
                 val duration = if (nextPrayer.isNextDay) {
                     val midnightTonight = LocalTime.MAX  // 23:59:59.999999999
                     val durationUntilMidnight = java.time.Duration.between(now, midnightTonight)
-                    val durationAfterMidnight = java.time.Duration.between(LocalTime.MIN, targetTime)
+                    val durationAfterMidnight =
+                        java.time.Duration.between(LocalTime.MIN, targetTime)
                     durationUntilMidnight.plus(durationAfterMidnight)
                 } else {
                     java.time.Duration.between(now, targetTime)
@@ -300,15 +327,17 @@ class MainViewModel @Inject constructor(
         if (quotes.isEmpty()) return ""
 
         // Her namaz için farklı bir alıntı seç (hash ile tutarlı)
-        val prayerIndex = when (prayerName.lowercase().replace("ı", "i").replace("ü", "u").replace("ö", "o").replace("ş", "s").replace("ğ", "g").replace("ç", "c")) {
-            "imsak" -> 0
-            "gunes" -> 1
-            "ogle" -> 2
-            "ikindi" -> 3
-            "aksam" -> 4
-            "yatsi" -> 5
-            else -> 0
-        }
+        val prayerIndex =
+            when (prayerName.lowercase().replace("ı", "i").replace("ü", "u").replace("ö", "o")
+                .replace("ş", "s").replace("ğ", "g").replace("ç", "c")) {
+                "imsak" -> 0
+                "gunes" -> 1
+                "ogle" -> 2
+                "ikindi" -> 3
+                "aksam" -> 4
+                "yatsi" -> 5
+                else -> 0
+            }
 
         // Günün tarihine göre de değişiklik ekle
         val today = LocalDate.now().dayOfYear
@@ -336,6 +365,7 @@ sealed class MainUiState {
         val prayerTimes: PrayerTimesEntity,
         val nextPrayer: NextPrayerInfo
     ) : MainUiState()
+
     data class Error(val message: String) : MainUiState()
 }
 

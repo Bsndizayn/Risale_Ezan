@@ -5,11 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.location.LocationManager
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -56,6 +56,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,15 +68,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.risaleezanvakticompose.R
 import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
 import com.example.risaleezanvakticompose.data.local.entities.PrayerTimesEntity
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -103,8 +101,13 @@ fun MainScreen(
 
     var showGpsDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var showGpsTimeoutDialog by remember { mutableStateOf(false) }
     var isQuoteExpanded by remember { mutableStateOf(false) }
     var isWeeklyExpanded by remember { mutableStateOf(false) }
+
+    // GPS için cancellation token ve timeout handler
+    var cancellationTokenSource: com.google.android.gms.tasks.CancellationTokenSource? by remember { mutableStateOf(null) }
+    var timeoutHandler: android.os.Handler? by remember { mutableStateOf(null) }
 
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
 
@@ -114,49 +117,99 @@ fun MainScreen(
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
+    fun tryLastLocation(fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient) {
+        try {
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        Log.d("MainScreen", "Son konum kullanıldı: ${location.latitude}, ${location.longitude}")
+                        viewModel.fetchCurrentLocationFromGps(location.latitude, location.longitude)
+                        timeoutHandler?.removeCallbacksAndMessages(null)
+                    } else {
+                        Log.e("MainScreen", "Hiç konum bulunamadı")
+                        timeoutHandler?.removeCallbacksAndMessages(null)
+                        showGpsTimeoutDialog = true
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("MainScreen", "lastLocation başarısız: ${exception.message}")
+                    timeoutHandler?.removeCallbacksAndMessages(null)
+                    showGpsTimeoutDialog = true
+                }
+        } catch (e: SecurityException) {
+            Log.e("MainScreen", "SecurityException: ${e.message}")
+            timeoutHandler?.removeCallbacksAndMessages(null)
+            showPermissionDialog = true
+        }
+    }
+
     fun requestGpsLocation() {
         when {
             !locationPermissionState.status.isGranted -> {
+                Log.d("MainScreen", "Konum izni verilmedi")
                 showPermissionDialog = true
             }
 
             !isGpsEnabled() -> {
+                Log.d("MainScreen", "GPS kapalı")
                 showGpsDialog = true
             }
 
             else -> {
+                Log.d("MainScreen", "GPS konumu alınıyor...")
                 val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
                 try {
-                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    // Önceki token'ı iptal et
+                    cancellationTokenSource?.cancel()
+                    cancellationTokenSource = com.google.android.gms.tasks.CancellationTokenSource()
+
+                    // getCurrentLocation ile dene (modern ve verimli yöntem)
+                    fusedLocationClient.getCurrentLocation(
+                        Priority.PRIORITY_BALANCED_POWER_ACCURACY, // GPS + Network kullanır
+                        cancellationTokenSource!!.token
+                    ).addOnSuccessListener { location ->
                         if (location != null) {
-                            viewModel.fetchCurrentLocationFromGps(
-                                location.latitude,
-                                location.longitude
-                            )
+                            Log.d("MainScreen", "Konum alındı: ${location.latitude}, ${location.longitude}")
+                            viewModel.fetchCurrentLocationFromGps(location.latitude, location.longitude)
+                            timeoutHandler?.removeCallbacksAndMessages(null)
                         } else {
-                            fusedLocationClient.getCurrentLocation(
-                                Priority.PRIORITY_HIGH_ACCURACY,
-                                null
-                            )
-                                .addOnSuccessListener { currentLoc ->
-                                    if (currentLoc != null) {
-                                        viewModel.fetchCurrentLocationFromGps(
-                                            currentLoc.latitude,
-                                            currentLoc.longitude
-                                        )
-                                    } else {
-                                        showGpsDialog = true
-                                    }
-                                }
+                            // getCurrentLocation null döndü, lastLocation'a fallback
+                            Log.d("MainScreen", "getCurrentLocation null, lastLocation deneniyor...")
+                            tryLastLocation(fusedLocationClient)
                         }
+                    }.addOnFailureListener { exception ->
+                        Log.e("MainScreen", "getCurrentLocation başarısız: ${exception.message}")
+                        // Hata durumunda lastLocation'a fallback
+                        tryLastLocation(fusedLocationClient)
                     }
+
+                    // 20 saniye timeout
+                    timeoutHandler?.removeCallbacksAndMessages(null)
+                    timeoutHandler = android.os.Handler(android.os.Looper.getMainLooper())
+                    timeoutHandler?.postDelayed({
+                        Log.e("MainScreen", "GPS timeout - 20 saniye içinde konum alınamadı")
+                        cancellationTokenSource?.cancel()
+                        showGpsTimeoutDialog = true
+                    }, 20000)
+
                 } catch (e: SecurityException) {
+                    Log.e("MainScreen", "SecurityException: ${e.message}", e)
                     showPermissionDialog = true
                 }
             }
         }
     }
 
+    // Cleanup effect
+    DisposableEffect(Unit) {
+        onDispose {
+            cancellationTokenSource?.cancel()
+            timeoutHandler?.removeCallbacksAndMessages(null)
+        }
+    }
+
+    // Dialoglar
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
@@ -194,21 +247,34 @@ fun MainScreen(
         )
     }
 
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        // Gradient Background
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .background(
-//                    brush = Brush.verticalGradient(
-//                        colors = listOf(
-//                            Color(0xFF1E3A8A), // Koyu mavi
-//                            Color(0xFF7C3AED), // Mor
-//                            Color(0xFFF97316)  // Turuncu (gün batımı)
-//                        )
-//                    )
-//                )
-//        )
+    if (showGpsTimeoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showGpsTimeoutDialog = false },
+            title = { Text("GPS Konumu Alınamadı") },
+            text = {
+                Text(
+                    "GPS sinyali bulunamadı veya çok zayıf.\n\n" +
+                            "Lütfen:\n" +
+                            "• Dışarı çıkın veya pencere kenarına gidin\n" +
+                            "• Birkaç saniye bekleyin\n" +
+                            "• Veya manuel olarak konum seçin"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showGpsTimeoutDialog = false
+                    requestGpsLocation()
+                }) { Text("Tekrar Dene") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showGpsTimeoutDialog = false
+                    onLocationClick()
+                }) { Text("Manuel Seç") }
+            }
+        )
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -296,7 +362,6 @@ fun MainScreen(
         }
     }
 }
-
 
 @Composable
 fun GlassTopBar(
@@ -435,7 +500,7 @@ fun RisaleQuoteExpandable(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Günün Sözü",
+                            text = "Vecize",
                             color = Color.White.copy(alpha = 0.7f),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -605,8 +670,18 @@ fun CompactPrayerTimesCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // Bugünün mü yarının mı vakitlerini gösterdiğimizi anla
+            val today = LocalDate.now().toString()
+            val isShowingTomorrow = prayerTimes.date != today
+
+            val title = if (isShowingTomorrow) {
+                "━━ Yarının Vakitleri ━━"
+            } else {
+                "━━ Bugünün Vakitleri ━━"
+            }
+
             Text(
-                text = "━━ Bugünün Vakitleri ━━",
+                text = title,
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
@@ -626,6 +701,13 @@ fun CompactPrayerTimesCard(
                     notificationSettings?.imsakEnabled ?: true
                 ) {
                     onNotificationToggle("imsak")
+                }
+                CompactPrayerColumn(
+                    "Güneş",
+                    prayerTimes.gunes,
+                    notificationSettings?.gunesEnabled ?: true
+                ) {
+                    onNotificationToggle("gunes")
                 }
                 CompactPrayerColumn(
                     "Öğle",
@@ -808,6 +890,7 @@ fun WeeklyDayCard(prayerTimes: PrayerTimesEntity) {
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 WeeklyTimeRow("İmsak", prayerTimes.imsak)
+                WeeklyTimeRow("Güneş", prayerTimes.gunes)
                 WeeklyTimeRow("Öğle", prayerTimes.ogle)
                 WeeklyTimeRow("İkindi", prayerTimes.ikindi)
                 WeeklyTimeRow("Akşam", prayerTimes.aksam)

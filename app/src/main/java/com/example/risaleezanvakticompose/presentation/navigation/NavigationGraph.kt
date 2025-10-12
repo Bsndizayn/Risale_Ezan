@@ -11,9 +11,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Explore
@@ -23,13 +24,11 @@ import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -108,7 +107,6 @@ fun MainScreenContent() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Arka plan resmi en arkada, tüm ekranı kaplıyor
         Image(
             painter = painterResource(id = R.drawable.yeni_arkaplan),
             contentDescription = null,
@@ -117,14 +115,15 @@ fun MainScreenContent() {
         )
 
         Scaffold(
-            containerColor = Color.Transparent, // Scaffold'u transparan yaptık
-            contentWindowInsets = WindowInsets.systemBars,
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets.statusBars,
             bottomBar = {
                 val shouldShowBottomBar = when (currentRoute) {
                     Screen.Main.Home.ROUTE,
                     Screen.Main.MyLibrary.ROUTE,
                     Screen.Main.Qibla.ROUTE,
                     Screen.Main.Profile.ROUTE -> true
+
                     else -> false
                 }
 
@@ -190,17 +189,18 @@ fun RisaleBottomNavigationBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .navigationBarsPadding()
             .shadow(
                 elevation = 4.dp,
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ),
-        color = Color(0xFF5C1A1A).copy(alpha = 0.95f), // Koyu kırmızı-kahverengi ton
+        color = Color(0xFF5C1A1A).copy(alpha = 0.95f),
         tonalElevation = 2.dp,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ) {
         NavigationBar(
             containerColor = Color.Transparent,
-            contentColor = Color(0xFFF5E6D3), // Açık krem/bej renk
+            contentColor = Color(0xFFF5E6D3),
             tonalElevation = 0.dp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -217,14 +217,14 @@ fun RisaleBottomNavigationBar(
                         modifier = Modifier.size(22.dp)
                     )
                 },
-                label = null, // Label'ı kaldırdık, daha minimal
+                label = null,
                 selected = currentRoute == Screen.Main.Home.ROUTE,
                 onClick = onHomeClick,
                 alwaysShowLabel = false,
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFFFD700), // Altın sarısı
+                    selectedIconColor = Color(0xFFFFD700),
                     selectedTextColor = Color(0xFFFFD700),
-                    indicatorColor = Color(0xFF8B3A3A).copy(alpha = 0.3f), // Hafif kırmızı indicator
+                    indicatorColor = Color(0xFF8B3A3A).copy(alpha = 0.3f),
                     unselectedIconColor = Color(0xFFF5E6D3).copy(alpha = 0.6f),
                     unselectedTextColor = Color(0xFFF5E6D3).copy(alpha = 0.6f)
                 )
