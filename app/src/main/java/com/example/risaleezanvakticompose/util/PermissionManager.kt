@@ -1,6 +1,7 @@
 package com.example.risaleezanvakticompose.util
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
@@ -9,10 +10,17 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+
+sealed class PermissionState {
+    object GRANTED : PermissionState()
+    object DENIED : PermissionState()
+    object PERMANENTLY_DENIED : PermissionState()
+}
 
 @Singleton
 class PermissionManager @Inject constructor(
@@ -26,6 +34,19 @@ class PermissionManager @Inject constructor(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    fun getLocationPermissionState(activity: Activity): PermissionState {
+        return when {
+            isLocationPermissionGranted() -> PermissionState.GRANTED
+
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                activity,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) -> PermissionState.DENIED
+
+            else -> PermissionState.PERMANENTLY_DENIED
+        }
+    }
+
     fun isNotificationPermissionGranted(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
@@ -34,6 +55,23 @@ class PermissionManager @Inject constructor(
             ) == PackageManager.PERMISSION_GRANTED
         } else {
             true
+        }
+    }
+
+    fun getNotificationPermissionState(activity: Activity): PermissionState {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return PermissionState.GRANTED
+        }
+
+        return when {
+            isNotificationPermissionGranted() -> PermissionState.GRANTED
+
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                activity,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) -> PermissionState.DENIED
+
+            else -> PermissionState.PERMANENTLY_DENIED
         }
     }
 

@@ -1,5 +1,6 @@
 package com.example.risaleezanvakticompose.presentation.screen.mainScreen
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -11,6 +12,7 @@ import com.example.risaleezanvakticompose.data.local.entities.SavedLocation
 import com.example.risaleezanvakticompose.data.repository.PrayerTimesRepository
 import com.example.risaleezanvakticompose.service.MidnightAlarmReceiver
 import com.example.risaleezanvakticompose.util.PermissionManager
+import com.example.risaleezanvakticompose.util.PermissionState
 import com.example.risaleezanvakticompose.util.PrayerAlarmManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -49,9 +51,10 @@ class MainViewModel @Inject constructor(
     private val _currentQuote = MutableStateFlow<String>("")
     val currentQuote: StateFlow<String> = _currentQuote.asStateFlow()
 
+    private val _hasNotificationPermission = MutableStateFlow(false)
+    val hasNotificationPermission: StateFlow<Boolean> = _hasNotificationPermission.asStateFlow()
 
     private var countdownJob: Job? = null
-
     private val alarmManager = PrayerAlarmManager(context)
 
     init {
@@ -60,6 +63,20 @@ class MainViewModel @Inject constructor(
         ensureDefaultNotificationSettings()
         MidnightAlarmReceiver.scheduleMidnightAlarm(context)
         loadDailyQuote()
+        checkNotificationPermission()
+    }
+
+    private fun checkNotificationPermission() {
+        _hasNotificationPermission.value = permissionManager.isNotificationPermissionGranted()
+    }
+
+    fun updateNotificationPermissionState(activity: Activity) {
+        val isGranted = permissionManager.isNotificationPermissionGranted()
+        _hasNotificationPermission.value = isGranted
+
+        if (isGranted) {
+            scheduleAlarmsForToday()
+        }
     }
 
     private fun ensureDefaultNotificationSettings() {
@@ -75,7 +92,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             notificationSettingsDao.getSettings().collect { settings ->
                 _notificationSettings.value = settings
-                if (settings != null) {
+                if (settings != null && _hasNotificationPermission.value) {
                     scheduleAlarmsForToday()
                 }
             }
@@ -126,7 +143,6 @@ class MainViewModel @Inject constructor(
             }
 
             if (todayPrayerTimes != null && tomorrowPrayerTimes != null) {
-                // Hangi günün vakitlerini göstereceğimize karar ver
                 val displayPrayerTimes = decideWhichDayToShow(todayPrayerTimes, tomorrowPrayerTimes)
                 val nextPrayer = findNextPrayer(todayPrayerTimes, tomorrowPrayerTimes)
 
@@ -146,10 +162,8 @@ class MainViewModel @Inject constructor(
         val now = LocalTime.now()
         val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
-        // Yatsı vaktini kontrol et
         val yatsiTime = LocalTime.parse(todayPrayerTimes.yatsi, formatter)
 
-        // Eğer yatsıdan sonraysa, yarının vakitlerini göster
         return if (now.isAfter(yatsiTime)) {
             tomorrowPrayerTimes
         } else {
@@ -173,7 +187,6 @@ class MainViewModel @Inject constructor(
             "Yatsı" to todayPrayerTimes.yatsi
         )
 
-        // Bugünün vakitlerini kontrol et
         for ((name, time) in prayers) {
             val prayerTime = LocalTime.parse(time, formatter)
             if (now.isBefore(prayerTime)) {
@@ -193,7 +206,6 @@ class MainViewModel @Inject constructor(
             if (result.isSuccess) {
                 val savedLocation = result.getOrNull()
                 Log.d("MainViewModel", "GPS location saved: ${savedLocation?.placeName}")
-                // currentLocation flow'u otomatik güncellenir ve loadPrayerTimes çağrılır
             } else {
                 _uiState.value = MainUiState.Error(
                     result.exceptionOrNull()?.message ?: "GPS konumu alınamadı"
@@ -231,27 +243,22 @@ class MainViewModel @Inject constructor(
                     val current = _notificationSettings.value?.imsakEnabled ?: true
                     notificationSettingsDao.toggleImsak(!current)
                 }
-
                 "gunes", "güneş" -> {
                     val current = _notificationSettings.value?.gunesEnabled ?: false
                     notificationSettingsDao.toggleGunes(!current)
                 }
-
                 "ogle", "öğle" -> {
                     val current = _notificationSettings.value?.ogleEnabled ?: true
                     notificationSettingsDao.toggleOgle(!current)
                 }
-
                 "ikindi" -> {
                     val current = _notificationSettings.value?.ikindiEnabled ?: true
                     notificationSettingsDao.toggleIkindi(!current)
                 }
-
                 "aksam", "akşam" -> {
                     val current = _notificationSettings.value?.aksamEnabled ?: true
                     notificationSettingsDao.toggleAksam(!current)
                 }
-
                 "yatsi", "yatsı" -> {
                     val current = _notificationSettings.value?.yatsiEnabled ?: true
                     notificationSettingsDao.toggleYatsi(!current)
@@ -270,10 +277,9 @@ class MainViewModel @Inject constructor(
                 val now = LocalTime.now()
 
                 val duration = if (nextPrayer.isNextDay) {
-                    val midnightTonight = LocalTime.MAX  // 23:59:59.999999999
+                    val midnightTonight = LocalTime.MAX
                     val durationUntilMidnight = java.time.Duration.between(now, midnightTonight)
-                    val durationAfterMidnight =
-                        java.time.Duration.between(LocalTime.MIN, targetTime)
+                    val durationAfterMidnight = java.time.Duration.between(LocalTime.MIN, targetTime)
                     durationUntilMidnight.plus(durationAfterMidnight)
                 } else {
                     java.time.Duration.between(now, targetTime)
@@ -304,7 +310,7 @@ class MainViewModel @Inject constructor(
     private fun scheduleAlarmsForToday() {
         viewModelScope.launch {
             val state = _uiState.value
-            if (state is MainUiState.Success) {
+            if (state is MainUiState.Success && _hasNotificationPermission.value) {
                 val settings = _notificationSettings.value ?: return@launch
                 alarmManager.scheduleAlarmsForToday(state.prayerTimes, settings)
             }
@@ -326,20 +332,16 @@ class MainViewModel @Inject constructor(
         val quotes = context.resources.getStringArray(R.array.risale_quotes)
         if (quotes.isEmpty()) return ""
 
-        // Her namaz için farklı bir alıntı seç (hash ile tutarlı)
-        val prayerIndex =
-            when (prayerName.lowercase().replace("ı", "i").replace("ü", "u").replace("ö", "o")
-                .replace("ş", "s").replace("ğ", "g").replace("ç", "c")) {
-                "imsak" -> 0
-                "gunes" -> 1
-                "ogle" -> 2
-                "ikindi" -> 3
-                "aksam" -> 4
-                "yatsi" -> 5
-                else -> 0
-            }
+        val prayerIndex = when (prayerName.lowercase().replace("ı", "i").replace("ü", "u").replace("ö", "o").replace("ş", "s").replace("ğ", "g").replace("ç", "c")) {
+            "imsak" -> 0
+            "gunes" -> 1
+            "ogle" -> 2
+            "ikindi" -> 3
+            "aksam" -> 4
+            "yatsi" -> 5
+            else -> 0
+        }
 
-        // Günün tarihine göre de değişiklik ekle
         val today = LocalDate.now().dayOfYear
         val index = (prayerIndex + today) % quotes.size
 
@@ -365,7 +367,6 @@ sealed class MainUiState {
         val prayerTimes: PrayerTimesEntity,
         val nextPrayer: NextPrayerInfo
     ) : MainUiState()
-
     data class Error(val message: String) : MainUiState()
 }
 

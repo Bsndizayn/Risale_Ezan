@@ -1,6 +1,10 @@
 package com.example.risaleezanvakticompose.presentation.screen.settings
 
-import androidx.compose.foundation.Image
+import android.Manifest
+import android.content.Context
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +28,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +45,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,12 +55,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.risaleezanvakticompose.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,16 +66,86 @@ fun SettingsScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val activity = context.findActivity()
+
     val settings by viewModel.settings.collectAsState()
     val availableSounds by viewModel.availableSounds.collectAsState()
+    val hasNotificationPermission by viewModel.hasNotificationPermission.collectAsState()
+    val showPermissionEducationalDialog by viewModel.showPermissionEducationalDialog.collectAsState()
+    val showPermissionSettingsDialog by viewModel.showPermissionSettingsDialog.collectAsState()
 
     var showSoundPicker by remember { mutableStateOf(false) }
     var selectedPrayerForSound by remember { mutableStateOf<String?>(null) }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        activity?.let { viewModel.updateNotificationPermissionState(it) }
+    }
 
+    LaunchedEffect(Unit) {
+        activity?.let { viewModel.updateNotificationPermissionState(it) }
+    }
+
+    if (showPermissionEducationalDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onPermissionEducationalDialogDismissed() },
+            title = { Text("Bildirim İzni") },
+            text = {
+                Text(
+                    "Namaz vakti bildirimleri alabilmek için bildirim iznine ihtiyacımız var.\n\n" +
+                            "Bu sayede namaz vakitleri geldiğinde sizi bilgilendirebiliriz."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.onPermissionEducationalDialogDismissed()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }) {
+                    Text("İzin Ver")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    viewModel.onPermissionEducationalDialogDismissed()
+                }) {
+                    Text("İptal")
+                }
+            }
+        )
+    }
+
+    if (showPermissionSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onPermissionSettingsDialogDismissed() },
+            title = { Text("Bildirim İzni Gerekli") },
+            text = {
+                Text(
+                    "Bildirim iznini kalıcı olarak reddetmişsiniz.\n\n" +
+                            "Ayarlar > Bildirimler'den bildirim iznini açabilirsiniz."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.openAppSettings()
+                }) {
+                    Text("Ayarlara Git")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    viewModel.onPermissionSettingsDialogDismissed()
+                }) {
+                    Text("İptal")
+                }
+            }
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             GlassSettingsTopBar(onBack = onBack)
 
@@ -89,6 +164,46 @@ fun SettingsScreen(
                     )
                 }
 
+                if (!hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFFF9800).copy(alpha = 0.2f)
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.NotificationsOff,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFF9800),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Bildirim İzni Gerekli",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = "Bildirimleri aktifleştirmek için izin vermelisiniz",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.8f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 settings?.let { s ->
                     item {
                         GlassPrayerNotificationCard(
@@ -96,12 +211,27 @@ fun SettingsScreen(
                             enabled = s.imsakEnabled,
                             soundName = s.imsakSound,
                             minutesBefore = s.imsakMinutesBefore,
-                            onToggle = { viewModel.togglePrayer("imsak") },
-                            onChangSound = {
-                                selectedPrayerForSound = "imsak"
-                                showSoundPicker = true
+                            hasPermission = hasNotificationPermission,
+                            onToggle = {
+                                activity?.let { act ->
+                                    viewModel.onNotificationSwitchToggled("imsak", act)
+                                }
                             },
-                            onMinutesChange = { viewModel.updateMinutesBefore("imsak", it) }
+                            onChangSound = {
+                                if (hasNotificationPermission) {
+                                    selectedPrayerForSound = "imsak"
+                                    showSoundPicker = true
+                                } else {
+                                    activity?.let { act ->
+                                        viewModel.onNotificationSwitchToggled("imsak", act)
+                                    }
+                                }
+                            },
+                            onMinutesChange = {
+                                if (hasNotificationPermission) {
+                                    viewModel.updateMinutesBefore("imsak", it)
+                                }
+                            }
                         )
                     }
 
@@ -111,12 +241,27 @@ fun SettingsScreen(
                             enabled = s.gunesEnabled,
                             soundName = s.gunesSound,
                             minutesBefore = s.gunesMinutesBefore,
-                            onToggle = { viewModel.togglePrayer("gunes") },
-                            onChangSound = {
-                                selectedPrayerForSound = "gunes"
-                                showSoundPicker = true
+                            hasPermission = hasNotificationPermission,
+                            onToggle = {
+                                activity?.let { act ->
+                                    viewModel.onNotificationSwitchToggled("gunes", act)
+                                }
                             },
-                            onMinutesChange = { viewModel.updateMinutesBefore("gunes", it) }
+                            onChangSound = {
+                                if (hasNotificationPermission) {
+                                    selectedPrayerForSound = "gunes"
+                                    showSoundPicker = true
+                                } else {
+                                    activity?.let { act ->
+                                        viewModel.onNotificationSwitchToggled("gunes", act)
+                                    }
+                                }
+                            },
+                            onMinutesChange = {
+                                if (hasNotificationPermission) {
+                                    viewModel.updateMinutesBefore("gunes", it)
+                                }
+                            }
                         )
                     }
 
@@ -126,12 +271,27 @@ fun SettingsScreen(
                             enabled = s.ogleEnabled,
                             soundName = s.ogleSound,
                             minutesBefore = s.ogleMinutesBefore,
-                            onToggle = { viewModel.togglePrayer("ogle") },
-                            onChangSound = {
-                                selectedPrayerForSound = "ogle"
-                                showSoundPicker = true
+                            hasPermission = hasNotificationPermission,
+                            onToggle = {
+                                activity?.let { act ->
+                                    viewModel.onNotificationSwitchToggled("ogle", act)
+                                }
                             },
-                            onMinutesChange = { viewModel.updateMinutesBefore("ogle", it) }
+                            onChangSound = {
+                                if (hasNotificationPermission) {
+                                    selectedPrayerForSound = "ogle"
+                                    showSoundPicker = true
+                                } else {
+                                    activity?.let { act ->
+                                        viewModel.onNotificationSwitchToggled("ogle", act)
+                                    }
+                                }
+                            },
+                            onMinutesChange = {
+                                if (hasNotificationPermission) {
+                                    viewModel.updateMinutesBefore("ogle", it)
+                                }
+                            }
                         )
                     }
 
@@ -141,12 +301,27 @@ fun SettingsScreen(
                             enabled = s.ikindiEnabled,
                             soundName = s.ikindiSound,
                             minutesBefore = s.ikindiMinutesBefore,
-                            onToggle = { viewModel.togglePrayer("ikindi") },
-                            onChangSound = {
-                                selectedPrayerForSound = "ikindi"
-                                showSoundPicker = true
+                            hasPermission = hasNotificationPermission,
+                            onToggle = {
+                                activity?.let { act ->
+                                    viewModel.onNotificationSwitchToggled("ikindi", act)
+                                }
                             },
-                            onMinutesChange = { viewModel.updateMinutesBefore("ikindi", it) }
+                            onChangSound = {
+                                if (hasNotificationPermission) {
+                                    selectedPrayerForSound = "ikindi"
+                                    showSoundPicker = true
+                                } else {
+                                    activity?.let { act ->
+                                        viewModel.onNotificationSwitchToggled("ikindi", act)
+                                    }
+                                }
+                            },
+                            onMinutesChange = {
+                                if (hasNotificationPermission) {
+                                    viewModel.updateMinutesBefore("ikindi", it)
+                                }
+                            }
                         )
                     }
 
@@ -156,12 +331,27 @@ fun SettingsScreen(
                             enabled = s.aksamEnabled,
                             soundName = s.aksamSound,
                             minutesBefore = s.aksamMinutesBefore,
-                            onToggle = { viewModel.togglePrayer("aksam") },
-                            onChangSound = {
-                                selectedPrayerForSound = "aksam"
-                                showSoundPicker = true
+                            hasPermission = hasNotificationPermission,
+                            onToggle = {
+                                activity?.let { act ->
+                                    viewModel.onNotificationSwitchToggled("aksam", act)
+                                }
                             },
-                            onMinutesChange = { viewModel.updateMinutesBefore("aksam", it) }
+                            onChangSound = {
+                                if (hasNotificationPermission) {
+                                    selectedPrayerForSound = "aksam"
+                                    showSoundPicker = true
+                                } else {
+                                    activity?.let { act ->
+                                        viewModel.onNotificationSwitchToggled("aksam", act)
+                                    }
+                                }
+                            },
+                            onMinutesChange = {
+                                if (hasNotificationPermission) {
+                                    viewModel.updateMinutesBefore("aksam", it)
+                                }
+                            }
                         )
                     }
 
@@ -171,12 +361,27 @@ fun SettingsScreen(
                             enabled = s.yatsiEnabled,
                             soundName = s.yatsiSound,
                             minutesBefore = s.yatsiMinutesBefore,
-                            onToggle = { viewModel.togglePrayer("yatsi") },
-                            onChangSound = {
-                                selectedPrayerForSound = "yatsi"
-                                showSoundPicker = true
+                            hasPermission = hasNotificationPermission,
+                            onToggle = {
+                                activity?.let { act ->
+                                    viewModel.onNotificationSwitchToggled("yatsi", act)
+                                }
                             },
-                            onMinutesChange = { viewModel.updateMinutesBefore("yatsi", it) }
+                            onChangSound = {
+                                if (hasNotificationPermission) {
+                                    selectedPrayerForSound = "yatsi"
+                                    showSoundPicker = true
+                                } else {
+                                    activity?.let { act ->
+                                        viewModel.onNotificationSwitchToggled("yatsi", act)
+                                    }
+                                }
+                            },
+                            onMinutesChange = {
+                                if (hasNotificationPermission) {
+                                    viewModel.updateMinutesBefore("yatsi", it)
+                                }
+                            }
                         )
                     }
                 }
@@ -212,6 +417,16 @@ fun SettingsScreen(
         )
     }
 }
+
+fun Context.findActivity(): android.app.Activity? {
+    var context = this
+    while (context is android.content.ContextWrapper) {
+        if (context is android.app.Activity) return context
+        context = context.baseContext
+    }
+    return null
+}
+
 
 @Composable
 fun GlassSettingsTopBar(onBack: () -> Unit) {
@@ -255,6 +470,7 @@ fun GlassPrayerNotificationCard(
     enabled: Boolean,
     soundName: String,
     minutesBefore: Int,
+    hasPermission: Boolean,
     onToggle: () -> Unit,
     onChangSound: () -> Unit,
     onMinutesChange: (Int) -> Unit
@@ -262,7 +478,7 @@ fun GlassPrayerNotificationCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (enabled)
+            containerColor = if (enabled && hasPermission)
                 Color.White.copy(alpha = 0.2f)
             else
                 Color.White.copy(alpha = 0.1f)
@@ -279,26 +495,58 @@ fun GlassPrayerNotificationCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = prayerName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f)
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (!hasPermission) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "İzin gerekli",
+                            tint = Color.White.copy(alpha = 0.4f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Text(
+                        text = prayerName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (enabled && hasPermission)
+                            Color.White
+                        else
+                            Color.White.copy(alpha = 0.5f)
+                    )
+                }
 
                 Switch(
-                    checked = enabled,
+                    checked = enabled && hasPermission,
                     onCheckedChange = { onToggle() },
+                    enabled = true,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
                         checkedTrackColor = Color(0xFF4CAF50).copy(alpha = 0.6f),
                         uncheckedThumbColor = Color.White.copy(alpha = 0.6f),
-                        uncheckedTrackColor = Color.White.copy(alpha = 0.2f)
+                        uncheckedTrackColor = Color.White.copy(alpha = 0.2f),
+                        disabledCheckedThumbColor = Color.White.copy(alpha = 0.3f),
+                        disabledCheckedTrackColor = Color.White.copy(alpha = 0.1f),
+                        disabledUncheckedThumbColor = Color.White.copy(alpha = 0.3f),
+                        disabledUncheckedTrackColor = Color.White.copy(alpha = 0.1f)
                     )
                 )
             }
 
-            if (enabled) {
+            if (!hasPermission) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Bildirim izni gerekli",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFFF9800),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            if (enabled && hasPermission) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Box(

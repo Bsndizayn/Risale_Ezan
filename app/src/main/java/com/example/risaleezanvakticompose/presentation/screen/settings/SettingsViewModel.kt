@@ -1,11 +1,13 @@
 package com.example.risaleezanvakticompose.presentation.screen.settings
 
+import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.risaleezanvakticompose.data.local.dao.NotificationSettingsDao
 import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
-import com.example.risaleezanvakticompose.util.PrayerAlarmManager
+import com.example.risaleezanvakticompose.util.PermissionManager
+import com.example.risaleezanvakticompose.util.PermissionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val notificationSettingsDao: NotificationSettingsDao,
+    private val permissionManager: PermissionManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -26,10 +29,63 @@ class SettingsViewModel @Inject constructor(
     private val _availableSounds = MutableStateFlow<List<String>>(emptyList())
     val availableSounds: StateFlow<List<String>> = _availableSounds.asStateFlow()
 
+    private val _hasNotificationPermission = MutableStateFlow(false)
+    val hasNotificationPermission: StateFlow<Boolean> = _hasNotificationPermission.asStateFlow()
+
+    private val _showPermissionEducationalDialog = MutableStateFlow(false)
+    val showPermissionEducationalDialog: StateFlow<Boolean> = _showPermissionEducationalDialog.asStateFlow()
+
+    private val _showPermissionSettingsDialog = MutableStateFlow(false)
+    val showPermissionSettingsDialog: StateFlow<Boolean> = _showPermissionSettingsDialog.asStateFlow()
+
+    private val _selectedPrayerForPermission = MutableStateFlow<String?>(null)
 
     init {
         loadSettings()
         loadAvailableSounds()
+        checkNotificationPermission()
+    }
+
+    private fun checkNotificationPermission() {
+        _hasNotificationPermission.value = permissionManager.isNotificationPermissionGranted()
+    }
+
+    fun updateNotificationPermissionState(activity: Activity) {
+        val isGranted = permissionManager.isNotificationPermissionGranted()
+        _hasNotificationPermission.value = isGranted
+
+        if (isGranted && _selectedPrayerForPermission.value != null) {
+            togglePrayer(_selectedPrayerForPermission.value!!)
+            _selectedPrayerForPermission.value = null
+        }
+    }
+
+    fun onNotificationSwitchToggled(prayerName: String, activity: Activity) {
+        when (permissionManager.getNotificationPermissionState(activity)) {
+            is PermissionState.GRANTED -> {
+                togglePrayer(prayerName)
+            }
+            is PermissionState.DENIED -> {
+                _selectedPrayerForPermission.value = prayerName
+                _showPermissionEducationalDialog.value = true
+            }
+            is PermissionState.PERMANENTLY_DENIED -> {
+                _showPermissionSettingsDialog.value = true
+            }
+        }
+    }
+
+    fun onPermissionEducationalDialogDismissed() {
+        _showPermissionEducationalDialog.value = false
+    }
+
+    fun onPermissionSettingsDialogDismissed() {
+        _showPermissionSettingsDialog.value = false
+    }
+
+    fun openAppSettings() {
+        permissionManager.openAppSettings()
+        _showPermissionSettingsDialog.value = false
     }
 
     private fun loadSettings() {
@@ -42,15 +98,11 @@ class SettingsViewModel @Inject constructor(
 
     private fun loadAvailableSounds() {
         viewModelScope.launch {
-            // raw klasöründeki ezan seslerini listele
             val sounds = mutableListOf<String>()
-
-            // Varsayılan sesler
             sounds.add("ezan_mekke")
             sounds.add("ezan_medine")
             sounds.add("ezan_istanbul")
             sounds.add("ezan_hafiz")
-
             _availableSounds.value = sounds
         }
     }
@@ -83,8 +135,6 @@ class SettingsViewModel @Inject constructor(
                     notificationSettingsDao.toggleYatsi(!current)
                 }
             }
-
-            // Alarmları yeniden kur
             rescheduleAlarms()
         }
     }
@@ -104,8 +154,6 @@ class SettingsViewModel @Inject constructor(
             }
 
             notificationSettingsDao.updateSettings(updatedSettings)
-
-            // Alarmları yeniden kur
             rescheduleAlarms()
         }
     }
@@ -120,24 +168,17 @@ class SettingsViewModel @Inject constructor(
                 "ogle", "öğle" -> currentSettings.copy(ogleMinutesBefore = minutes)
                 "ikindi" -> currentSettings.copy(ikindiMinutesBefore = minutes)
                 "aksam", "akşam" -> currentSettings.copy(aksamMinutesBefore = minutes)
-                "yatsi", "yatsı" -> currentSettings.copy(yatsiSound = minutes.toString())
+                "yatsi", "yatsı" -> currentSettings.copy(yatsiMinutesBefore = minutes)
                 else -> currentSettings
             }
 
             notificationSettingsDao.updateSettings(updatedSettings)
-
-            // Alarmları yeniden kur
             rescheduleAlarms()
         }
     }
 
     private fun rescheduleAlarms() {
-        // Bu fonksiyon MainViewModel'deki scheduleAlarmsForToday'i tetikleyecek
-        // AlarmManager'ı kullanarak mevcut alarmları iptal edip yeniden kuracak
         viewModelScope.launch {
-            // Not: Burada MainViewModel'e bir event göndermek veya
-            // repository üzerinden alarmları yönetmek daha iyi olabilir
-            // Şimdilik basit tutuyoruz
         }
     }
 }
