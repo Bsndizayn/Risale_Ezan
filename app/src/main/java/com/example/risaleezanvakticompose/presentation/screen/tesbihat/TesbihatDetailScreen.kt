@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun TesbihatDetailScreen(
@@ -28,18 +29,34 @@ fun TesbihatDetailScreen(
     var webView by remember { mutableStateOf<WebView?>(null) }
     var shouldScroll by remember { mutableStateOf(false) }
 
+    val systemUiController = rememberSystemUiController()
+
+    DisposableEffect(systemUiController) {
+        systemUiController.isStatusBarVisible = false
+        systemUiController.isNavigationBarVisible = true // Navigation bar'ı göster (opsiyonel)
+
+        onDispose {
+            // Ekrandan çıkınca status bar'ı tekrar göster
+            systemUiController.isStatusBarVisible = true
+            systemUiController.isNavigationBarVisible = true
+        }
+    }
+
     BackHandler {
         onBackClick()
     }
 
-    // ScrollId değiştiğinde scroll yap
     LaunchedEffect(scrollToId) {
         if (scrollToId != null) {
             shouldScroll = true
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets(0, 0, 0, 0))
+    ) {
         AndroidView(
             factory = { context ->
                 WebView(context).apply {
@@ -85,7 +102,6 @@ fun TesbihatDetailScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Kapat Butonu
         FloatingActionButton(
             onClick = {
                 viewModel.clearScrollId()
@@ -104,7 +120,6 @@ fun TesbihatDetailScreen(
             )
         }
 
-        // Zoom Butonları
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)

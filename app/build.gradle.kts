@@ -105,5 +105,7 @@ dependencies {
     implementation("androidx.hilt:hilt-work:1.1.0")
     ksp("androidx.hilt:hilt-compiler:1.1.0")
     implementation("androidx.media:media:1.7.0")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
+
 
 }

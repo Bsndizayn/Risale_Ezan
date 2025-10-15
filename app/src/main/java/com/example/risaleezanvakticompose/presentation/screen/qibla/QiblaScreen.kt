@@ -2,9 +2,12 @@ package com.example.risaleezanvakticompose.presentation.screen.qibla
 
 import android.Manifest
 import android.content.Intent
+import android.content.IntentSender
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -33,7 +36,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.risaleezanvakticompose.R
 import com.example.risaleezanvakticompose.presentation.navigation.Screen
+import com.example.risaleezanvakticompose.util.PermissionState
 import com.example.risaleezanvakticompose.util.QiblaAccuracy
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
+import com.google.android.gms.location.SettingsClient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +52,8 @@ fun QiblaScreen(
     viewModel: QiblaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val activity = context.findActivity()
+
     val qiblaDirection by viewModel.qiblaDirection.collectAsState()
     val qiblaArrowRotation by viewModel.qiblaArrowRotation.collectAsState()
     val qiblaAccuracy by viewModel.qiblaAccuracy.collectAsState()
@@ -49,16 +61,73 @@ fun QiblaScreen(
     val isSensorAvailable by viewModel.isSensorAvailable.collectAsState()
     val hasLocation by viewModel.hasLocation.collectAsState()
 
-    var showPermissionDialog by remember { mutableStateOf(false) }
-    var showLocationSettingsDialog by remember { mutableStateOf(false) }
+    var showPermissionEducationalDialog by remember { mutableStateOf(false) }
+    var showPermissionSettingsDialog by remember { mutableStateOf(false) }
+
+    // Location Settings Launcher - Android'in native GPS açma dialogu için
+    val locationSettingsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            // Kullanıcı GPS'i açtı, konum bilgisini yenile
+            viewModel.checkLocationAndRefresh()
+        }
+    }
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
+        // İzin istendi olarak işaretle
+        com.example.risaleezanvakticompose.util.PermissionManager(context).markLocationPermissionRequested()
+
         if (isGranted) {
-            viewModel.checkLocationAndRefresh()
-        } else {
-            showPermissionDialog = true
+            // İzin verildiyse GPS kontrolü yap
+            checkLocationSettingsAndRequest(
+                context = context,
+                onSettingsOk = {
+                    viewModel.checkLocationAndRefresh()
+                },
+                onSettingsNeedChange = { intentSenderRequest ->
+                    locationSettingsLauncher.launch(intentSenderRequest)
+                },
+                onSettingsCheckFailed = {
+                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    context.startActivity(intent)
+                }
+            )
+        }
+    }
+
+    // GPS Ayarlarını Kontrol Et butonuna basıldığında çağrılacak fonksiyon
+    fun handleGpsButtonClick() {
+        val activity = context.findActivity() ?: return
+        val permissionManager = com.example.risaleezanvakticompose.util.PermissionManager(context)
+
+        when (permissionManager.getLocationPermissionState(activity)) {
+            is PermissionState.GRANTED -> {
+                // İzin var, GPS ayarlarını kontrol et
+                checkLocationSettingsAndRequest(
+                    context = context,
+                    onSettingsOk = {
+                        viewModel.checkLocationAndRefresh()
+                    },
+                    onSettingsNeedChange = { intentSenderRequest ->
+                        locationSettingsLauncher.launch(intentSenderRequest)
+                    },
+                    onSettingsCheckFailed = {
+                        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        context.startActivity(intent)
+                    }
+                )
+            }
+            is PermissionState.DENIED -> {
+                // İlk ret veya normal ret - Educational dialog göster
+                showPermissionEducationalDialog = true
+            }
+            is PermissionState.PERMANENTLY_DENIED -> {
+                // Kalıcı ret - Ayarlar dialogu göster
+                showPermissionSettingsDialog = true
+            }
         }
     }
 
@@ -73,14 +142,49 @@ fun QiblaScreen(
         }
     }
 
-    if (showPermissionDialog) {
+    if (showPermissionEducationalDialog) {
         AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
+            onDismissRequest = { showPermissionEducationalDialog = false },
             title = { Text("Konum İzni Gerekli") },
-            text = { Text("Kıble yönünü gösterebilmek için konum izni gereklidir.") },
+            text = {
+                Text(
+                    "Kıble yönünü gösterebilmek için konum iznine ihtiyacımız var.\n\n" +
+                            "Lütfen konum iznini verin."
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
-                    showPermissionDialog = false
+                    showPermissionEducationalDialog = false
+                    // İzin istemeden önce kaydet
+                    com.example.risaleezanvakticompose.util.PermissionManager(context).markLocationPermissionRequested()
+                    locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }) {
+                    Text("İzin Ver")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showPermissionEducationalDialog = false
+                }) {
+                    Text("İptal")
+                }
+            }
+        )
+    }
+
+    if (showPermissionSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionSettingsDialog = false },
+            title = { Text("Konum İzni Gerekli") },
+            text = {
+                Text(
+                    "Konum iznini kalıcı olarak reddetmişsiniz.\n\n" +
+                            "Ayarlar > İzinler > Konum'dan konum iznini açabilirsiniz."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPermissionSettingsDialog = false
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", context.packageName, null)
                     }
@@ -90,55 +194,18 @@ fun QiblaScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("İptal")
-                }
-            }
-        )
-    }
-
-    if (showLocationSettingsDialog) {
-        AlertDialog(
-            onDismissRequest = { showLocationSettingsDialog = false },
-            title = { Text("GPS Kapalı") },
-            text = { Text("GPS servisiniz kapalı görünüyor. Kıble yönünü gösterebilmek için GPS'i açmanız gerekir.") },
-            confirmButton = {
                 TextButton(onClick = {
-                    showLocationSettingsDialog = false
-                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                    context.startActivity(intent)
+                    showPermissionSettingsDialog = false
                 }) {
-                    Text("GPS'i Aç")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLocationSettingsDialog = false }) {
                     Text("İptal")
                 }
             }
         )
     }
-
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .background(
-//                    brush = Brush.verticalGradient(
-//                        colors = listOf(
-//                            Color(0xFF1E3A8A),
-//                            Color(0xFF7C3AED),
-//                            Color(0xFFF97316)
-//                        )
-//                    )
-//                )
-//        )
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-
-
         Column(modifier = Modifier.fillMaxSize()) {
             GlassQiblaTopBar()
 
@@ -152,7 +219,7 @@ fun QiblaScreen(
                             navController.navigate(Screen.Main.LocationSelection.ROUTE)
                         },
                         onCheckGPS = {
-                            showLocationSettingsDialog = true
+                            handleGpsButtonClick()
                         }
                     )
                 }
@@ -171,13 +238,62 @@ fun QiblaScreen(
         }
     }
 }
+fun android.content.Context.findActivity(): android.app.Activity? {
+    var context = this
+    while (context is android.content.ContextWrapper) {
+        if (context is android.app.Activity) return context
+        context = context.baseContext
+    }
+    return null
+}
+
+private fun checkLocationSettingsAndRequest(
+    context: android.content.Context,
+    onSettingsOk: () -> Unit,
+    onSettingsNeedChange: (IntentSenderRequest) -> Unit,
+    onSettingsCheckFailed: () -> Unit
+) {
+    val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        10000L
+    ).build()
+
+    val builder = LocationSettingsRequest.Builder()
+        .addLocationRequest(locationRequest)
+        .setAlwaysShow(true) // GPS kapalıysa dialogu göster
+
+    val client: SettingsClient = LocationServices.getSettingsClient(context)
+    val task = client.checkLocationSettings(builder.build())
+
+    task.addOnSuccessListener {
+        // GPS açık ve hazır
+        Log.d("QiblaScreen", "Location settings OK")
+        onSettingsOk()
+    }
+
+    task.addOnFailureListener { exception ->
+        if (exception is ResolvableApiException) {
+            // GPS kapalı veya ayarlar uygun değil - Android'in native dialogunu göster
+            try {
+                Log.d("QiblaScreen", "Location settings need to be changed, showing dialog")
+                val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
+                onSettingsNeedChange(intentSenderRequest)
+            } catch (sendEx: IntentSender.SendIntentException) {
+                Log.e("QiblaScreen", "Error showing location settings dialog", sendEx)
+                onSettingsCheckFailed()
+            }
+        } else {
+            Log.e("QiblaScreen", "Location settings check failed", exception)
+            onSettingsCheckFailed()
+        }
+    }
+}
 
 @Composable
 fun GlassQiblaTopBar() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(

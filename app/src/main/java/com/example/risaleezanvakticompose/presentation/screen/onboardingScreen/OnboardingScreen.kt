@@ -4,18 +4,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -23,14 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -40,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,20 +47,20 @@ fun OnboardingScreen(
 ) {
     val pages = listOf(
         OnboardingPage(
-            title = "Namaz Vakitleri",
-            description = "Bulunduğunuz konuma göre güncel namaz vakitlerini öğrenin. Vaktinden önce bildirim alarak hiçbir namazı kaçırmayın.",
+            title = "Vakit Geldiğinde Hazır Ol",
+            description = "Bulunduğun konuma göre en doğru ezan vakitlerini öğren. Her vakit için huzurlu hatırlatmalar al.",
             icon = Icons.Default.Notifications,
             primaryColor = Color(0xFFFFD700)
         ),
         OnboardingPage(
-            title = "Tesbihat Bilgileri",
-            description = "Sabah ve akşam tesbihatlarının fazileti, okunuşu ve anlamları hakkında detaylı bilgiler edinin.",
+            title = "Tesbihatlarla Ruhunu Dinlendir",
+            description = "Sabah ve akşam tesbihatlarını okunuşları, anlamları ve faziletleriyle birlikte takip et.",
             imageRes = R.drawable.ic_tasbih_filled,
             primaryColor = Color(0xFFFFD700)
         ),
         OnboardingPage(
-            title = "Kıble Yönü",
-            description = "Bulunduğunuz konumdan Kabe'nin yönünü hassas pusula sensörleriyle öğrenin ve doğru yöne yönelin.",
+            title = "Kıbleye Doğru Yönel",
+            description = "Nerede olursan ol, Kâbe’nin yönünü bul. Kalbini ve yüzünü kıbleye çevir.",
             icon = Icons.Default.Explore,
             primaryColor = Color(0xFFFFD700)
         )
@@ -86,6 +70,7 @@ fun OnboardingScreen(
     val scope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Arka plan: sabit kalacak
         Image(
             painter = painterResource(id = R.drawable.yeni_arkaplan),
             contentDescription = null,
@@ -93,9 +78,7 @@ fun OnboardingScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        Scaffold(
-            containerColor = Color.Transparent
-        ) { paddingValues ->
+        Scaffold(containerColor = Color.Transparent) { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -103,6 +86,7 @@ fun OnboardingScreen(
                     .statusBarsPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Üstte "Atla" butonu
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -121,14 +105,15 @@ fun OnboardingScreen(
                         ) {
                             Text(
                                 text = "Atla",
-                                style = MaterialTheme.typography.titleMedium,
                                 color = Color.White,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily(Font(R.font.scheherazadenewmedium))
                             )
                         }
                     }
                 }
 
+                // Sayfa içeriği
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -142,6 +127,7 @@ fun OnboardingScreen(
                     }
                 }
 
+                // Alt göstergeler
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -151,7 +137,7 @@ fun OnboardingScreen(
                 ) {
                     repeat(pages.size) { index ->
                         val width = animateDpAsState(
-                            targetValue = if (pagerState.currentPage == index) 32.dp else 8.dp,
+                            targetValue = if (pagerState.currentPage == index) 28.dp else 8.dp,
                             label = "indicator"
                         )
                         Box(
@@ -170,6 +156,7 @@ fun OnboardingScreen(
                     }
                 }
 
+                // Alt butonlar
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -197,8 +184,7 @@ fun OnboardingScreen(
                         ) {
                             Text(
                                 "Geri",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontFamily = FontFamily(Font(R.font.scheherazadenewmedium))
                             )
                         }
                     } else {
@@ -226,8 +212,8 @@ fun OnboardingScreen(
                     ) {
                         Text(
                             text = if (pagerState.currentPage < pages.size - 1) "İleri" else "Başla",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontFamily = FontFamily(Font(R.font.scheherazadenewsemibold)),
+                            fontSize = 18.sp
                         )
                     }
                 }
@@ -249,7 +235,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
             modifier = Modifier
                 .size(160.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.15f)),
+                .background(Color.White.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             when {
@@ -278,21 +264,21 @@ private fun OnboardingPageContent(page: OnboardingPage) {
         Text(
             text = page.title,
             fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily(Font(R.font.scheherazadenewsemibold)),
             textAlign = TextAlign.Center,
             color = Color.White,
-            letterSpacing = 1.sp
+            lineHeight = 36.sp
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = page.description,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             textAlign = TextAlign.Center,
-            color = Color.White.copy(alpha = 0.85f),
-            lineHeight = 24.sp,
-            fontWeight = FontWeight.Medium
+            color = Color.White.copy(alpha = 0.9f),
+            lineHeight = 26.sp,
+            fontFamily = FontFamily(Font(R.font.scheherazadenewregular))
         )
     }
 }

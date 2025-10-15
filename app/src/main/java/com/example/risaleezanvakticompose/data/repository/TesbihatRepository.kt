@@ -49,7 +49,7 @@ class TesbihatRepository @Inject constructor(
             TesbihatSection(
                 id = "sabah_kelime_tevhid",
                 title = "Kelime-i Tevhid ve Dualar",
-                description = "9 defa La ilahe illallah okunur",
+                description = "La ilahe illallah zikri ve dualar",
                 scrollId = "nav-2"
             ),
             TesbihatSection(
@@ -61,23 +61,12 @@ class TesbihatRepository @Inject constructor(
             TesbihatSection(
                 id = "sabah_ayetelkursi",
                 title = "Âyetü'l Kürsî ve Tesbihat",
-                description = "Âyetü'l Kürsî ve 99 tesbih",
+                description = "Âyetü'l Kürsî, 33’lü tesbihler ve dua",
                 scrollId = "nav-4"
-            ),
-            TesbihatSection(
-                id = "sabah_ismiazam",
-                title = "Tercüman-ı İsm-i A'zâm",
-                description = "Allah'ın en büyük ismi ile yapılan dua",
-                scrollId = "nav-5"
-            ),
-            TesbihatSection(
-                id = "sabah_hasr",
-                title = "Haşr Sûresi 20-24. Âyetler",
-                description = "Haşr Sûresi'nin son âyetleri",
-                scrollId = "nav-6"
             )
         )
     }
+
 
     private fun getOgleSections(): List<TesbihatSection> {
         return listOf(
@@ -95,14 +84,14 @@ class TesbihatRepository @Inject constructor(
             ),
             TesbihatSection(
                 id = "ogle_sunnet_sonrasi",
-                title = "Sünnet Sonrası Tesbihat",
+                title = "Son Sünnet Sonrası Tesbihat",
                 description = "Son sünnet namazından sonra okunur",
                 scrollId = "nav-ogle-2"
             ),
             TesbihatSection(
-                id = "ogle_esma_duasi",
-                title = "Esma Duası",
-                description = "Allah'ın 99 ismi ile yapılan dua",
+                id = "ogle_ismiazam",
+                title = "İsm-i Âzam Duası",
+                description = "Allah’ın isimleriyle yapılan dua",
                 scrollId = "nav-ogle-3"
             ),
             TesbihatSection(
@@ -114,11 +103,12 @@ class TesbihatRepository @Inject constructor(
             TesbihatSection(
                 id = "ogle_fetih",
                 title = "Fetih Sûresi 27-29. Âyetler",
-                description = "Lekad Sadakallah",
+                description = "Lekad Sadakallah ayetleri okunur",
                 scrollId = "nav-ogle-5"
             )
         )
     }
+
 
     private fun getIkindiSections(): List<TesbihatSection> {
         return listOf(
@@ -135,15 +125,15 @@ class TesbihatRepository @Inject constructor(
                 scrollId = "nav-ikindi-1"
             ),
             TesbihatSection(
-                id = "ikindi_sunnet_sonrasi",
-                title = "Sünnet Sonrası Tesbihat",
-                description = "Son sünnet namazından sonra okunur",
+                id = "ikindi_tesbih_salavat",
+                title = "Tesbihat ve Salavatlar",
+                description = "Tesbih, salavat ve dualar bölümü",
                 scrollId = "nav-ikindi-2"
             ),
             TesbihatSection(
                 id = "ikindi_ismiazam",
-                title = "Tercüman-ı İsm-i A'zâm Duası",
-                description = "Allah'ın en büyük ismi ile yapılan dua",
+                title = "Tercüman-ı İsm-i Âzam Duası",
+                description = "Allah’ın en büyük ismiyle yapılan dua",
                 scrollId = "nav-ikindi-3"
             ),
             TesbihatSection(
@@ -182,21 +172,27 @@ class TesbihatRepository @Inject constructor(
                 scrollId = "nav-aksam-2"
             ),
             TesbihatSection(
-                id = "aksam_ecirnaminennar",
+                id = "aksam_ecirna",
                 title = "Ecirna Minennar Duası",
                 description = "Ateşten korunma duası",
                 scrollId = "nav-aksam-3"
             ),
             TesbihatSection(
                 id = "aksam_ismiazam",
-                title = "İsm-i A'zam Duası",
-                description = "Allah'ın en büyük ismi ile yapılan dua",
-                scrollId = "nav-aksam-4"
+                title = "İsm-i A’zâm Duası",
+                description = "Allah'ın en büyük isimleriyle yapılan dua",
+                scrollId = "nav-ogle-3" // HTML'de böyle geçiyor
+            ),
+            TesbihatSection(
+                id = "aksam_ismiazam_sonrasi",
+                title = "İsm-i A’zâm Sonrası Dua",
+                description = "Eller açılarak yapılan dua",
+                scrollId = "nav-ogle-4" // HTML'de bu kısımda dua geçiyor
             ),
             TesbihatSection(
                 id = "aksam_hasr",
                 title = "Haşr Sûresi 20-24. Âyetler",
-                description = "Haşr Sûresi'nin son âyetleri",
+                description = "Haşr Sûresi'nin son âyetleri okunur",
                 scrollId = "nav-aksam-6"
             )
         )
@@ -217,27 +213,27 @@ class TesbihatRepository @Inject constructor(
                 scrollId = "nav-yatsi-1"
             ),
             TesbihatSection(
-                id = "yatsi_sunnet_sonrasi",
-                title = "Sünnet Sonrası Tesbihat",
-                description = "Son sünnet namazından sonra okunur",
+                id = "yatsi_duadan_sonra",
+                title = "Duadan Sonra",
+                description = "Son sünnet ve vitr namazından sonra okunur",
                 scrollId = "nav-yatsi-2"
             ),
             TesbihatSection(
-                id = "yatsi_esma_duasi",
-                title = "Esma Duası",
-                description = "Allah'ın 99 ismi ile yapılan dua",
+                id = "yatsi_ismiazam",
+                title = "İsm-i Âzam Duası",
+                description = "Allah’ın isimleriyle yapılan dua",
                 scrollId = "nav-yatsi-3"
             ),
             TesbihatSection(
-                id = "yatsi_esma_duasinin_duasi",
-                title = "Esma Duasının Duası",
-                description = "Esma duasından sonra okunur",
+                id = "yatsi_ismiazam_duasi",
+                title = "İsm-i Âzam Duasının Duası",
+                description = "İsm-i Âzam duasından sonra eller açılarak okunur",
                 scrollId = "nav-yatsi-4"
             ),
             TesbihatSection(
                 id = "yatsi_amener_resulu",
-                title = "Âmene'r-Resülü",
-                description = "Bakara Sûresi 285-286. âyetler",
+                title = "Âmene’r-Resulü",
+                description = "Bakara Sûresi 285–286. âyetleri okunur",
                 scrollId = "nav-yatsi-5"
             )
         )
@@ -246,11 +242,11 @@ class TesbihatRepository @Inject constructor(
 
     fun getHtmlContent(category: TesbihatCategory): String {
         val fileName = when (category) {
-            TesbihatCategory.SABAH -> "tesbihat/sabah_namazi.html"
-            TesbihatCategory.OGLE -> "tesbihat/ogle_namazi.html"
-            TesbihatCategory.IKINDI -> "tesbihat/ikindi_namazi.html"
-            TesbihatCategory.AKSAM -> "tesbihat/aksam_namazi.html"
-            TesbihatCategory.YATSI -> "tesbihat/yatsi_namazi.html"
+            TesbihatCategory.SABAH -> "tesbihat/sabah.html"
+            TesbihatCategory.OGLE -> "tesbihat/ogle.html"
+            TesbihatCategory.IKINDI -> "tesbihat/ikindi.html"
+            TesbihatCategory.AKSAM -> "tesbihat/aksam.html"
+            TesbihatCategory.YATSI -> "tesbihat/yatsi.html"
         }
 
         return try {

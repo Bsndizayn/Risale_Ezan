@@ -99,6 +99,8 @@ class SettingsViewModel @Inject constructor(
     private fun loadAvailableSounds() {
         viewModelScope.launch {
             val sounds = mutableListOf<String>()
+            sounds.add("system_ringtone")
+            sounds.add("kus_sesi")
             sounds.add("ezan_mekke")
             sounds.add("ezan_medine")
             sounds.add("ezan_istanbul")

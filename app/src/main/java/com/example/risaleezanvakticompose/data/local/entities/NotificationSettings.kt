@@ -15,7 +15,7 @@ data class NotificationSettings(
     val imsakEnabled: Boolean = true,
 
     @ColumnInfo(name = "imsak_sound")
-    val imsakSound: String = "default_ezan",
+    val imsakSound: String = "system_ringtone",
 
     @ColumnInfo(name = "imsak_minutes_before")
     val imsakMinutesBefore: Int = 0,
@@ -24,7 +24,7 @@ data class NotificationSettings(
     val ogleEnabled: Boolean = true,
 
     @ColumnInfo(name = "ogle_sound")
-    val ogleSound: String = "default_ezan",
+    val ogleSound: String = "system_ringtone",
 
     @ColumnInfo(name = "ogle_minutes_before")
     val ogleMinutesBefore: Int = 0,
@@ -33,7 +33,7 @@ data class NotificationSettings(
     val ikindiEnabled: Boolean = true,
 
     @ColumnInfo(name = "ikindi_sound")
-    val ikindiSound: String = "default_ezan",
+    val ikindiSound: String = "system_ringtone",
 
     @ColumnInfo(name = "ikindi_minutes_before")
     val ikindiMinutesBefore: Int = 0,
@@ -42,7 +42,7 @@ data class NotificationSettings(
     val aksamEnabled: Boolean = true,
 
     @ColumnInfo(name = "aksam_sound")
-    val aksamSound: String = "default_ezan",
+    val aksamSound: String = "system_ringtone",
 
     @ColumnInfo(name = "aksam_minutes_before")
     val aksamMinutesBefore: Int = 0,
@@ -51,7 +51,7 @@ data class NotificationSettings(
     val yatsiEnabled: Boolean = true,
 
     @ColumnInfo(name = "yatsi_sound")
-    val yatsiSound: String = "default_ezan",
+    val yatsiSound: String = "system_ringtone",
 
     @ColumnInfo(name = "yatsi_minutes_before")
     val yatsiMinutesBefore: Int = 0,
@@ -60,7 +60,7 @@ data class NotificationSettings(
     val gunesEnabled: Boolean = false,
 
     @ColumnInfo(name = "gunes_sound")
-    val gunesSound: String = "default_ezan",
+    val gunesSound: String = "system_ringtone",
 
     @ColumnInfo(name = "gunes_minutes_before")
     val gunesMinutesBefore: Int = 0

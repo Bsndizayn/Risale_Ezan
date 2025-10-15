@@ -1,66 +1,30 @@
 package com.example.risaleezanvakticompose.presentation.screen.settings
 
-import android.Manifest
 import android.content.Context
+import android.media.MediaPlayer
+import android.media.RingtoneManager
 import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.risaleezanvakticompose.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
@@ -78,10 +42,24 @@ fun SettingsScreen(
     var showSoundPicker by remember { mutableStateOf(false) }
     var selectedPrayerForSound by remember { mutableStateOf<String?>(null) }
 
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        activity?.let { viewModel.updateNotificationPermissionState(it) }
+    // MediaPlayer state
+    var currentPlayingSound by remember { mutableStateOf<String?>(null) }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+
+    // Cleanup MediaPlayer on dispose
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
+            mediaPlayer = null
+        }
+    }
+
+    BackHandler {
+        // Önce ses çalıyorsa durdur
+        mediaPlayer?.release()
+        mediaPlayer = null
+        currentPlayingSound = null
+        onBack()
     }
 
     LaunchedEffect(Unit) {
@@ -91,19 +69,11 @@ fun SettingsScreen(
     if (showPermissionEducationalDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.onPermissionEducationalDialogDismissed() },
-            title = { Text("Bildirim İzni") },
-            text = {
-                Text(
-                    "Namaz vakti bildirimleri alabilmek için bildirim iznine ihtiyacımız var.\n\n" +
-                            "Bu sayede namaz vakitleri geldiğinde sizi bilgilendirebiliriz."
-                )
-            },
+            title = { Text("Bildirim İzni Gerekli") },
+            text = { Text("Namaz vakti bildirimlerini alabilmek için bildirim iznine ihtiyacımız var.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.onPermissionEducationalDialogDismissed()
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    }
                 }) {
                     Text("İzin Ver")
                 }
@@ -125,7 +95,7 @@ fun SettingsScreen(
             text = {
                 Text(
                     "Bildirim iznini kalıcı olarak reddetmişsiniz.\n\n" +
-                            "Ayarlar > Bildirimler'den bildirim iznini açabilirsiniz."
+                            "Ayarlar > İzinler > Bildirimler'den bildirim iznini açabilirsiniz."
                 )
             },
             confirmButton = {
@@ -147,7 +117,12 @@ fun SettingsScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            GlassSettingsTopBar(onBack = onBack)
+            GlassSettingsTopBar(onBack = {
+                mediaPlayer?.release()
+                mediaPlayer = null
+                currentPlayingSound = null
+                onBack()
+            })
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -395,6 +370,7 @@ fun SettingsScreen(
 
     if (showSoundPicker && selectedPrayerForSound != null) {
         SoundPickerDialog(
+            context = context,
             sounds = availableSounds,
             currentSound = when (selectedPrayerForSound) {
                 "imsak" -> settings?.imsakSound
@@ -404,13 +380,62 @@ fun SettingsScreen(
                 "aksam" -> settings?.aksamSound
                 "yatsi" -> settings?.yatsiSound
                 else -> null
-            } ?: "default_ezan",
+            } ?: "system_ringtone",
+            currentPlayingSound = currentPlayingSound,
             onSoundSelected = { soundName ->
+                // Ses çalmayı durdur
+                mediaPlayer?.release()
+                mediaPlayer = null
+                currentPlayingSound = null
+
                 viewModel.updateSound(selectedPrayerForSound!!, soundName)
                 showSoundPicker = false
                 selectedPrayerForSound = null
             },
+            onPlaySound = { soundName ->
+                mediaPlayer?.release()
+
+                if (currentPlayingSound == soundName) {
+                    mediaPlayer = null
+                    currentPlayingSound = null
+                } else {
+                    try {
+                        if (soundName == "system_ringtone") {
+                            val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                            mediaPlayer = MediaPlayer().apply {
+                                setDataSource(context, ringtoneUri)
+                                prepare()
+                            }
+                        } else {
+                            val resourceId = context.resources.getIdentifier(
+                                soundName,
+                                "raw",
+                                context.packageName
+                            )
+
+                            if (resourceId != 0) {
+                                mediaPlayer = MediaPlayer.create(context, resourceId)
+                            }
+                        }
+
+                        mediaPlayer?.setOnCompletionListener {
+                            it.release()
+                            mediaPlayer = null
+                            currentPlayingSound = null
+                        }
+                        mediaPlayer?.start()
+                        currentPlayingSound = soundName
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            },
             onDismiss = {
+                // Ses çalmayı durdur
+                mediaPlayer?.release()
+                mediaPlayer = null
+                currentPlayingSound = null
+
                 showSoundPicker = false
                 selectedPrayerForSound = null
             }
@@ -433,7 +458,6 @@ fun GlassSettingsTopBar(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(
@@ -486,133 +510,98 @@ fun GlassPrayerNotificationCard(
         shape = RoundedCornerShape(20.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (!hasPermission) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "İzin gerekli",
-                            tint = Color.White.copy(alpha = 0.4f),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = prayerName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (enabled && hasPermission)
-                            Color.White
-                        else
-                            Color.White.copy(alpha = 0.5f)
+                        color = Color.White
                     )
+                    if (!hasPermission) {
+                        Text(
+                            text = "İzin gerekli",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFFF9800)
+                        )
+                    }
                 }
 
                 Switch(
                     checked = enabled && hasPermission,
                     onCheckedChange = { onToggle() },
-                    enabled = true,
+                    enabled = hasPermission,
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = Color(0xFF4CAF50).copy(alpha = 0.6f),
-                        uncheckedThumbColor = Color.White.copy(alpha = 0.6f),
-                        uncheckedTrackColor = Color.White.copy(alpha = 0.2f),
-                        disabledCheckedThumbColor = Color.White.copy(alpha = 0.3f),
-                        disabledCheckedTrackColor = Color.White.copy(alpha = 0.1f),
-                        disabledUncheckedThumbColor = Color.White.copy(alpha = 0.3f),
-                        disabledUncheckedTrackColor = Color.White.copy(alpha = 0.1f)
+                        checkedThumbColor = Color(0xFF4CAF50),
+                        checkedTrackColor = Color(0xFF4CAF50).copy(alpha = 0.5f),
+                        uncheckedThumbColor = Color.White.copy(alpha = 0.5f),
+                        uncheckedTrackColor = Color.White.copy(alpha = 0.2f)
                     )
                 )
             }
 
-            if (!hasPermission) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Bildirim izni gerekli",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFFFF9800),
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
             if (enabled && hasPermission) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Divider(color = Color.White.copy(alpha = 0.2f))
 
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.1f))
                         .clickable { onChangSound() }
-                        .padding(12.dp)
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.MusicNote,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = getSoundDisplayName(soundName),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White
-                            )
-                        }
-                        Icon(
-                            Icons.Default.ChevronRight,
-                            contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.6f),
-                            modifier = Modifier.size(20.dp)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Ezan Sesi",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = getSoundDisplayName(soundName),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
                         )
                     }
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        "Seç",
+                        tint = Color.White.copy(alpha = 0.5f)
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Divider(color = Color.White.copy(alpha = 0.2f))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.1f))
-                        .padding(12.dp)
-                ) {
+                Column {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Kaç dakika önce?",
+                            text = "Dakika Önce",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White
+                            color = Color.White.copy(alpha = 0.7f)
                         )
 
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(
-                                onClick = { if (minutesBefore > 0) onMinutesChange(minutesBefore - 1) },
+                                onClick = {
+                                    if (minutesBefore > 0) {
+                                        onMinutesChange(minutesBefore - 1)
+                                    }
+                                },
                                 enabled = minutesBefore > 0,
                                 modifier = Modifier
                                     .size(36.dp)
@@ -634,13 +623,18 @@ fun GlassPrayerNotificationCard(
 
                             Text(
                                 text = "$minutesBefore",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = Color.White,
+                                modifier = Modifier.widthIn(min = 32.dp)
                             )
 
                             IconButton(
-                                onClick = { if (minutesBefore < 30) onMinutesChange(minutesBefore + 1) },
+                                onClick = {
+                                    if (minutesBefore < 30) {
+                                        onMinutesChange(minutesBefore + 1)
+                                    }
+                                },
                                 enabled = minutesBefore < 30,
                                 modifier = Modifier
                                     .size(36.dp)
@@ -669,14 +663,17 @@ fun GlassPrayerNotificationCard(
 
 @Composable
 fun SoundPickerDialog(
+    context: Context,
     sounds: List<String>,
     currentSound: String,
+    currentPlayingSound: String?,
     onSoundSelected: (String) -> Unit,
+    onPlaySound: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1E3A8A),
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
         title = {
             Text(
                 "Ezan Sesi Seç",
@@ -708,11 +705,37 @@ fun SoundPickerDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = getSoundDisplayName(sound),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White
-                            )
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // ✅ Play/Pause butonu
+                                IconButton(
+                                    onClick = { onPlaySound(sound) },
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(
+                                            Color.White.copy(alpha = 0.15f),
+                                            CircleShape
+                                        )
+                                ) {
+                                    Icon(
+                                        imageVector = if (currentPlayingSound == sound)
+                                            Icons.Default.Stop
+                                        else
+                                            Icons.Default.PlayArrow,
+                                        contentDescription = if (currentPlayingSound == sound) "Durdur" else "Dinle",
+                                        tint = Color.White
+                                    )
+                                }
+
+                                Text(
+                                    text = getSoundDisplayName(sound),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.White
+                                )
+                            }
 
                             if (sound == currentSound) {
                                 Icon(
@@ -739,12 +762,15 @@ fun SoundPickerDialog(
     )
 }
 
+
 fun getSoundDisplayName(soundName: String): String {
     return when (soundName) {
-        "default_ezan" -> "Varsayılan Ezan"
-        "ezan_1" -> "Ezan 1"
-        "ezan_2" -> "Ezan 2"
-        "ezan_3" -> "Ezan 3"
-        else -> soundName
+        "system_ringtone" -> "Sistem Zil Sesi"
+        "kus_sesi" -> "Kuş Sesi"
+        "ezan_mekke" -> "Mekke Ezanı"
+        "ezan_medine" -> "Medine Ezanı"
+        "ezan_istanbul" -> "İstanbul Ezanı"
+        "ezan_hafiz" -> "Hafız Ezanı"
+        else -> "Sistem Zil Sesi"
     }
 }

@@ -3,9 +3,12 @@ package com.example.risaleezanvakticompose.presentation.screen.mainScreen
 import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.location.LocationManager
+import android.content.IntentSender
 import android.provider.Settings
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -78,14 +81,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
 import com.example.risaleezanvakticompose.data.local.entities.PrayerTimesEntity
 import com.example.risaleezanvakticompose.util.PermissionState
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
+import com.google.android.gms.location.SettingsClient
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import kotlin.math.floor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +109,6 @@ fun MainScreen(
     val currentQuote by viewModel.currentQuote.collectAsState()
     val hasNotificationPermission by viewModel.hasNotificationPermission.collectAsState()
 
-    var showGpsDisabledDialog by remember { mutableStateOf(false) }
     var showGpsTimeoutDialog by remember { mutableStateOf(false) }
     var isQuoteExpanded by remember { mutableStateOf(false) }
     var isWeeklyExpanded by remember { mutableStateOf(false) }
@@ -115,10 +119,12 @@ fun MainScreen(
     var cancellationTokenSource: com.google.android.gms.tasks.CancellationTokenSource? by remember { mutableStateOf(null) }
     var timeoutHandler: android.os.Handler? by remember { mutableStateOf(null) }
 
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
+    // Location Settings Launcher - Android'in native GPS açma dialogu için
+    val locationSettingsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            // Kullanıcı GPS'i açtı, şimdi konum alabilirz
             startGpsLocationRequest(
                 context = context,
                 viewModel = viewModel,
@@ -126,26 +132,36 @@ fun MainScreen(
                 cancellationTokenSourceSetter = { cancellationTokenSource = it },
                 timeoutHandlerSetter = { timeoutHandler = it }
             )
+        } else {
+            // Kullanıcı GPS açmayı reddetti, manuel seçim sunalım
+            onLocationClick()
         }
     }
 
-    fun isGpsEnabled(): Boolean {
-        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-    }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        // İzin istendi olarak işaretle
+        com.example.risaleezanvakticompose.util.PermissionManager(context).markLocationPermissionRequested()
 
-    fun requestGpsLocation() {
-        val activity = context.findActivity() ?: return
-        val permissionManager = (viewModel as? MainViewModel)?.let {
-            com.example.risaleezanvakticompose.util.PermissionManager(context)
-        } ?: return
-
-        when (permissionManager.getLocationPermissionState(activity)) {
-            is PermissionState.GRANTED -> {
-                if (!isGpsEnabled()) {
-                    showGpsDisabledDialog = true
-                } else {
+        if (isGranted) {
+            // İzin verildiyse, GPS kontrolü yap
+            checkLocationSettingsAndRequest(
+                context = context,
+                onSettingsOk = {
+                    startGpsLocationRequest(
+                        context = context,
+                        viewModel = viewModel,
+                        onTimeout = { showGpsTimeoutDialog = true },
+                        cancellationTokenSourceSetter = { cancellationTokenSource = it },
+                        timeoutHandlerSetter = { timeoutHandler = it }
+                    )
+                },
+                onSettingsNeedChange = { intentSenderRequest ->
+                    locationSettingsLauncher.launch(intentSenderRequest)
+                },
+                onSettingsCheckFailed = {
+                    // Ayarlar kontrol edilemedi ama yine de deneyelim
                     startGpsLocationRequest(
                         context = context,
                         viewModel = viewModel,
@@ -154,6 +170,42 @@ fun MainScreen(
                         timeoutHandlerSetter = { timeoutHandler = it }
                     )
                 }
+            )
+        }
+    }
+
+    fun requestGpsLocation() {
+        val activity = context.findActivity() ?: return
+        val permissionManager = com.example.risaleezanvakticompose.util.PermissionManager(context)
+
+        when (permissionManager.getLocationPermissionState(activity)) {
+            is PermissionState.GRANTED -> {
+                // İzin var, GPS ayarlarını kontrol et
+                checkLocationSettingsAndRequest(
+                    context = context,
+                    onSettingsOk = {
+                        startGpsLocationRequest(
+                            context = context,
+                            viewModel = viewModel,
+                            onTimeout = { showGpsTimeoutDialog = true },
+                            cancellationTokenSourceSetter = { cancellationTokenSource = it },
+                            timeoutHandlerSetter = { timeoutHandler = it }
+                        )
+                    },
+                    onSettingsNeedChange = { intentSenderRequest ->
+                        locationSettingsLauncher.launch(intentSenderRequest)
+                    },
+                    onSettingsCheckFailed = {
+                        // Ayarlar kontrol edilemedi ama yine de deneyelim
+                        startGpsLocationRequest(
+                            context = context,
+                            viewModel = viewModel,
+                            onTimeout = { showGpsTimeoutDialog = true },
+                            cancellationTokenSourceSetter = { cancellationTokenSource = it },
+                            timeoutHandlerSetter = { timeoutHandler = it }
+                        )
+                    }
+                )
             }
             is PermissionState.DENIED -> {
                 showLocationPermissionEducationalDialog = true
@@ -188,6 +240,8 @@ fun MainScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showLocationPermissionEducationalDialog = false
+                    // İzin istemeden önce kaydet
+                    com.example.risaleezanvakticompose.util.PermissionManager(context).markLocationPermissionRequested()
                     locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }) {
                     Text("İzin Ver")
@@ -226,30 +280,6 @@ fun MainScreen(
             dismissButton = {
                 TextButton(onClick = {
                     showLocationPermissionSettingsDialog = false
-                    onLocationClick()
-                }) {
-                    Text("Manuel Seç")
-                }
-            }
-        )
-    }
-
-    if (showGpsDisabledDialog) {
-        AlertDialog(
-            onDismissRequest = { showGpsDisabledDialog = false },
-            title = { Text("GPS Kapalı") },
-            text = { Text("Konumunuzu alabilmek için GPS'inizi açın veya manuel konum seçin.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showGpsDisabledDialog = false
-                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                }) {
-                    Text("GPS Ayarları")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showGpsDisabledDialog = false
                     onLocationClick()
                 }) {
                     Text("Manuel Seç")
@@ -350,7 +380,7 @@ fun MainScreen(
 
                         if (weeklyTimes.isNotEmpty()) {
                             WeeklyPrayerTimesExpandable(
-                                weeklyTimes = weeklyTimes.take(5),
+                                weeklyTimes = weeklyTimes.take(30),
                                 isExpanded = isWeeklyExpanded,
                                 onToggle = { isWeeklyExpanded = !isWeeklyExpanded }
                             )
@@ -376,6 +406,47 @@ fun MainScreen(
     }
 }
 
+private fun checkLocationSettingsAndRequest(
+    context: Context,
+    onSettingsOk: () -> Unit,
+    onSettingsNeedChange: (IntentSenderRequest) -> Unit,
+    onSettingsCheckFailed: () -> Unit
+) {
+    val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        10000L
+    ).build()
+
+    val builder = LocationSettingsRequest.Builder()
+        .addLocationRequest(locationRequest)
+        .setAlwaysShow(true) // GPS kapalıysa dialogu göster
+
+    val client: SettingsClient = LocationServices.getSettingsClient(context)
+    val task = client.checkLocationSettings(builder.build())
+
+    task.addOnSuccessListener {
+        // GPS açık ve hazır
+        Log.d("MainScreen", "Location settings OK")
+        onSettingsOk()
+    }
+
+    task.addOnFailureListener { exception ->
+        if (exception is ResolvableApiException) {
+            try {
+                Log.d("MainScreen", "Location settings need to be changed, showing dialog")
+                val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
+                onSettingsNeedChange(intentSenderRequest)
+            } catch (sendEx: IntentSender.SendIntentException) {
+                Log.e("MainScreen", "Error showing location settings dialog", sendEx)
+                onSettingsCheckFailed()
+            }
+        } else {
+            Log.e("MainScreen", "Location settings check failed", exception)
+            onSettingsCheckFailed()
+        }
+    }
+}
+
 private fun startGpsLocationRequest(
     context: Context,
     viewModel: MainViewModel,
@@ -396,7 +467,7 @@ private fun startGpsLocationRequest(
         cancellationTokenSourceSetter(cancellationTokenSource)
 
         fusedLocationClient.getCurrentLocation(
-            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            Priority.PRIORITY_HIGH_ACCURACY,
             cancellationTokenSource.token
         ).addOnSuccessListener { location ->
             if (location != null) {
@@ -480,8 +551,9 @@ fun GlassTopBar(
                             maxLines = 1
                         )
                     }
+                    // ✅ Hem Miladi hem Hicri tarih
                     Text(
-                        text = formatDateShort(currentDate),
+                        text = formatDateWithHijri(currentDate),
                         color = Color.White.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -743,9 +815,9 @@ fun CompactPrayerTimesCard(
             val isShowingTomorrow = prayerTimes.date != today
 
             val title = if (isShowingTomorrow) {
-                "┌─┐ Yarının Vakitleri ┌─┐"
+                "Yarının Vakitleri"
             } else {
-                "┌─┐ Bugünün Vakitleri ┌─┐"
+                "Bugünün Vakitleri"
             }
 
             Text(
@@ -888,7 +960,7 @@ fun WeeklyPrayerTimesExpandable(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Gelecek 5 Gün",
+                    text = "Gelecek 30 Gün", // ✅ 5 Gün -> 30 Gün
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
@@ -1121,12 +1193,66 @@ fun NoLocationScreen(
     }
 }
 
-private fun formatDateShort(dateString: String): String {
+private fun formatDateWithHijri(dateString: String): String {
     return try {
         val date = LocalDate.parse(dateString)
-        val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale("tr"))
-        date.format(formatter)
+
+        // Miladi tarih
+        val gregorianFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale("tr"))
+        val gregorianDate = date.format(gregorianFormatter)
+
+        // Hicri tarih hesaplama
+        val hijriDate = gregorianToHijri(date)
+
+        "$gregorianDate\n$hijriDate"
     } catch (e: Exception) {
         dateString
     }
+}
+
+private fun gregorianToHijri(gregorianDate: LocalDate): String {
+    val year = gregorianDate.year
+    val month = gregorianDate.monthValue
+    val day = gregorianDate.dayOfMonth
+
+    // Julian Day hesaplama
+    val a = floor((14 - month) / 12.0).toInt()
+    val y = year + 4800 - a
+    val m = month + 12 * a - 3
+
+    val jd = day + floor((153 * m + 2) / 5.0).toInt() +
+            365 * y + floor(y / 4.0).toInt() -
+            floor(y / 100.0).toInt() + floor(y / 400.0).toInt() - 32045
+
+    // Hicri tarihe çevirme
+    val l = jd - 1948440 + 10632
+    val n = floor((l - 1) / 10631.0).toInt()
+    val l2 = l - 10631 * n + 354
+    val j = (floor((10985 - l2) / 5316.0).toInt()) *
+            (floor((50 * l2) / 17719.0).toInt()) +
+            (floor(l2 / 5670.0).toInt()) *
+            (floor((43 * l2) / 15238.0).toInt())
+    val l3 = l2 - (floor((30 - j) / 15.0).toInt()) *
+            (floor((17719 * j) / 50.0).toInt()) -
+            (floor(j / 16.0).toInt()) *
+            (floor((15238 * j) / 43.0).toInt()) + 29
+
+    val hijriMonth = floor((24 * l3) / 709.0).toInt()
+    val hijriDay = l3 - floor((709 * hijriMonth) / 24.0).toInt()
+    val hijriYear = 30 * n + j - 30
+
+    // Hicri ay isimleri
+    val hijriMonthNames = listOf(
+        "Muharrem", "Safer", "Rebiülevvel", "Rebiülahir",
+        "Cemaziyelevvel", "Cemaziyelahir", "Recep", "Şaban",
+        "Ramazan", "Şevval", "Zilkade", "Zilhicce"
+    )
+
+    val monthName = if (hijriMonth in 1..12) {
+        hijriMonthNames[hijriMonth - 1]
+    } else {
+        "Muharrem"
+    }
+
+    return "$hijriDay $monthName $hijriYear"
 }

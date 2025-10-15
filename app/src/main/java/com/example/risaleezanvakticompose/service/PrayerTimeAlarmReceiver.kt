@@ -283,11 +283,24 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
     }
 
     private fun getSoundUri(context: Context, soundName: String): Uri {
+        if (soundName == "system_ringtone") {
+            return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        }
+
         var resourceId = context.resources.getIdentifier(soundName, "raw", context.packageName)
 
         if (resourceId == 0) {
-            val alternatives =
-                listOf("ezan_mekke", "ezan_medine", "ezan_istanbul", "ezan_hafiz", "default_ezan")
+            android.util.Log.w("PrayerAlarm", "Ses bulunamadı: $soundName, alternatiflere bakılıyor")
+
+            // Alternatif sesler
+            val alternatives = listOf(
+                "kus_sesi",
+                "ezan_mekke",
+                "ezan_medine",
+                "ezan_istanbul",
+                "ezan_hafiz"
+            )
+
             for (alt in alternatives) {
                 resourceId = context.resources.getIdentifier(alt, "raw", context.packageName)
                 if (resourceId != 0) {
@@ -300,10 +313,11 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
         return if (resourceId != 0) {
             Uri.parse("android.resource://${context.packageName}/$resourceId")
         } else {
-            android.util.Log.w("PrayerAlarm", "Hiçbir ezan sesi bulunamadı")
-            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            android.util.Log.w("PrayerAlarm", "Hiçbir ses bulunamadı, sistem zil sesi kullanılıyor")
+            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         }
     }
+
 
     private fun showNotification(context: Context, prayerName: String, prayerTime: String, vecize: String) {
         val intent = Intent(context, MainActivity::class.java).apply {
