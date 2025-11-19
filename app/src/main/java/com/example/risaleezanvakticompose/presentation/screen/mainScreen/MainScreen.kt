@@ -1,11 +1,16 @@
 package com.example.risaleezanvakticompose.presentation.screen.mainScreen
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.IntentSender
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,56 +21,22 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.AddLocation
 import androidx.compose.material.icons.filled.AddLocationAlt
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,11 +44,14 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.risaleezanvakticompose.R
 import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
 import com.example.risaleezanvakticompose.data.local.entities.PrayerTimesEntity
 import com.example.risaleezanvakticompose.util.PermissionState
@@ -91,6 +65,24 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.floor
+import android.util.Log
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material.icons.filled.Settings
+import com.example.risaleezanvakticompose.data.local.entities.SavedLocation
+import com.example.risaleezanvakticompose.ui.theme.GoldColor
+import com.example.risaleezanvakticompose.ui.theme.ScheherazadeFamily
+import com.example.risaleezanvakticompose.util.PermissionManager
+import com.google.android.gms.tasks.CancellationTokenSource
+import java.time.format.TextStyle
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,31 +101,27 @@ fun MainScreen(
     val currentQuote by viewModel.currentQuote.collectAsState()
     val hasNotificationPermission by viewModel.hasNotificationPermission.collectAsState()
 
-    var showGpsTimeoutDialog by remember { mutableStateOf(false) }
-    var isQuoteExpanded by remember { mutableStateOf(false) }
+    var isQuoteExpanded by remember { mutableStateOf(true) }
     var isWeeklyExpanded by remember { mutableStateOf(false) }
 
     var showLocationPermissionEducationalDialog by remember { mutableStateOf(false) }
     var showLocationPermissionSettingsDialog by remember { mutableStateOf(false) }
 
-    var cancellationTokenSource: com.google.android.gms.tasks.CancellationTokenSource? by remember { mutableStateOf(null) }
-    var timeoutHandler: android.os.Handler? by remember { mutableStateOf(null) }
+    var cancellationTokenSource: CancellationTokenSource? by remember { mutableStateOf(null) }
+    var timeoutHandler: Handler? by remember { mutableStateOf(null) }
 
-    // Location Settings Launcher - Android'in native GPS açma dialogu için
     val locationSettingsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            // Kullanıcı GPS'i açtı, şimdi konum alabilirz
+        if (result.resultCode == Activity.RESULT_OK) {
             startGpsLocationRequest(
                 context = context,
                 viewModel = viewModel,
-                onTimeout = { showGpsTimeoutDialog = true },
+                onTimeout = { onLocationClick() },
                 cancellationTokenSourceSetter = { cancellationTokenSource = it },
                 timeoutHandlerSetter = { timeoutHandler = it }
             )
         } else {
-            // Kullanıcı GPS açmayı reddetti, manuel seçim sunalım
             onLocationClick()
         }
     }
@@ -141,18 +129,16 @@ fun MainScreen(
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        // İzin istendi olarak işaretle
-        com.example.risaleezanvakticompose.util.PermissionManager(context).markLocationPermissionRequested()
+        PermissionManager(context).markLocationPermissionRequested()
 
         if (isGranted) {
-            // İzin verildiyse, GPS kontrolü yap
             checkLocationSettingsAndRequest(
                 context = context,
                 onSettingsOk = {
                     startGpsLocationRequest(
                         context = context,
                         viewModel = viewModel,
-                        onTimeout = { showGpsTimeoutDialog = true },
+                        onTimeout = { onLocationClick() },
                         cancellationTokenSourceSetter = { cancellationTokenSource = it },
                         timeoutHandlerSetter = { timeoutHandler = it }
                     )
@@ -161,11 +147,10 @@ fun MainScreen(
                     locationSettingsLauncher.launch(intentSenderRequest)
                 },
                 onSettingsCheckFailed = {
-                    // Ayarlar kontrol edilemedi ama yine de deneyelim
                     startGpsLocationRequest(
                         context = context,
                         viewModel = viewModel,
-                        onTimeout = { showGpsTimeoutDialog = true },
+                        onTimeout = { onLocationClick() },
                         cancellationTokenSourceSetter = { cancellationTokenSource = it },
                         timeoutHandlerSetter = { timeoutHandler = it }
                     )
@@ -176,18 +161,17 @@ fun MainScreen(
 
     fun requestGpsLocation() {
         val activity = context.findActivity() ?: return
-        val permissionManager = com.example.risaleezanvakticompose.util.PermissionManager(context)
+        val permissionManager = PermissionManager(context)
 
         when (permissionManager.getLocationPermissionState(activity)) {
             is PermissionState.GRANTED -> {
-                // İzin var, GPS ayarlarını kontrol et
                 checkLocationSettingsAndRequest(
                     context = context,
                     onSettingsOk = {
                         startGpsLocationRequest(
                             context = context,
                             viewModel = viewModel,
-                            onTimeout = { showGpsTimeoutDialog = true },
+                            onTimeout = { onLocationClick() },
                             cancellationTokenSourceSetter = { cancellationTokenSource = it },
                             timeoutHandlerSetter = { timeoutHandler = it }
                         )
@@ -196,11 +180,10 @@ fun MainScreen(
                         locationSettingsLauncher.launch(intentSenderRequest)
                     },
                     onSettingsCheckFailed = {
-                        // Ayarlar kontrol edilemedi ama yine de deneyelim
                         startGpsLocationRequest(
                             context = context,
                             viewModel = viewModel,
-                            onTimeout = { showGpsTimeoutDialog = true },
+                            onTimeout = { onLocationClick() },
                             cancellationTokenSourceSetter = { cancellationTokenSource = it },
                             timeoutHandlerSetter = { timeoutHandler = it }
                         )
@@ -240,8 +223,6 @@ fun MainScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showLocationPermissionEducationalDialog = false
-                    // İzin istemeden önce kaydet
-                    com.example.risaleezanvakticompose.util.PermissionManager(context).markLocationPermissionRequested()
                     locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }) {
                     Text("İzin Ver")
@@ -264,14 +245,14 @@ fun MainScreen(
             title = { Text("Konum İzni Gerekli") },
             text = {
                 Text(
-                    "Konum iznini kalıcı olarak reddetmişsiniz.\n\n" +
-                            "Ayarlar > İzinler > Konum'dan konum iznini açabilirsiniz."
+                    "Konum izni kalıcı olarak reddedilmiş.\n\n" +
+                            "Uygulama ayarlarından konum iznini etkinleştirebilirsiniz."
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     showLocationPermissionSettingsDialog = false
-                    val permissionManager = com.example.risaleezanvakticompose.util.PermissionManager(context)
+                    val permissionManager = PermissionManager(context)
                     permissionManager.openAppSettings()
                 }) {
                     Text("Ayarlara Git")
@@ -288,77 +269,190 @@ fun MainScreen(
         )
     }
 
-    if (showGpsTimeoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showGpsTimeoutDialog = false },
-            title = { Text("GPS Konumu Alınamadı") },
-            text = {
-                Text(
-                    "GPS sinyali bulunamadı veya çok zayıf.\n\n" +
-                            "Lütfen:\n" +
-                            "• Dışarı çıkın veya pencere kenarına gidin\n" +
-                            "• Birkaç saniye bekleyin\n" +
-                            "• Veya manuel olarak konum seçin"
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showGpsTimeoutDialog = false
-                    requestGpsLocation()
-                }) {
-                    Text("Tekrar Dene")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showGpsTimeoutDialog = false
-                    onLocationClick()
-                }) {
-                    Text("Manuel Seç")
-                }
-            }
-        )
-    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            GlassTopBar(
+                location = currentLocation,
+                currentDate = LocalDate.now().toString(),
+                onLocationClick = onLocationClick,
+                onProfileClick = onProfileClick
+            )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        when (val state = uiState) {
-            is MainUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+            when (val state = uiState) {
+                is MainUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = Color.White)
-                        Text(
-                            text = "Namaz vakitleri yükleniyor...",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        CircularProgressIndicator(color = GoldColor)
                     }
                 }
-            }
 
-            is MainUiState.Success -> {
-                val weeklyTimes by viewModel.getWeeklyPrayerTimes(state.prayerTimes.locationPlaceId)
-                    .collectAsState(initial = emptyList())
-
-                Column(modifier = Modifier.fillMaxSize()) {
-                    GlassTopBar(
-                        location = currentLocation,
-                        currentDate = state.prayerTimes.date,
-                        onLocationClick = onLocationClick,
-                        onProfileClick = onProfileClick
-                    )
-
+                is MainUiState.NoLocation -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 16.dp)
-                            .padding(top = 16.dp, bottom = 32.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        if (currentQuote.isNotEmpty()) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOff,
+                            contentDescription = "Konum yok",
+                            modifier = Modifier.size(80.dp),
+                            tint = GoldColor.copy(alpha = 0.6f)
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Text(
+                            text = "Konum Seçilmedi",
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontFamily = ScheherazadeFamily,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = GoldColor
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Namaz vakitlerini görebilmek için konum seçmeniz gerekiyor",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Button(
+                            onClick = { requestGpsLocation() },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = GoldColor
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "GPS",
+                                modifier = Modifier.size(20.dp),
+                                tint = Color(0xFF1A1A1A)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "GPS ile Konumu Bul",
+                                color = Color(0xFF1A1A1A),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedButton(
+                            onClick = onLocationClick,
+                            modifier = Modifier.fillMaxWidth(),
+                            border = BorderStroke(1.dp, GoldColor.copy(alpha = 0.5f)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Manuel konum",
+                                tint = GoldColor
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Manuel Konum Seç",
+                                color = GoldColor
+                            )
+                        }
+                    }
+                }
+
+                is MainUiState.Success -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(vertical = 16.dp)
+                    ) {
+                        if (!hasNotificationPermission) {
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = GoldColor.copy(alpha = 0.9f)
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.weight(1f),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.NotificationsOff,
+                                                contentDescription = "Bildirim kapalı",
+                                                tint = Color(0xFF1A1A1A),
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Column {
+                                                Text(
+                                                    text = "Bildirim İzni Gerekli",
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    color = Color(0xFF1A1A1A),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = "Namaz vakti bildirimlerini almak için izin verin",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = Color(0xFF1A1A1A).copy(alpha = 0.7f)
+                                                )
+                                            }
+                                        }
+                                        IconButton(
+                                            onClick = {
+                                                val activity = context.findActivity()
+                                                activity?.let {
+                                                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                                        data = Uri.fromParts("package", context.packageName, null)
+                                                    }
+                                                    context.startActivity(intent)
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Settings,
+                                                contentDescription = "Ayarlara git",
+                                                tint = Color(0xFF1A1A1A)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        item {
+                            GlassHeroCard(
+                                nextPrayer = state.nextPrayer,
+                                countdown = countdown
+                            )
+                        }
+
+                        item {
                             RisaleQuoteExpandable(
                                 quote = currentQuote,
                                 isExpanded = isQuoteExpanded,
@@ -366,19 +460,21 @@ fun MainScreen(
                             )
                         }
 
-                        GlassHeroCard(
-                            nextPrayer = state.nextPrayer,
-                            countdown = countdown
-                        )
+                        item {
+                            CompactPrayerTimesCard(
+                                prayerTimes = state.prayerTimes,
+                                notificationSettings = notificationSettings,
+                                hasNotificationPermission = hasNotificationPermission,
+                                onNotificationToggle = { prayerName ->
+                                    viewModel.toggleNotification(prayerName)
+                                }
+                            )
+                        }
 
-                        CompactPrayerTimesCard(
-                            prayerTimes = state.prayerTimes,
-                            notificationSettings = notificationSettings,
-                            hasNotificationPermission = hasNotificationPermission,
-                            onNotificationToggle = { }
-                        )
+                        item {
+                            val weeklyTimes by viewModel.getWeeklyPrayerTimes(currentLocation?.placeId ?: 0)
+                                .collectAsState(initial = emptyList())
 
-                        if (weeklyTimes.isNotEmpty()) {
                             WeeklyPrayerTimesExpandable(
                                 weeklyTimes = weeklyTimes.take(30),
                                 isExpanded = isWeeklyExpanded,
@@ -387,127 +483,43 @@ fun MainScreen(
                         }
                     }
                 }
-            }
 
-            is MainUiState.Error -> {
-                ErrorScreen(
-                    message = state.message,
-                    onRetry = { currentLocation?.let { viewModel.refreshPrayerTimes() } }
-                )
-            }
-
-            is MainUiState.NoLocation -> {
-                NoLocationScreen(
-                    onSelectManualLocation = onLocationClick,
-                    onRequestGpsLocation = { requestGpsLocation() }
-                )
+                is MainUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.padding(32.dp)
+                        ) {
+                            Text(
+                                text = state.message,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White,
+                                textAlign = TextAlign.Center
+                            )
+                            Button(
+                                onClick = { viewModel.refreshPrayerTimes() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = GoldColor,
+                                    contentColor = Color(0xFF1A1A1A)
+                                )
+                            ) {
+                                Text("Tekrar Dene", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
-}
-
-private fun checkLocationSettingsAndRequest(
-    context: Context,
-    onSettingsOk: () -> Unit,
-    onSettingsNeedChange: (IntentSenderRequest) -> Unit,
-    onSettingsCheckFailed: () -> Unit
-) {
-    val locationRequest = LocationRequest.Builder(
-        Priority.PRIORITY_HIGH_ACCURACY,
-        10000L
-    ).build()
-
-    val builder = LocationSettingsRequest.Builder()
-        .addLocationRequest(locationRequest)
-        .setAlwaysShow(true) // GPS kapalıysa dialogu göster
-
-    val client: SettingsClient = LocationServices.getSettingsClient(context)
-    val task = client.checkLocationSettings(builder.build())
-
-    task.addOnSuccessListener {
-        // GPS açık ve hazır
-        Log.d("MainScreen", "Location settings OK")
-        onSettingsOk()
-    }
-
-    task.addOnFailureListener { exception ->
-        if (exception is ResolvableApiException) {
-            try {
-                Log.d("MainScreen", "Location settings need to be changed, showing dialog")
-                val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
-                onSettingsNeedChange(intentSenderRequest)
-            } catch (sendEx: IntentSender.SendIntentException) {
-                Log.e("MainScreen", "Error showing location settings dialog", sendEx)
-                onSettingsCheckFailed()
-            }
-        } else {
-            Log.e("MainScreen", "Location settings check failed", exception)
-            onSettingsCheckFailed()
-        }
-    }
-}
-
-private fun startGpsLocationRequest(
-    context: Context,
-    viewModel: MainViewModel,
-    onTimeout: () -> Unit,
-    cancellationTokenSourceSetter: (com.google.android.gms.tasks.CancellationTokenSource) -> Unit,
-    timeoutHandlerSetter: (android.os.Handler) -> Unit
-) {
-    if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-        Log.e("MainScreen", "İzin yok, GPS başlatılamadı")
-        return
-    }
-
-    Log.d("MainScreen", "GPS konumu alınıyor...")
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-
-    try {
-        val cancellationTokenSource = com.google.android.gms.tasks.CancellationTokenSource()
-        cancellationTokenSourceSetter(cancellationTokenSource)
-
-        fusedLocationClient.getCurrentLocation(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            cancellationTokenSource.token
-        ).addOnSuccessListener { location ->
-            if (location != null) {
-                Log.d("MainScreen", "Konum alındı: ${location.latitude}, ${location.longitude}")
-                viewModel.fetchCurrentLocationFromGps(location.latitude, location.longitude)
-            } else {
-                Log.d("MainScreen", "getCurrentLocation null")
-                onTimeout()
-            }
-        }.addOnFailureListener { exception ->
-            Log.e("MainScreen", "getCurrentLocation başarısız: ${exception.message}")
-            onTimeout()
-        }
-
-        val timeoutHandler = android.os.Handler(android.os.Looper.getMainLooper())
-        timeoutHandlerSetter(timeoutHandler)
-
-        timeoutHandler.postDelayed({
-            Log.e("MainScreen", "GPS timeout - 20 saniye içinde konum alınamadı")
-            cancellationTokenSource.cancel()
-            onTimeout()
-        }, 20000)
-
-    } catch (e: SecurityException) {
-        Log.e("MainScreen", "SecurityException: ${e.message}", e)
-    }
-}
-
-fun Context.findActivity(): android.app.Activity? {
-    var context = this
-    while (context is android.content.ContextWrapper) {
-        if (context is android.app.Activity) return context
-        context = context.baseContext
-    }
-    return null
 }
 
 @Composable
 fun GlassTopBar(
-    location: com.example.risaleezanvakticompose.data.local.entities.SavedLocation?,
+    location: SavedLocation?,
     currentDate: String,
     onLocationClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -540,22 +552,25 @@ fun GlassTopBar(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = GoldColor,
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
                             text = location?.placeName ?: "Konum Seç",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            color = GoldColor,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = ScheherazadeFamily,
+                                fontWeight = FontWeight.Bold
+                            ),
                             maxLines = 1
                         )
                     }
-                    // ✅ Hem Miladi hem Hicri tarih
                     Text(
                         text = formatDateWithHijri(currentDate),
                         color = Color.White.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = ScheherazadeFamily
+                        )
                     )
                 }
 
@@ -563,7 +578,7 @@ fun GlassTopBar(
                     modifier = Modifier
                         .size(32.dp)
                         .background(
-                            Color.White.copy(alpha = 0.15f),
+                            GoldColor.copy(alpha = 0.15f),
                             RoundedCornerShape(8.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -571,7 +586,7 @@ fun GlassTopBar(
                     Icon(
                         imageVector = Icons.Default.AddLocationAlt,
                         contentDescription = "Konum Değiştir",
-                        tint = Color.White,
+                        tint = GoldColor,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -583,111 +598,14 @@ fun GlassTopBar(
                 onClick = onProfileClick,
                 modifier = Modifier
                     .size(48.dp)
-                    .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                    .background(GoldColor.copy(alpha = 0.15f), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Profil",
-                    tint = Color.White,
+                    tint = GoldColor,
                     modifier = Modifier.size(24.dp)
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun RisaleQuoteExpandable(
-    quote: String,
-    isExpanded: Boolean,
-    onToggle: () -> Unit
-) {
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
-        label = "rotation"
-    )
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggle() },
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.15f)
-        ),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MenuBook,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Column {
-                        Text(
-                            text = "Risale-i Nur'dan",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Vecize",
-                            color = Color.White.copy(alpha = 0.7f),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-
-                Icon(
-                    imageVector = Icons.Default.ExpandMore,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .rotate(rotationAngle)
-                )
-            }
-
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(),
-                exit = shrinkVertically()
-            ) {
-                Column {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color.White.copy(alpha = 0.3f),
-                                        Color.Transparent
-                                    )
-                                )
-                            )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "\"$quote\"",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium,
-                        lineHeight = 24.sp
-                    )
-                }
             }
         }
     }
@@ -708,9 +626,8 @@ fun GlassHeroCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -719,29 +636,38 @@ fun GlassHeroCard(
                 Icon(
                     imageVector = Icons.Default.AccessTime,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.6f),
+                    tint = GoldColor.copy(alpha = 0.6f),
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
                     text = "S O N R A K İ",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = GoldColor.copy(alpha = 0.6f),
                     letterSpacing = 2.sp
                 )
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = nextPrayer.name.uppercase(),
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = GoldColor
             )
+
+            Spacer(modifier = Modifier.height(0.dp))
 
             Text(
                 text = nextPrayer.time,
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontWeight = FontWeight.Bold
+                ),
                 color = Color.White.copy(alpha = 0.9f)
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Box(
                 modifier = Modifier
@@ -751,12 +677,14 @@ fun GlassHeroCard(
                         brush = Brush.horizontalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color.White.copy(alpha = 0.5f),
+                                GoldColor.copy(alpha = 0.5f),
                                 Color.Transparent
                             )
                         )
                     )
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             countdown?.let {
                 Row(
@@ -764,15 +692,39 @@ fun GlassHeroCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CountdownBox(value = it.hours, label = "SA")
-                    Text(":", color = Color.White, fontSize = 32.sp)
+
+                    Text(
+                        text = ":",
+                        color = GoldColor,
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = ScheherazadeFamily,
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .offset(y = (-10).dp)
+                    )
+
                     CountdownBox(value = it.minutes, label = "DK")
-                    Text(":", color = Color.White, fontSize = 32.sp)
+
+                    Text(
+                        text = ":",
+                        color = GoldColor,
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = ScheherazadeFamily,
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .offset(y = (-10).dp)
+                    )
+
                     CountdownBox(value = it.seconds, label = "SN")
                 }
             }
+
         }
     }
 }
+
 
 @Composable
 fun CountdownBox(value: Int, label: String) {
@@ -782,15 +734,98 @@ fun CountdownBox(value: Int, label: String) {
     ) {
         Text(
             text = value.toString().padStart(2, '0'),
-            color = Color.White,
+            color = GoldColor,
             fontSize = 40.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            fontFamily = ScheherazadeFamily
         )
         Text(
             text = label,
             color = Color.White.copy(alpha = 0.6f),
             fontSize = 12.sp
         )
+    }
+}
+
+@Composable
+fun RisaleQuoteExpandable(
+    quote: String,
+    isExpanded: Boolean,
+    onToggle: () -> Unit
+) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        label = "rotation"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() },
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFFF8DC).copy(alpha = 0.95f)
+        ),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MenuBook,
+                        contentDescription = null,
+                        tint = Color(0xFF8B3A3A),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Column {
+                        Text(
+                            text = "Risale-i Nur'dan",
+                            color = Color(0xFF8B3A3A),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontFamily = ScheherazadeFamily,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Text(
+                            text = "Vecize",
+                            color = Color(0xFF8B3A3A).copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontFamily = ScheherazadeFamily
+                            )
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = Icons.Default.ExpandMore,
+                    contentDescription = null,
+                    tint = Color(0xFF8B3A3A),
+                    modifier = Modifier.rotate(rotationAngle)
+                )
+            }
+
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Divider(color = Color(0xFF8B3A3A).copy(alpha = 0.2f))
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = quote,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = ScheherazadeFamily,
+                        fontWeight = FontWeight.Medium,
+                        lineHeight = 22.sp
+                    ),
+                    color = Color(0xFF2C1810)
+                )
+            }
+        }
     }
 }
 
@@ -822,54 +857,76 @@ fun CompactPrayerTimesCard(
 
             Text(
                 text = title,
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                color = GoldColor,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = ScheherazadeFamily,
+                    fontWeight = FontWeight.Bold
+                ),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
-                CompactPrayerColumn(
-                    name = "İmsak",
-                    time = prayerTimes.imsak,
-                    isNotificationEnabled = notificationSettings?.imsakEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("imsak") }
-                )
-                CompactPrayerColumn(
-                    name = "Güneş",
-                    time = prayerTimes.gunes,
-                    isNotificationEnabled = notificationSettings?.gunesEnabled ?: false,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("gunes") }
-                )
-                CompactPrayerColumn(
-                    name = "Öğle",
-                    time = prayerTimes.ogle,
-                    isNotificationEnabled = notificationSettings?.ogleEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("ogle") }
-                )
-                CompactPrayerColumn(
-                    name = "İkindi",
-                    time = prayerTimes.ikindi,
-                    isNotificationEnabled = notificationSettings?.ikindiEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("ikindi") }
-                )
-                CompactPrayerColumn(
-                    name = "Yatsı",
-                    time = prayerTimes.yatsi,
-                    isNotificationEnabled = notificationSettings?.yatsiEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("yatsi") }
-                )
+                item {
+                    CompactPrayerColumn(
+                        name = "İmsak",
+                        time = prayerTimes.imsak,
+                        isNotificationEnabled = notificationSettings?.imsakEnabled ?: true,
+                        hasPermission = hasNotificationPermission,
+                        onToggle = { onNotificationToggle("imsak") }
+                    )
+                }
+                item {
+                    CompactPrayerColumn(
+                        name = "Güneş",
+                        time = prayerTimes.gunes,
+                        isNotificationEnabled = notificationSettings?.gunesEnabled ?: false,
+                        hasPermission = hasNotificationPermission,
+                        onToggle = { onNotificationToggle("gunes") }
+                    )
+                }
+                item {
+                    CompactPrayerColumn(
+                        name = "Öğle",
+                        time = prayerTimes.ogle,
+                        isNotificationEnabled = notificationSettings?.ogleEnabled ?: true,
+                        hasPermission = hasNotificationPermission,
+                        onToggle = { onNotificationToggle("ogle") }
+                    )
+                }
+                item {
+                    CompactPrayerColumn(
+                        name = "İkindi",
+                        time = prayerTimes.ikindi,
+                        isNotificationEnabled = notificationSettings?.ikindiEnabled ?: true,
+                        hasPermission = hasNotificationPermission,
+                        onToggle = { onNotificationToggle("ikindi") }
+                    )
+                }
+                item {
+                    CompactPrayerColumn(
+                        name = "Akşam",
+                        time = prayerTimes.aksam,
+                        isNotificationEnabled = notificationSettings?.aksamEnabled ?: true,
+                        hasPermission = hasNotificationPermission,
+                        onToggle = { onNotificationToggle("aksam") }
+                    )
+                }
+                item {
+                    CompactPrayerColumn(
+                        name = "Yatsı",
+                        time = prayerTimes.yatsi,
+                        isNotificationEnabled = notificationSettings?.yatsiEnabled ?: true,
+                        hasPermission = hasNotificationPermission,
+                        onToggle = { onNotificationToggle("yatsi") }
+                    )
+                }
             }
         }
     }
@@ -890,24 +947,28 @@ fun CompactPrayerColumn(
         Text(
             text = name,
             color = Color.White.copy(alpha = 0.7f),
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontFamily = ScheherazadeFamily,
+                fontWeight = FontWeight.Medium
+            )
         )
         Text(
             text = time,
-            color = Color.White,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            color = GoldColor,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontFamily = ScheherazadeFamily,
+                fontWeight = FontWeight.Bold
+            )
         )
 
         IconButton(
-            onClick = { },
+            onClick = onToggle,
             modifier = Modifier.size(28.dp),
-            enabled = false
+            enabled = hasPermission
         ) {
             val iconColor = when {
                 !hasPermission -> Color.White.copy(alpha = 0.3f)
-                isNotificationEnabled -> Color(0xFFFCD34D)
+                isNotificationEnabled -> GoldColor
                 else -> Color.White.copy(alpha = 0.4f)
             }
 
@@ -944,6 +1005,23 @@ fun WeeklyPrayerTimesExpandable(
         label = "rotation"
     )
 
+    var isLoading by remember { mutableStateOf(false) }
+    var hasLoadedOnce by remember { mutableStateOf(false) }
+
+    LaunchedEffect(weeklyTimes) {
+        // Veriler yüklendiğinde loading'i kapat
+        if (weeklyTimes.isNotEmpty()) {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+    }
+
+    LaunchedEffect(isExpanded) {
+        if (isExpanded && weeklyTimes.isEmpty() && !hasLoadedOnce) {
+            isLoading = true
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -960,15 +1038,16 @@ fun WeeklyPrayerTimesExpandable(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Gelecek 30 Gün", // ✅ 5 Gün -> 30 Gün
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    text = "Gelecek 30 Gün",
+                    color = GoldColor,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
                 )
                 Icon(
                     imageVector = Icons.Default.ExpandMore,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = GoldColor,
                     modifier = Modifier
                         .size(24.dp)
                         .rotate(rotationAngle)
@@ -982,15 +1061,117 @@ fun WeeklyPrayerTimesExpandable(
             ) {
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        weeklyTimes.forEach { dayTimes ->
-                            WeeklyDayCard(dayTimes)
+
+                    if (isLoading && weeklyTimes.isEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            repeat(3) {
+                                SkeletonWeeklyCard()
+                            }
                         }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            weeklyTimes.forEach { dayTimes ->
+                                WeeklyDayCard(dayTimes)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SkeletonWeeklyCard() {
+    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.7f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shimmer"
+    )
+
+    Card(
+        modifier = Modifier
+            .width(140.dp)
+            .height(200.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.1f)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(16.dp)
+                    .background(
+                        GoldColor.copy(alpha = alpha),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(12.dp)
+                    .background(
+                        Color.White.copy(alpha = alpha * 0.5f),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Vakitler için placeholder'lar
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                repeat(6) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(10.dp)
+                                .background(
+                                    Color.White.copy(alpha = alpha * 0.4f),
+                                    RoundedCornerShape(4.dp)
+                                )
+                        )
+                        Box(
+                            modifier = Modifier
+                                .width(35.dp)
+                                .height(10.dp)
+                                .background(
+                                    GoldColor.copy(alpha = alpha * 0.6f),
+                                    RoundedCornerShape(4.dp)
+                                )
+                        )
                     }
                 }
             }
@@ -1007,7 +1188,7 @@ fun WeeklyDayCard(prayerTimes: PrayerTimesEntity) {
     }
 
     val dayName = date?.dayOfWeek?.getDisplayName(
-        java.time.format.TextStyle.SHORT,
+        TextStyle.SHORT,
         Locale("tr")
     )?.replaceFirstChar { it.uppercase() } ?: ""
 
@@ -1017,7 +1198,7 @@ fun WeeklyDayCard(prayerTimes: PrayerTimesEntity) {
 
     Card(
         modifier = Modifier
-            .width(140.dp)
+            .width(120.dp)
             .height(200.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White.copy(alpha = 0.1f)
@@ -1028,36 +1209,56 @@ fun WeeklyDayCard(prayerTimes: PrayerTimesEntity) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = dayName,
-                color = Color.White,
                 style = MaterialTheme.typography.titleSmall,
+                color = GoldColor,
                 fontWeight = FontWeight.Bold
             )
+
             Text(
                 text = formattedDate,
-                color = Color.White.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.7f)
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Divider(color = Color.White.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(8.dp))
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                WeeklyTimeRow("İmsak", prayerTimes.imsak)
-                WeeklyTimeRow("Güneş", prayerTimes.gunes)
-                WeeklyTimeRow("Öğle", prayerTimes.ogle)
-                WeeklyTimeRow("İkindi", prayerTimes.ikindi)
-                WeeklyTimeRow("Akşam", prayerTimes.aksam)
-                WeeklyTimeRow("Yatsı", prayerTimes.yatsi)
+                PrayerTimeRow("İmsak", prayerTimes.imsak)
+                PrayerTimeRow("Güneş", prayerTimes.gunes)
+                PrayerTimeRow("Öğle", prayerTimes.ogle)
+                PrayerTimeRow("İkindi", prayerTimes.ikindi)
+                PrayerTimeRow("Akşam", prayerTimes.aksam)
+                PrayerTimeRow("Yatsı", prayerTimes.yatsi)
             }
         }
+    }
+}
+
+@Composable
+fun PrayerTimeRow(name: String, time: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.White.copy(alpha = 0.6f),
+            fontSize = 10.sp
+        )
+        Text(
+            text = time,
+            style = MaterialTheme.typography.bodySmall,
+            color = GoldColor,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp
+        )
     }
 }
 
@@ -1070,138 +1271,128 @@ fun WeeklyTimeRow(name: String, time: String) {
         Text(
             text = name,
             color = Color.White.copy(alpha = 0.6f),
-            style = MaterialTheme.typography.bodySmall,
-            fontSize = 11.sp
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontFamily = ScheherazadeFamily,
+                fontSize = 11.sp
+            )
         )
         Text(
             text = time,
-            color = Color.White,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Bold,
-            fontSize = 11.sp
+            color = GoldColor,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontFamily = ScheherazadeFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp
+            )
         )
     }
 }
 
-@Composable
-fun ErrorScreen(message: String, onRetry: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Error,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = Color.White
-            )
-            Text(
-                text = "Bir Hata Oluştu",
-                color = Color.White,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = message,
-                color = Color.White.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center
-            )
-            Button(
-                onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-            ) {
-                Icon(Icons.Default.Refresh, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Tekrar Dene", color = Color(0xFF1E3A8A))
+private fun checkLocationSettingsAndRequest(
+    context: Context,
+    onSettingsOk: () -> Unit,
+    onSettingsNeedChange: (IntentSenderRequest) -> Unit,
+    onSettingsCheckFailed: () -> Unit
+) {
+    val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        10000L
+    ).build()
+
+    val builder = LocationSettingsRequest.Builder()
+        .addLocationRequest(locationRequest)
+        .setAlwaysShow(true)
+
+    val client: SettingsClient = LocationServices.getSettingsClient(context)
+    val task = client.checkLocationSettings(builder.build())
+
+    task.addOnSuccessListener {
+        Log.d("MainScreen", "Location settings OK")
+        onSettingsOk()
+    }
+
+    task.addOnFailureListener { exception ->
+        if (exception is ResolvableApiException) {
+            try {
+                Log.d("MainScreen", "Location settings need to be changed, showing dialog")
+                val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
+                onSettingsNeedChange(intentSenderRequest)
+            } catch (sendEx: IntentSender.SendIntentException) {
+                Log.e("MainScreen", "Error showing location settings dialog", sendEx)
+                onSettingsCheckFailed()
             }
+        } else {
+            Log.e("MainScreen", "Location settings check failed", exception)
+            onSettingsCheckFailed()
         }
     }
 }
 
-@Composable
-fun NoLocationScreen(
-    onSelectManualLocation: () -> Unit,
-    onRequestGpsLocation: () -> Unit
+private fun startGpsLocationRequest(
+    context: Context,
+    viewModel: MainViewModel,
+    onTimeout: () -> Unit,
+    cancellationTokenSourceSetter: (CancellationTokenSource) -> Unit,
+    timeoutHandlerSetter: (Handler) -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = Color.White
-                )
-            }
-
-            Text(
-                text = "Konum Seçilmedi",
-                color = Color.White,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = "Namaz vakitlerini görmek için\nkonumunuzu seçin",
-                color = Color.White.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center
-            )
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(0.85f)
-            ) {
-                Button(
-                    onClick = onRequestGpsLocation,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        Icons.Default.MyLocation,
-                        contentDescription = null,
-                        tint = Color(0xFF1E3A8A)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("GPS Konumumu Al", color = Color(0xFF1E3A8A))
-                }
-
-                OutlinedButton(
-                    onClick = onSelectManualLocation,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.AddLocation, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Manuel Konum Seç")
-                }
-            }
-        }
+    if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        Log.e("MainScreen", "İzin yok, GPS başlatılamadı")
+        return
     }
+
+    Log.d("MainScreen", "GPS konumu alınıyor...")
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+    try {
+        val cancellationTokenSource = CancellationTokenSource()
+        cancellationTokenSourceSetter(cancellationTokenSource)
+
+        fusedLocationClient.getCurrentLocation(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            cancellationTokenSource.token
+        ).addOnSuccessListener { location ->
+            if (location != null) {
+                Log.d("MainScreen", "Konum alındı: ${location.latitude}, ${location.longitude}")
+                viewModel.fetchCurrentLocationFromGps(location.latitude, location.longitude)
+            } else {
+                Log.d("MainScreen", "getCurrentLocation null")
+                onTimeout()
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("MainScreen", "getCurrentLocation başarısız: ${exception.message}")
+            onTimeout()
+        }
+
+        val timeoutHandler = Handler(Looper.getMainLooper())
+        timeoutHandlerSetter(timeoutHandler)
+
+        timeoutHandler.postDelayed({
+            Log.e("MainScreen", "GPS timeout - 20 saniye içinde konum alınamadı")
+            cancellationTokenSource.cancel()
+            onTimeout()
+        }, 20000)
+
+    } catch (e: SecurityException) {
+        Log.e("MainScreen", "SecurityException: ${e.message}", e)
+    }
+}
+
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
 }
 
 private fun formatDateWithHijri(dateString: String): String {
     return try {
         val date = LocalDate.parse(dateString)
 
-        // Miladi tarih
         val gregorianFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale("tr"))
         val gregorianDate = date.format(gregorianFormatter)
 
-        // Hicri tarih hesaplama
         val hijriDate = gregorianToHijri(date)
 
         "$gregorianDate\n$hijriDate"
@@ -1215,7 +1406,6 @@ private fun gregorianToHijri(gregorianDate: LocalDate): String {
     val month = gregorianDate.monthValue
     val day = gregorianDate.dayOfMonth
 
-    // Julian Day hesaplama
     val a = floor((14 - month) / 12.0).toInt()
     val y = year + 4800 - a
     val m = month + 12 * a - 3
@@ -1224,7 +1414,6 @@ private fun gregorianToHijri(gregorianDate: LocalDate): String {
             365 * y + floor(y / 4.0).toInt() -
             floor(y / 100.0).toInt() + floor(y / 400.0).toInt() - 32045
 
-    // Hicri tarihe çevirme
     val l = jd - 1948440 + 10632
     val n = floor((l - 1) / 10631.0).toInt()
     val l2 = l - 10631 * n + 354
@@ -1241,7 +1430,6 @@ private fun gregorianToHijri(gregorianDate: LocalDate): String {
     val hijriDay = l3 - floor((709 * hijriMonth) / 24.0).toInt()
     val hijriYear = 30 * n + j - 30
 
-    // Hicri ay isimleri
     val hijriMonthNames = listOf(
         "Muharrem", "Safer", "Rebiülevvel", "Rebiülahir",
         "Cemaziyelevvel", "Cemaziyelahir", "Recep", "Şaban",

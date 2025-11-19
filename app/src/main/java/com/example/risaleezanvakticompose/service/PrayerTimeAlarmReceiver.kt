@@ -13,8 +13,11 @@ import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.risaleezanvakticompose.MainActivity
 import com.example.risaleezanvakticompose.R
@@ -23,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -49,19 +53,30 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
         private var mediaSession: MediaSessionCompat? = null
         private var context: Context? = null
 
-        fun stopSound() {
+        private var autoStopHandler: Handler? = null
+        private const val AUTO_STOP_DURATION = 5 * 60 * 1000L // 5 dakika
+
+        /**
+         * Sadece sesi durdurur, bildirimi kapatmaz
+         */
+        fun stopSoundOnly() {
             try {
-                android.util.Log.d("PrayerAlarm", "Ses durdurma çağrıldı")
+                Log.d("PrayerAlarm", "Sadece ses durduruluyor")
+
+                // Auto-stop handler'ı iptal et
+                autoStopHandler?.removeCallbacksAndMessages(null)
+                autoStopHandler = null
 
                 mediaPlayer?.apply {
                     if (isPlaying) {
                         stop()
-                        android.util.Log.d("PrayerAlarm", "MediaPlayer durduruldu")
+                        Log.d("PrayerAlarm", "MediaPlayer durduruldu")
                     }
                     release()
                 }
                 mediaPlayer = null
 
+                // Audio focus'u bırak
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     audioFocusRequest?.let {
                         audioManager?.abandonAudioFocusRequest(it)
@@ -73,20 +88,38 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
                 audioFocusRequest = null
                 audioManager = null
 
+                // MediaSession'ı kapat
                 mediaSession?.apply {
                     isActive = false
                     release()
                 }
                 mediaSession = null
 
+            } catch (e: Exception) {
+                Log.e("PrayerAlarm", "Ses durdurma hatası", e)
+            }
+        }
+
+        /**
+         * Hem sesi durdurur hem de bildirimi kapatır
+         */
+        fun stopSound() {
+            try {
+                Log.d("PrayerAlarm", "Ses ve bildirim durduruluyor")
+
+                // Önce sesi durdur
+                stopSoundOnly()
+
+                // Sonra bildirimi kapat
                 context?.let { ctx ->
                     val notificationManager =
                         ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                     notificationManager.cancel(currentNotificationId)
+                    Log.d("PrayerAlarm", "Bildirim kapatıldı: $currentNotificationId")
                 }
 
             } catch (e: Exception) {
-                android.util.Log.e("PrayerAlarm", "Ses durdurma hatası", e)
+                Log.e("PrayerAlarm", "Ses ve bildirim durdurma hatası", e)
             }
         }
     }
@@ -94,9 +127,9 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: return
         val prayerTime = intent.getStringExtra(EXTRA_PRAYER_TIME) ?: return
-        val soundName = intent.getStringExtra(EXTRA_SOUND_NAME) ?: "default_ezan"
+        val soundName = intent.getStringExtra(EXTRA_SOUND_NAME) ?: "system_ringtone"
 
-        android.util.Log.d("PrayerAlarm", "Alarm çaldı: $prayerName, Ses: $soundName")
+        Log.d("PrayerAlarm", "Alarm çaldı: $prayerName, Ses: $soundName, Zaman: $prayerTime")
 
         Companion.context = context.applicationContext
 
@@ -107,9 +140,17 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
                 val vecize = getRandomVecize(context)
                 createNotificationChannel(context)
                 currentNotificationId = prayerName.hashCode()
-                setupMediaSession(context)
+
+                withContext(Dispatchers.Main) {
+                    setupMediaSession(context)
+                }
+
                 playPrayerSound(context, soundName)
                 showNotification(context, prayerName, prayerTime, vecize)
+
+                Log.d("PrayerAlarm", "Bildirim ve ses başarıyla başlatıldı")
+            } catch (e: Exception) {
+                Log.e("PrayerAlarm", "onReceive hatası", e)
             } finally {
                 pendingResult.finish()
             }
@@ -125,13 +166,18 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
                 "Allah'ı çokça zikredin ki kurtuluşa eresiniz."
             }
         } catch (e: Exception) {
-            android.util.Log.e("PrayerAlarm", "Vecize çekme hatası", e)
+            Log.e("PrayerAlarm", "Vecize çekme hatası", e)
             "Allah'ı çokça zikredin ki kurtuluşa eresiniz."
         }
     }
 
     private fun setupMediaSession(context: Context) {
         try {
+            if (Looper.myLooper() != Looper.getMainLooper()) {
+                Log.e("PrayerAlarm", "MediaSession Main thread'de değil!")
+                return
+            }
+
             mediaSession = MediaSessionCompat(context, "PrayerAlarm").apply {
                 setFlags(
                     MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
@@ -147,27 +193,27 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
 
                 setCallback(object : MediaSessionCompat.Callback() {
                     override fun onStop() {
-                        android.util.Log.d("PrayerAlarm", "MediaSession: Stop")
-                        stopSound()
+                        Log.d("PrayerAlarm", "MediaSession: Stop")
+                        stopSoundOnly()
                     }
 
                     override fun onPause() {
-                        android.util.Log.d("PrayerAlarm", "MediaSession: Pause")
-                        stopSound()
+                        Log.d("PrayerAlarm", "MediaSession: Pause")
+                        stopSoundOnly()
                     }
 
                     override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
-                        android.util.Log.d("PrayerAlarm", "MediaSession: Button event")
-                        stopSound()
+                        Log.d("PrayerAlarm", "MediaSession: Button event")
+                        stopSoundOnly()
                         return true
                     }
                 })
 
                 isActive = true
             }
-            android.util.Log.d("PrayerAlarm", "MediaSession kuruldu")
+            Log.d("PrayerAlarm", "MediaSession kuruldu")
         } catch (e: Exception) {
-            android.util.Log.e("PrayerAlarm", "MediaSession hatası", e)
+            Log.e("PrayerAlarm", "MediaSession hatası", e)
         }
     }
 
@@ -180,7 +226,7 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
                 lightColor = android.graphics.Color.GREEN
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 200, 500)
-                setSound(null, null)
+                setSound(null, null) // Ses MediaPlayer ile çalacak
                 setShowBadge(true)
                 lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
             }
@@ -189,31 +235,28 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
 
-            android.util.Log.d("PrayerAlarm", "Notification channel oluşturuldu")
+            Log.d("PrayerAlarm", "Notification channel oluşturuldu")
         }
     }
 
     private fun playPrayerSound(context: Context, soundName: String) {
         try {
-            android.util.Log.d("PrayerAlarm", "Ses çalmaya başlanıyor: $soundName")
+            Log.d("PrayerAlarm", "Ses çalmaya başlanıyor: $soundName")
 
-            stopSound()
+            // Önce mevcut sesi durdur
+            stopSoundOnly()
 
             audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
             val soundUri = getSoundUri(context, soundName)
 
-            val focusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
-                android.util.Log.d("PrayerAlarm", "Audio focus değişti: $focusChange")
-                when (focusChange) {
-                    AudioManager.AUDIOFOCUS_LOSS,
-                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                        android.util.Log.d("PrayerAlarm", "Focus kaybedildi, ses durduruluyor")
-                        stopSound()
-                    }
+            Log.d("PrayerAlarm", "Ses URI: $soundUri")
 
-                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                        android.util.Log.d("PrayerAlarm", "Duck durumu, ses durduruluyor")
-                        stopSound()
+            // Audio focus al
+            val focusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+                when (focusChange) {
+                    AudioManager.AUDIOFOCUS_LOSS -> {
+                        Log.d("PrayerAlarm", "Audio focus kaybedildi")
+                        stopSoundOnly()
                     }
                 }
             }
@@ -228,26 +271,26 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
                                 .build()
                         )
                         .setOnAudioFocusChangeListener(focusChangeListener)
-                        .setAcceptsDelayedFocusGain(false)
-                        .setWillPauseWhenDucked(false)
                         .build()
 
                 audioManager?.requestAudioFocus(audioFocusRequest!!)
+                    ?: AudioManager.AUDIOFOCUS_REQUEST_FAILED
             } else {
                 @Suppress("DEPRECATION")
                 audioManager?.requestAudioFocus(
                     focusChangeListener,
                     AudioManager.STREAM_ALARM,
                     AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
-                )
+                ) ?: AudioManager.AUDIOFOCUS_REQUEST_FAILED
             }
 
             if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                android.util.Log.w("PrayerAlarm", "Audio focus alınamadı!")
+                Log.w("PrayerAlarm", "Audio focus alınamadı!")
             } else {
-                android.util.Log.d("PrayerAlarm", "Audio focus alındı")
+                Log.d("PrayerAlarm", "Audio focus alındı")
             }
 
+            // MediaPlayer'ı kur ve başlat
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -258,41 +301,50 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
 
                 setDataSource(context, soundUri)
                 setVolume(1.0f, 1.0f)
-                prepare()
-                start()
+                isLooping = true // Loop modu aktif
 
-                android.util.Log.d("PrayerAlarm", "Ses çalmaya başladı, süre: ${duration}ms")
-
-                setOnCompletionListener {
-                    android.util.Log.d("PrayerAlarm", "Ses bitti")
-                    stopSound()
+                setOnPreparedListener {
+                    val durationMs = duration
+                    Log.d("PrayerAlarm", "MediaPlayer hazır, süre: ${durationMs}ms, Loop: AÇIK")
+                    start()
+                    Log.d("PrayerAlarm", "Ses çalıyor ve 5 dakika boyunca loop modunda!")
                 }
 
                 setOnErrorListener { mp, what, extra ->
-                    android.util.Log.e(
-                        "PrayerAlarm",
-                        "MediaPlayer hatası: what=$what, extra=$extra"
-                    )
-                    stopSound()
+                    Log.e("PrayerAlarm", "MediaPlayer HATASI: what=$what, extra=$extra")
+                    stopSoundOnly()
                     true
                 }
+
+                prepareAsync() // Asenkron hazırlık
             }
+
+            // Otomatik durdurma - 5 dakika sonra
+            autoStopHandler = Handler(Looper.getMainLooper())
+            autoStopHandler?.postDelayed({
+                Log.d("PrayerAlarm", "5 dakika doldu, ses otomatik durduruluyor")
+                stopSound() // Hem ses hem bildirim kapat
+            }, AUTO_STOP_DURATION)
+
+            Log.d("PrayerAlarm", "Otomatik durdurma 5 dakika için ayarlandı")
+
         } catch (e: Exception) {
-            android.util.Log.e("PrayerAlarm", "Ses çalma hatası", e)
+            Log.e("PrayerAlarm", "Ses çalma EXCEPTION", e)
         }
     }
 
     private fun getSoundUri(context: Context, soundName: String): Uri {
+        // Sistem alarm sesi (daha uzun çalar)
         if (soundName == "system_ringtone") {
-            return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
         }
 
+        // Özel ses dosyası
         var resourceId = context.resources.getIdentifier(soundName, "raw", context.packageName)
 
         if (resourceId == 0) {
-            android.util.Log.w("PrayerAlarm", "Ses bulunamadı: $soundName, alternatiflere bakılıyor")
+            Log.w("PrayerAlarm", "Ses bulunamadı: $soundName, alternatiflere bakılıyor")
 
-            // Alternatif sesler
             val alternatives = listOf(
                 "kus_sesi",
                 "ezan_mekke",
@@ -304,7 +356,7 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
             for (alt in alternatives) {
                 resourceId = context.resources.getIdentifier(alt, "raw", context.packageName)
                 if (resourceId != 0) {
-                    android.util.Log.d("PrayerAlarm", "Alternatif ses bulundu: $alt")
+                    Log.d("PrayerAlarm", "Alternatif ses bulundu: $alt")
                     break
                 }
             }
@@ -313,24 +365,31 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
         return if (resourceId != 0) {
             Uri.parse("android.resource://${context.packageName}/$resourceId")
         } else {
-            android.util.Log.w("PrayerAlarm", "Hiçbir ses bulunamadı, sistem zil sesi kullanılıyor")
-            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            Log.w("PrayerAlarm", "Hiçbir ses bulunamadı, sistem alarm sesi kullanılıyor")
+            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
         }
     }
 
-
-    private fun showNotification(context: Context, prayerName: String, prayerTime: String, vecize: String) {
-        val intent = Intent(context, MainActivity::class.java).apply {
+    private fun showNotification(
+        context: Context,
+        prayerName: String,
+        prayerTime: String,
+        vecize: String
+    ) {
+        // Uygulamayı aç intent'i
+        val openAppIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("STOP_PRAYER_SOUND", true)
         }
 
-        val pendingIntent = PendingIntent.getActivity(
+        val openAppPendingIntent = PendingIntent.getActivity(
             context,
             0,
-            intent,
+            openAppIntent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        // Sesi durdur butonu
         val stopSoundIntent = Intent(context, StopSoundReceiver::class.java)
         val stopSoundPendingIntent = PendingIntent.getBroadcast(
             context,
@@ -339,6 +398,7 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        // Bildirim kaydırıldığında
         val dismissIntent = Intent(context, DismissNotificationReceiver::class.java)
         val dismissPendingIntent = PendingIntent.getBroadcast(
             context,
@@ -347,6 +407,7 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        // Vecizeyi paylaş butonu
         val shareIntent = Intent(context, ShareVecizeReceiver::class.java).apply {
             putExtra("vecize", vecize)
             putExtra("prayer_name", prayerName)
@@ -362,7 +423,7 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ok)
             .setContentTitle("$prayerName Vakti")
-            .setContentText("Vakit: $prayerTime")
+            .setContentText(vecize)
             .setStyle(
                 NotificationCompat.BigTextStyle()
                     .bigText("$vecize\n\nVakit: $prayerTime")
@@ -370,9 +431,9 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
             )
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setAutoCancel(true)
+            .setAutoCancel(false)
             .setOngoing(true)
-            .setContentIntent(pendingIntent)
+            .setContentIntent(openAppPendingIntent)
             .setDeleteIntent(dismissPendingIntent)
             .setSound(null)
             .setVibrate(longArrayOf(0, 500, 200, 500))
@@ -386,36 +447,55 @@ class PrayerTimeAlarmReceiver : BroadcastReceiver() {
                 "Paylaş",
                 sharePendingIntent
             )
-            .setFullScreenIntent(pendingIntent, true)
+            .setFullScreenIntent(openAppPendingIntent, true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
 
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(prayerName.hashCode(), notification)
+        notificationManager.notify(currentNotificationId, notification)
 
-        android.util.Log.d("PrayerAlarm", "Bildirim gösterildi: $prayerName")
+        Log.d(
+            "PrayerAlarm",
+            "Bildirim gösterildi (expand): $prayerName (ID: $currentNotificationId)"
+        )
     }
+}
 
+class OpenAppAndStopSoundReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        Log.d("OpenAppAndStopSound", "Bildirime basıldı")
+
+        // Önce sesi durdur
+        PrayerTimeAlarmReceiver.stopSound()
+
+        // Sonra uygulamayı aç
+        val appIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        context.startActivity(appIntent)
+    }
 }
 
 class StopSoundReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        android.util.Log.d("StopSoundReceiver", "Buton basıldı")
+        Log.d("StopSoundReceiver", "Sesi Durdur butonu basıldı")
+
+        // Sadece sesi durdur, bildirimi kapat
         PrayerTimeAlarmReceiver.stopSound()
     }
 }
 
 class DismissNotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        android.util.Log.d("DismissReceiver", "Bildirim kaydırıldı")
+        Log.d("DismissReceiver", "Bildirim kaydırıldı")
         PrayerTimeAlarmReceiver.stopSound()
     }
 }
 
 class ShareVecizeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        android.util.Log.d("ShareReceiver", "Paylaş butonu basıldı")
+        Log.d("ShareReceiver", "Paylaş butonu basıldı")
 
         val vecize = intent.getStringExtra("vecize") ?: ""
         val prayerName = intent.getStringExtra("prayer_name") ?: ""
@@ -423,19 +503,17 @@ class ShareVecizeReceiver : BroadcastReceiver() {
 
         val shareText = "$prayerName Vakti - $prayerTime\n\n$vecize\n\n#NamazVakti #RisaleiNur"
 
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, shareText)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
-        val chooserIntent = Intent.createChooser(shareIntent, "Vecizeyi Paylaş").apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            context.startActivity(shareIntent)
+            Log.d("ShareReceiver", "Paylaşım başlatıldı")
+        } catch (e: Exception) {
+            Log.e("ShareReceiver", "Paylaşım hatası", e)
         }
-
-        context.startActivity(chooserIntent)
-
-        android.util.Log.d("ShareReceiver", "Paylaşım penceresi açıldı")
     }
 }

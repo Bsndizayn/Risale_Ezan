@@ -19,7 +19,6 @@ import javax.inject.Inject
 sealed class SelectionStep {
     data object CountrySelection : SelectionStep()
     data class RegionSelection(val country: CountriesItem) : SelectionStep()
-    data class RegionAction(val country: CountriesItem, val region: String) : SelectionStep()
     data class CitySelection(val country: CountriesItem, val region: String) : SelectionStep()
 }
 
@@ -72,6 +71,13 @@ class LocationSelectionViewModel @Inject constructor(
         loadCountries()
     }
 
+    fun getDisplayName(country: CountriesItem): String {
+        return when (country.code.uppercase()) {
+            "TR" -> "Türkiye"
+            else -> country.name
+        }
+    }
+
     private fun loadCountries() {
         viewModelScope.launch {
             _isSearching.value = true
@@ -95,7 +101,6 @@ class LocationSelectionViewModel @Inject constructor(
                 is SelectionStep.CountrySelection -> loadCountries()
                 is SelectionStep.RegionSelection -> loadRegions(step.country)
                 is SelectionStep.CitySelection -> loadCities(step.country, step.region)
-                else -> {}
             }
             return
         }
@@ -106,7 +111,6 @@ class LocationSelectionViewModel @Inject constructor(
             is SelectionStep.CountrySelection -> searchCountries(query)
             is SelectionStep.RegionSelection -> searchRegions(step.country, query)
             is SelectionStep.CitySelection -> searchCities(step.country, step.region, query)
-            else -> {}
         }
     }
 
@@ -177,19 +181,20 @@ class LocationSelectionViewModel @Inject constructor(
     }
 
     fun onRegionSelected(country: CountriesItem, region: String) {
-        _currentStep.value = SelectionStep.RegionAction(country, region)
+        _currentStep.value = SelectionStep.CitySelection(country, region)
+        _searchQuery.value = ""
+        loadCities(country, region)
     }
 
-    fun onAddRegionAsLocation(country: CountriesItem, region: String) {
+    private fun loadCities(country: CountriesItem, region: String) {
         viewModelScope.launch {
             _isSearching.value = true
-            repository.addLocationByName(country.name, region, region).fold(
-                onSuccess = { location ->
-                    repository.setCurrentLocation(location.placeId)
-                    _locationAdded.value = true
+            repository.getCities(country.code, country.name, region).fold(
+                onSuccess = { cities ->
+                    _searchResults.value = SearchResult.Cities(cities)
                 },
                 onFailure = { error ->
-                    _errorMessage.value = error.message ?: "Konum eklenemedi"
+                    _errorMessage.value = error.message ?: "Şehirler yüklenemedi"
                 }
             )
             _isSearching.value = false
@@ -212,31 +217,6 @@ class LocationSelectionViewModel @Inject constructor(
         }
     }
 
-    fun resetLocationAdded() {
-        _locationAdded.value = false
-    }
-
-    fun onShowCities(country: CountriesItem, region: String) {
-        _currentStep.value = SelectionStep.CitySelection(country, region)
-        _searchQuery.value = ""
-        loadCities(country, region)
-    }
-
-    private fun loadCities(country: CountriesItem, region: String) {
-        viewModelScope.launch {
-            _isSearching.value = true
-            repository.getCities(country.code, country.name, region).fold(
-                onSuccess = { cities ->
-                    _searchResults.value = SearchResult.Cities(cities)
-                },
-                onFailure = { error ->
-                    _errorMessage.value = error.message ?: "Şehirler yüklenemedi"
-                }
-            )
-            _isSearching.value = false
-        }
-    }
-
     fun goBackStep() {
         when (val step = _currentStep.value) {
             is SelectionStep.RegionSelection -> {
@@ -244,13 +224,10 @@ class LocationSelectionViewModel @Inject constructor(
                 _searchQuery.value = ""
                 loadCountries()
             }
-            is SelectionStep.RegionAction -> {
+            is SelectionStep.CitySelection -> {
                 _currentStep.value = SelectionStep.RegionSelection(step.country)
                 _searchQuery.value = ""
                 loadRegions(step.country)
-            }
-            is SelectionStep.CitySelection -> {
-                _currentStep.value = SelectionStep.RegionAction(step.country, step.region)
             }
             else -> {}
         }
@@ -258,14 +235,9 @@ class LocationSelectionViewModel @Inject constructor(
 
     fun selectLocation(location: SavedLocation) {
         viewModelScope.launch {
-            // Konum değiştiriliyor bildirimi
             _loadingMessage.value = "Konum değiştiriliyor..."
-
             repository.setCurrentLocation(location.placeId)
-
-            // Kısa bir bekleme sonrası (data yeniden yüklensin diye)
             kotlinx.coroutines.delay(300)
-
             _loadingMessage.value = null
             _locationSelected.value = true
         }
@@ -273,6 +245,10 @@ class LocationSelectionViewModel @Inject constructor(
 
     fun resetLocationSelected() {
         _locationSelected.value = false
+    }
+
+    fun resetLocationAdded() {
+        _locationAdded.value = false
     }
 
     fun toggleFavorite(placeId: Int) {
@@ -310,28 +286,11 @@ class LocationSelectionViewModel @Inject constructor(
                         _isLoadingGps.value = false
                         _errorMessage.value = "Konum bilgisi alınamadı. GPS açık mı?"
                     }
-                }.addOnFailureListener { e ->
-                    _isLoadingGps.value = false
-                    _errorMessage.value = "Konum hatası: ${e.message}"
                 }
-            } catch (e: SecurityException) {
+            } catch (e: Exception) {
                 _isLoadingGps.value = false
-                _errorMessage.value = "Konum izni gerekli"
+                _errorMessage.value = "GPS hatası: ${e.message}"
             }
         }
-    }
-
-    fun onPermissionGranted() {
-        _needsLocationPermission.value = false
-        useGpsLocation()
-    }
-
-    fun onPermissionDenied() {
-        _needsLocationPermission.value = false
-        _errorMessage.value = "Konum izni verilmedi"
-    }
-
-    fun clearError() {
-        _errorMessage.value = null
     }
 }

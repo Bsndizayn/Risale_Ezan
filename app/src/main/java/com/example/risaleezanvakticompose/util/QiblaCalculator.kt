@@ -46,7 +46,7 @@ object QiblaCalculator {
         val absDiff = abs(diff)
 
         return when {
-            absDiff <= 10 -> QiblaAccuracy.EXACT // ±10° içinde DOĞRU
+            absDiff <= 5 -> QiblaAccuracy.EXACT // ±5° içinde DOĞRU
             absDiff <= 15 -> QiblaAccuracy.VERY_CLOSE
             absDiff <= 30 -> QiblaAccuracy.CLOSE
             diff > 0 -> QiblaAccuracy.TURN_RIGHT

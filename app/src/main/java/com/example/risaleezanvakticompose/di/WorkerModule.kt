@@ -1,7 +1,6 @@
 package com.example.risaleezanvakticompose.di
 
 import androidx.work.Configuration
-import androidx.work.WorkManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

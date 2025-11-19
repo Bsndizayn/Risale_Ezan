@@ -20,6 +20,8 @@ val GoldLight = Color(0xFFE8C87E)              // Açık altın
 val GoldDark = Color(0xFFB8860B)               // Koyu altın
 val GoldBright = Color(0xFFFFD700)             // Parlak altın
 
+val GoldColor = Color(0xFFFCD34D)              // UI için parlak altın
+
 
 val IslamicGreen = Color(0xFF0D5E3A)           // Koyu yeşil
 val IslamicGreenLight = Color(0xFF2E7D32)      // Orta yeşil

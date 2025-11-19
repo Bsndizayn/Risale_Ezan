@@ -9,24 +9,59 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AddLocation
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.GpsFixed
+import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material.icons.filled.SensorsOff
+import androidx.compose.material.icons.filled.TurnLeft
+import androidx.compose.material.icons.filled.TurnRight
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -64,12 +99,10 @@ fun QiblaScreen(
     var showPermissionEducationalDialog by remember { mutableStateOf(false) }
     var showPermissionSettingsDialog by remember { mutableStateOf(false) }
 
-    // Location Settings Launcher - Android'in native GPS açma dialogu için
     val locationSettingsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK) {
-            // Kullanıcı GPS'i açtı, konum bilgisini yenile
             viewModel.checkLocationAndRefresh()
         }
     }
@@ -77,11 +110,10 @@ fun QiblaScreen(
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        // İzin istendi olarak işaretle
-        com.example.risaleezanvakticompose.util.PermissionManager(context).markLocationPermissionRequested()
+        com.example.risaleezanvakticompose.util.PermissionManager(context)
+            .markLocationPermissionRequested()
 
         if (isGranted) {
-            // İzin verildiyse GPS kontrolü yap
             checkLocationSettingsAndRequest(
                 context = context,
                 onSettingsOk = {
@@ -98,14 +130,12 @@ fun QiblaScreen(
         }
     }
 
-    // GPS Ayarlarını Kontrol Et butonuna basıldığında çağrılacak fonksiyon
     fun handleGpsButtonClick() {
         val activity = context.findActivity() ?: return
         val permissionManager = com.example.risaleezanvakticompose.util.PermissionManager(context)
 
         when (permissionManager.getLocationPermissionState(activity)) {
             is PermissionState.GRANTED -> {
-                // İzin var, GPS ayarlarını kontrol et
                 checkLocationSettingsAndRequest(
                     context = context,
                     onSettingsOk = {
@@ -120,12 +150,13 @@ fun QiblaScreen(
                     }
                 )
             }
+
             is PermissionState.DENIED -> {
-                // İlk ret veya normal ret - Educational dialog göster
                 showPermissionEducationalDialog = true
             }
+
             is PermissionState.PERMANENTLY_DENIED -> {
-                // Kalıcı ret - Ayarlar dialogu göster
+
                 showPermissionSettingsDialog = true
             }
         }
@@ -155,8 +186,8 @@ fun QiblaScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showPermissionEducationalDialog = false
-                    // İzin istemeden önce kaydet
-                    com.example.risaleezanvakticompose.util.PermissionManager(context).markLocationPermissionRequested()
+                    com.example.risaleezanvakticompose.util.PermissionManager(context)
+                        .markLocationPermissionRequested()
                     locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }) {
                     Text("İzin Ver")
@@ -213,6 +244,7 @@ fun QiblaScreen(
                 !isSensorAvailable -> {
                     NoSensorAvailable()
                 }
+
                 !hasLocation -> {
                     NoLocationAvailable(
                         onAddLocation = {
@@ -223,9 +255,11 @@ fun QiblaScreen(
                         }
                     )
                 }
+
                 qiblaDirection == null -> {
                     LoadingQibla()
                 }
+
                 else -> {
                     QiblaContent(
                         qiblaDirection = qiblaDirection!!,
@@ -238,6 +272,7 @@ fun QiblaScreen(
         }
     }
 }
+
 fun android.content.Context.findActivity(): android.app.Activity? {
     var context = this
     while (context is android.content.ContextWrapper) {
@@ -260,20 +295,19 @@ private fun checkLocationSettingsAndRequest(
 
     val builder = LocationSettingsRequest.Builder()
         .addLocationRequest(locationRequest)
-        .setAlwaysShow(true) // GPS kapalıysa dialogu göster
+        .setAlwaysShow(true)
 
     val client: SettingsClient = LocationServices.getSettingsClient(context)
     val task = client.checkLocationSettings(builder.build())
 
     task.addOnSuccessListener {
-        // GPS açık ve hazır
         Log.d("QiblaScreen", "Location settings OK")
         onSettingsOk()
     }
 
     task.addOnFailureListener { exception ->
         if (exception is ResolvableApiException) {
-            // GPS kapalı veya ayarlar uygun değil - Android'in native dialogunu göster
+
             try {
                 Log.d("QiblaScreen", "Location settings need to be changed, showing dialog")
                 val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
@@ -330,7 +364,7 @@ fun NoLocationAvailable(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier.padding(32.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -435,6 +469,45 @@ fun QiblaContent(
     qiblaAccuracy: QiblaAccuracy?,
     isPhoneFlat: Boolean
 ) {
+    val haptic = LocalHapticFeedback.current
+
+    var displayedRotation by remember { mutableStateOf(qiblaArrowRotation) }
+    var lockedRotation by remember { mutableStateOf<Float?>(null) }
+
+    fun getAngleDifference(rotation: Float): Float {
+        var diff = rotation % 360
+        if (diff > 180) diff -= 360
+        if (diff < -180) diff += 360
+        return kotlin.math.abs(diff)
+    }
+
+    val angleDifference = getAngleDifference(qiblaArrowRotation)
+    val isInQiblaRange = angleDifference <= 5f // ±5 derece tolerans titeremyeyi önelmek için koydum
+
+    LaunchedEffect(qiblaArrowRotation) {
+        Log.d("QiblaContent", "Rotation: $qiblaArrowRotation, Difference: $angleDifference, InRange: $isInQiblaRange, Locked: ${lockedRotation != null}")
+
+        if (isInQiblaRange && lockedRotation == null) {
+            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+            lockedRotation = 0f
+            displayedRotation = 0f
+            Log.d("QiblaContent", "KİLİTLENDİ! Kıble yönünde sabitlendi")
+        } else if (!isInQiblaRange && angleDifference > 15f && lockedRotation != null) {
+            lockedRotation = null
+            Log.d("QiblaContent", "KİLİT AÇILDI! Kıble yönünden uzaklaştı")
+        }
+
+        if (lockedRotation != null) {
+            displayedRotation = lockedRotation!!
+        } else {
+            displayedRotation = qiblaArrowRotation
+        }
+    }
+
+    val isExact = lockedRotation != null || isInQiblaRange
+
+    Log.d("QiblaContent", "isExact: $isExact, locked: ${lockedRotation != null}, inRange: $isInQiblaRange")
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -494,8 +567,8 @@ fun QiblaContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    when (qiblaAccuracy) {
-                        QiblaAccuracy.EXACT -> {
+                    when {
+                        isExact -> {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -514,7 +587,7 @@ fun QiblaContent(
                                 )
                             }
                         }
-                        QiblaAccuracy.VERY_CLOSE, QiblaAccuracy.CLOSE -> {
+                        qiblaAccuracy == QiblaAccuracy.VERY_CLOSE || qiblaAccuracy == QiblaAccuracy.CLOSE -> {
                             Text(
                                 text = "YAKLAŞIYORSUNUZ",
                                 style = MaterialTheme.typography.titleMedium,
@@ -522,7 +595,7 @@ fun QiblaContent(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        QiblaAccuracy.TURN_RIGHT -> {
+                        qiblaAccuracy == QiblaAccuracy.TURN_RIGHT -> {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -540,7 +613,7 @@ fun QiblaContent(
                                 )
                             }
                         }
-                        QiblaAccuracy.TURN_LEFT -> {
+                        qiblaAccuracy == QiblaAccuracy.TURN_LEFT -> {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -570,12 +643,24 @@ fun QiblaContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Box(
-            modifier = Modifier.size(320.dp),
+            modifier = Modifier
+                .size(320.dp),
             contentAlignment = Alignment.Center
         ) {
+            if (isExact) {
+                Box(
+                    modifier = Modifier
+                        .size(320.dp)
+                        .background(
+                            color = Color(0xFF4CAF50).copy(alpha = 0.2f),
+                            shape = CircleShape
+                        )
+                )
+            }
+
             Image(
                 painter = painterResource(id = R.drawable.compass_background),
                 contentDescription = "Pusula",
@@ -587,11 +672,16 @@ fun QiblaContent(
                 contentDescription = "Kıble Ok",
                 modifier = Modifier
                     .size(280.dp)
-                    .rotate(qiblaArrowRotation)
+                    .rotate(displayedRotation),
+                colorFilter = if (isExact) {
+                    ColorFilter.tint(Color(0xFF4CAF50))
+                } else {
+                    null
+                }
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -644,7 +734,7 @@ fun NoSensorAvailable() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(32.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             Box(
                 modifier = Modifier

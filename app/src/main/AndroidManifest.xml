@@ -50,19 +50,37 @@
             </intent-filter>
         </activity>
 
+        <!-- Namaz vakti alarm receiver'ı -->
         <receiver
             android:name=".service.PrayerTimeAlarmReceiver"
             android:enabled="true"
             android:exported="false" />
 
+        <!-- Sesi durdur receiver'ı -->
         <receiver
             android:name=".service.StopSoundReceiver"
+            android:enabled="true"
             android:exported="false" />
 
+        <!-- Bildirimi kapat receiver'ı -->
         <receiver
             android:name=".service.DismissNotificationReceiver"
+            android:enabled="true"
             android:exported="false" />
 
+        <!-- Uygulamayı aç ve sesi durdur receiver'ı -->
+        <receiver
+            android:name=".service.OpenAppAndStopSoundReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <!-- Vecizeyi paylaş receiver'ı -->
+        <receiver
+            android:name=".service.ShareVecizeReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <!-- Cihaz açılışında alarm kurma -->
         <receiver
             android:name=".service.BootReceiver"
             android:enabled="true"
@@ -72,6 +90,7 @@
             </intent-filter>
         </receiver>
 
+        <!-- Saat/tarih değişikliğinde alarm yenileme -->
         <receiver
             android:name=".service.TimeChangedReceiver"
             android:enabled="true"
@@ -83,11 +102,13 @@
             </intent-filter>
         </receiver>
 
+        <!-- Gece yarısı alarmı -->
         <receiver
             android:name=".service.MidnightAlarmReceiver"
             android:enabled="true"
             android:exported="false" />
 
+        <!-- WorkManager initialization -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

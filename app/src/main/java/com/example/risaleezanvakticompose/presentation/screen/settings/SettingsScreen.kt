@@ -593,7 +593,7 @@ fun GlassPrayerNotificationCard(
                         )
 
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(
@@ -613,21 +613,25 @@ fun GlassPrayerNotificationCard(
                             ) {
                                 Icon(
                                     Icons.Default.Remove,
-                                    "Azalt",
-                                    tint = if (minutesBefore > 0) Color.White else Color.White.copy(
-                                        alpha = 0.3f
-                                    ),
+                                    contentDescription = "Azalt",
+                                    tint = if (minutesBefore > 0) Color.White else Color.White.copy(alpha = 0.3f),
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
 
-                            Text(
-                                text = "$minutesBefore",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                modifier = Modifier.widthIn(min = 32.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .width(50.dp)
+                                    .height(36.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "$minutesBefore",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
 
                             IconButton(
                                 onClick = {
@@ -646,14 +650,13 @@ fun GlassPrayerNotificationCard(
                             ) {
                                 Icon(
                                     Icons.Default.Add,
-                                    "Artır",
-                                    tint = if (minutesBefore < 30) Color.White else Color.White.copy(
-                                        alpha = 0.3f
-                                    ),
+                                    contentDescription = "Artır",
+                                    tint = if (minutesBefore < 30) Color.White else Color.White.copy(alpha = 0.3f),
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
+
                     }
                 }
             }

@@ -15,8 +15,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -95,7 +93,10 @@ class MidnightAlarmReceiver : BroadcastReceiver() {
                 var todayPrayerTimes = prayerTimesDao.getPrayerTimesForDate(location.placeId, today)
 
                 if (todayPrayerTimes == null) {
-                    android.util.Log.d("MidnightAlarm", "Bugünün vakitleri yok, API'den çekiliyor...")
+                    android.util.Log.d(
+                        "MidnightAlarm",
+                        "Bugünün vakitleri yok, API'den çekiliyor..."
+                    )
 
                     val result = repository.fetchAndSavePrayerTimes(
                         placeId = location.placeId,
@@ -106,18 +107,26 @@ class MidnightAlarmReceiver : BroadcastReceiver() {
                     )
 
                     if (result.isSuccess) {
-                        todayPrayerTimes = prayerTimesDao.getPrayerTimesForDate(location.placeId, today)
+                        todayPrayerTimes =
+                            prayerTimesDao.getPrayerTimesForDate(location.placeId, today)
                     } else {
-                        android.util.Log.e("MidnightAlarm", "API'den veri çekilemedi: ${result.exceptionOrNull()?.message}")
+                        android.util.Log.e(
+                            "MidnightAlarm",
+                            "API'den veri çekilemedi: ${result.exceptionOrNull()?.message}"
+                        )
                         return
                     }
                 }
 
                 val oneMonthLater = LocalDate.now().plusMonths(1).toString()
-                val hasDataAfterOneMonth = prayerTimesDao.hasPrayerTimesAfterDate(location.placeId, oneMonthLater)
+                val hasDataAfterOneMonth =
+                    prayerTimesDao.hasPrayerTimesAfterDate(location.placeId, oneMonthLater)
 
                 if (!hasDataAfterOneMonth) {
-                    android.util.Log.d("MidnightAlarm", "1 ay sonrası için veri yok, güncelleniyor...")
+                    android.util.Log.d(
+                        "MidnightAlarm",
+                        "1 ay sonrası için veri yok, güncelleniyor..."
+                    )
 
                     repository.fetchAndSavePrayerTimes(
                         placeId = location.placeId,
