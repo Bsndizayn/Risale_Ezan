@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.risaleezanvakticompose.R
+import com.example.risaleezanvakticompose.ui.theme.RisaleRedDark
 
 @Composable
 fun SettingsScreen(
@@ -676,7 +677,7 @@ fun SoundPickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        containerColor = RisaleRedDark,
         title = {
             Text(
                 "Ezan Sesi Seç",
@@ -769,11 +770,19 @@ fun SoundPickerDialog(
 fun getSoundDisplayName(soundName: String): String {
     return when (soundName) {
         "system_ringtone" -> "Sistem Zil Sesi"
+        "bip" -> "Bip Sesi"
         "kus_sesi" -> "Kuş Sesi"
-        "ezan_mekke" -> "Mekke Ezanı"
-        "ezan_medine" -> "Medine Ezanı"
-        "ezan_istanbul" -> "İstanbul Ezanı"
-        "ezan_hafiz" -> "Hafız Ezanı"
+        "ismail_cosar_turkiye" -> "İsmail Coşar (Sabah)"
+       "mehdi_yarrahi_iran" -> "Mehdi Yarrahi İran (Sabah)"
+        "mansor_az_zahrani_mekke" -> "Mansor Az Zahrani Mekke (Sabah)"
+        "azzam_dweik_palestine" -> "Azzam Dweik Mescidi Aksa (Öğle)"
+        "salim_bahanan_endonezya" -> "Salim Bahanan Kamerun (Öğle)"
+        "ghofar_zaen_indonesia" -> "Ghofar Zaen Endenozya (İkindi)"
+        "ali_tel_turkiye" -> "Ali Tel (Akşam)"
+        "egzon_ibrahimi_kosova" -> "Egzon İbrahimi Kosova (Akşam)"
+        "ruli_maroya_indonesia" -> "Ruli Maroya Endenozya (Akşam)"
+        "mishary_rashid_kuveyt" -> "Mishary Rashid Alafasy Kuveyt (Yatsı)"
+        "muhammad_majid_hakim_medine" -> "Muhammad Majid Hakim Medine (Yatsı)"
         else -> "Sistem Zil Sesi"
     }
 }

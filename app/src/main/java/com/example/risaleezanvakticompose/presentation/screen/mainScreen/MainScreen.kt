@@ -77,11 +77,11 @@ import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.Settings
 import com.example.risaleezanvakticompose.data.local.entities.SavedLocation
 import com.example.risaleezanvakticompose.ui.theme.GoldColor
+import com.example.risaleezanvakticompose.ui.theme.RisaleSans
 import com.example.risaleezanvakticompose.ui.theme.ScheherazadeFamily
 import com.example.risaleezanvakticompose.util.PermissionManager
 import com.google.android.gms.tasks.CancellationTokenSource
 import java.time.format.TextStyle
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -611,6 +611,7 @@ fun GlassTopBar(
     }
 }
 
+// Geri Sayım Bölümü Düzeltildi (Box geri getirildi ve koyu yapıldı, boşluklar daraltıldı)
 @Composable
 fun GlassHeroCard(
     nextPrayer: NextPrayerInfo,
@@ -669,19 +670,13 @@ fun GlassHeroCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // DÜZELTME: Koyu Box tekrar eklendi
             Box(
                 modifier = Modifier
                     .width(60.dp)
                     .height(2.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                GoldColor.copy(alpha = 0.5f),
-                                Color.Transparent
-                            )
-                        )
-                    )
+                    // Altın renginin opak/koyu bir tonunu kullanıyoruz
+                    .background(GoldColor.copy(alpha = 0.6f))
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -693,28 +688,26 @@ fun GlassHeroCard(
                 ) {
                     CountdownBox(value = it.hours, label = "SA")
 
+                    // Ayırıcı düzeltildi: ScheherazadeFamily ve offset kaldırıldı, boşluk daraltıldı.
                     Text(
                         text = ":",
                         color = GoldColor,
                         fontSize = 40.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = ScheherazadeFamily,
                         modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .offset(y = (-10).dp)
+                            .padding(horizontal = 2.dp)
                     )
 
                     CountdownBox(value = it.minutes, label = "DK")
 
+                    // Ayırıcı düzeltildi: ScheherazadeFamily ve offset kaldırıldı, boşluk daraltıldı.
                     Text(
                         text = ":",
                         color = GoldColor,
                         fontSize = 40.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = ScheherazadeFamily,
                         modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .offset(y = (-10).dp)
+                            .padding(horizontal = 2.dp)
                     )
 
                     CountdownBox(value = it.seconds, label = "SN")
@@ -725,19 +718,19 @@ fun GlassHeroCard(
     }
 }
 
-
+// Geri Sayım Kutusu Düzeltildi (Boşluk daraltıldı ve font düzeltildi)
 @Composable
 fun CountdownBox(value: Int, label: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 8.dp)
+        modifier = Modifier.padding(horizontal = 4.dp)
     ) {
         Text(
             text = value.toString().padStart(2, '0'),
             color = GoldColor,
             fontSize = 40.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = ScheherazadeFamily
+            fontFamily = RisaleSans // DÜZELTME: Sade ve hizalı font kullanıldı
         )
         Text(
             text = label,
@@ -818,7 +811,7 @@ fun RisaleQuoteExpandable(
                 Text(
                     text = quote,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = ScheherazadeFamily,
+                        fontFamily = RisaleSans, // DÜZELTME: Türkçe karakterler için RisaleSans kullanıldı
                         fontWeight = FontWeight.Medium,
                         lineHeight = 22.sp
                     ),
@@ -829,6 +822,7 @@ fun RisaleQuoteExpandable(
     }
 }
 
+// NAMAZ VAKİTLERİ KARTI
 @Composable
 fun CompactPrayerTimesCard(
     prayerTimes: PrayerTimesEntity,
@@ -868,131 +862,142 @@ fun CompactPrayerTimesCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyRow(
+            // DİKEY LİSTE YAPISI
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-                contentPadding = PaddingValues(horizontal = 8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                item {
-                    CompactPrayerColumn(
-                        name = "İmsak",
-                        time = prayerTimes.imsak,
-                        isNotificationEnabled = notificationSettings?.imsakEnabled ?: true,
-                        hasPermission = hasNotificationPermission,
-                        onToggle = { onNotificationToggle("imsak") }
-                    )
-                }
-                item {
-                    CompactPrayerColumn(
-                        name = "Güneş",
-                        time = prayerTimes.gunes,
-                        isNotificationEnabled = notificationSettings?.gunesEnabled ?: false,
-                        hasPermission = hasNotificationPermission,
-                        onToggle = { onNotificationToggle("gunes") }
-                    )
-                }
-                item {
-                    CompactPrayerColumn(
-                        name = "Öğle",
-                        time = prayerTimes.ogle,
-                        isNotificationEnabled = notificationSettings?.ogleEnabled ?: true,
-                        hasPermission = hasNotificationPermission,
-                        onToggle = { onNotificationToggle("ogle") }
-                    )
-                }
-                item {
-                    CompactPrayerColumn(
-                        name = "İkindi",
-                        time = prayerTimes.ikindi,
-                        isNotificationEnabled = notificationSettings?.ikindiEnabled ?: true,
-                        hasPermission = hasNotificationPermission,
-                        onToggle = { onNotificationToggle("ikindi") }
-                    )
-                }
-                item {
-                    CompactPrayerColumn(
-                        name = "Akşam",
-                        time = prayerTimes.aksam,
-                        isNotificationEnabled = notificationSettings?.aksamEnabled ?: true,
-                        hasPermission = hasNotificationPermission,
-                        onToggle = { onNotificationToggle("aksam") }
-                    )
-                }
-                item {
-                    CompactPrayerColumn(
-                        name = "Yatsı",
-                        time = prayerTimes.yatsi,
-                        isNotificationEnabled = notificationSettings?.yatsiEnabled ?: true,
-                        hasPermission = hasNotificationPermission,
-                        onToggle = { onNotificationToggle("yatsi") }
-                    )
-                }
+                // İmsak
+                PrayerTimeRowItem(
+                    name = "İmsak",
+                    time = prayerTimes.imsak,
+                    isNotificationEnabled = notificationSettings?.imsakEnabled ?: true,
+                    hasPermission = hasNotificationPermission,
+                    onToggle = { onNotificationToggle("imsak") }
+                )
+                Divider(color = Color.White.copy(alpha = 0.1f))
+
+                // Güneş
+                PrayerTimeRowItem(
+                    name = "Güneş",
+                    time = prayerTimes.gunes,
+                    isNotificationEnabled = notificationSettings?.gunesEnabled ?: false,
+                    hasPermission = hasNotificationPermission,
+                    onToggle = { onNotificationToggle("gunes") }
+                )
+                Divider(color = Color.White.copy(alpha = 0.1f))
+
+                // Öğle
+                PrayerTimeRowItem(
+                    name = "Öğle",
+                    time = prayerTimes.ogle,
+                    isNotificationEnabled = notificationSettings?.ogleEnabled ?: true,
+                    hasPermission = hasNotificationPermission,
+                    onToggle = { onNotificationToggle("ogle") }
+                )
+                Divider(color = Color.White.copy(alpha = 0.1f))
+
+                // İkindi
+                PrayerTimeRowItem(
+                    name = "İkindi",
+                    time = prayerTimes.ikindi,
+                    isNotificationEnabled = notificationSettings?.ikindiEnabled ?: true,
+                    hasPermission = hasNotificationPermission,
+                    onToggle = { onNotificationToggle("ikindi") }
+                )
+                Divider(color = Color.White.copy(alpha = 0.1f))
+
+                // Akşam
+                PrayerTimeRowItem(
+                    name = "Akşam",
+                    time = prayerTimes.aksam,
+                    isNotificationEnabled = notificationSettings?.aksamEnabled ?: true,
+                    hasPermission = hasNotificationPermission,
+                    onToggle = { onNotificationToggle("aksam") }
+                )
+                Divider(color = Color.White.copy(alpha = 0.1f))
+
+                // Yatsı
+                PrayerTimeRowItem(
+                    name = "Yatsı",
+                    time = prayerTimes.yatsi,
+                    isNotificationEnabled = notificationSettings?.yatsiEnabled ?: true,
+                    hasPermission = hasNotificationPermission,
+                    onToggle = { onNotificationToggle("yatsi") }
+                )
             }
         }
     }
 }
 
+// YENİ BİLEŞEN: Namaz Vakitlerini Satır Olarak Gösterir (Top-level declaration olmalı)
 @Composable
-fun CompactPrayerColumn(
+fun PrayerTimeRowItem(
     name: String,
     time: String,
     isNotificationEnabled: Boolean,
     hasPermission: Boolean,
     onToggle: () -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        // Namaz Adı (Sol Taraf)
         Text(
             text = name,
             color = Color.White.copy(alpha = 0.7f),
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = ScheherazadeFamily,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontFamily = RisaleSans, // Sade font
                 fontWeight = FontWeight.Medium
             )
         )
-        Text(
-            text = time,
-            color = GoldColor,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontFamily = ScheherazadeFamily,
-                fontWeight = FontWeight.Bold
-            )
-        )
 
-        IconButton(
-            onClick = onToggle,
-            modifier = Modifier.size(28.dp),
-            enabled = hasPermission
+        // Vakit ve Bildirim İkonu (Sağ Taraf)
+        Row(
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            val iconColor = when {
-                !hasPermission -> Color.White.copy(alpha = 0.3f)
-                isNotificationEnabled -> GoldColor
-                else -> Color.White.copy(alpha = 0.4f)
-            }
-
-            val icon = when {
-                !hasPermission -> Icons.Default.NotificationsOff
-                isNotificationEnabled -> Icons.Default.Notifications
-                else -> Icons.Default.NotificationsOff
-            }
-
-            Icon(
-                imageVector = icon,
-                contentDescription = if (!hasPermission) {
-                    "Bildirim izni gerekli"
-                } else if (isNotificationEnabled) {
-                    "Bildirim açık"
-                } else {
-                    "Bildirim kapalı"
-                },
-                tint = iconColor,
-                modifier = Modifier.size(18.dp)
+            Text(
+                text = time,
+                color = GoldColor,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = RisaleSans, // Sade font
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(end = 8.dp)
             )
+
+            IconButton(
+                onClick = onToggle,
+                modifier = Modifier.size(32.dp),
+                enabled = hasPermission
+            ) {
+                val iconColor = when {
+                    !hasPermission -> Color.White.copy(alpha = 0.3f)
+                    isNotificationEnabled -> GoldColor
+                    else -> Color.White.copy(alpha = 0.4f)
+                }
+
+                val icon = when {
+                    !hasPermission -> Icons.Default.NotificationsOff
+                    isNotificationEnabled -> Icons.Default.Notifications
+                    else -> Icons.Default.NotificationsOff
+                }
+
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "Bildirim",
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun WeeklyPrayerTimesExpandable(

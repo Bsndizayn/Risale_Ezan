@@ -100,11 +100,19 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val sounds = mutableListOf<String>()
             sounds.add("system_ringtone")
+            sounds.add("bip")
             sounds.add("kus_sesi")
-            sounds.add("ezan_mekke")
-            sounds.add("ezan_medine")
-            sounds.add("ezan_istanbul")
-            sounds.add("ezan_hafiz")
+            sounds.add("ismail_cosar_turkiye")
+            sounds.add("mehdi_yarrahi_iran")
+            sounds.add("mansor_az_zahrani_mekke")
+            sounds.add("azzam_dweik_palestine")
+            sounds.add("salim_bahanan_endonezya")
+            sounds.add("ghofar_zaen_indonesia")
+            sounds.add("ali_tel_turkiye")
+            sounds.add("egzon_ibrahimi_kosova")
+            sounds.add("ruli_maroya_indonesia")
+            sounds.add("mishary_rashid_kuveyt")
+            sounds.add("muhammad_majid_hakim_medine")
             _availableSounds.value = sounds
         }
     }
