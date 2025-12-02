@@ -29,6 +29,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.risaleezanvakticompose.data.local.entities.SavedLocation
 import com.example.risaleezanvakticompose.data.model.CountriesItem
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.risaleezanvakticompose.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,77 +84,83 @@ fun LocationSelectionScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-
+        modifier = Modifier.fillMaxSize()
     ) {
-        // DÜZELTME: Ana Column'dan padding kaldırıldı, böylece TopBar yukarıda kalacak
-        Column(modifier = Modifier.fillMaxSize()) {
-            LocationSelectionTopBar(
-                currentStep = currentStep,
-                onBackClick = {
-                    if (currentStep == SelectionStep.CountrySelection) {
-                        navController.popBackStack()
-                    } else {
-                        viewModel.goBackStep()
-                    }
-                }
-            )
-
-            // DÜZELTME: İçerik kısmı için yeni bir Column oluşturuldu ve aşağı kaydırıldı
-            Column(
+        // KATMAN 1: İÇERİK (En Altta)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 170.dp) // İSTEK: 80dp padding verildi
+        ) {
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 100.dp) // Sadece içerik aşağı kayacak
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TabButton(
-                        text = "Kayıtlı Konumlar",
-                        selected = selectedTabIndex == 0,
-                        onClick = { selectedTabIndex = 0 },
-                        modifier = Modifier.weight(1f)
-                    )
-                    TabButton(
-                        text = "Yeni Ekle",
-                        selected = selectedTabIndex == 1,
-                        onClick = { selectedTabIndex = 1 },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                TabButton(
+                    text = "Kayıtlı Konumlar",
+                    selected = selectedTabIndex == 0,
+                    onClick = { selectedTabIndex = 0 },
+                    modifier = Modifier.weight(1f)
+                )
+                TabButton(
+                    text = "Yeni Ekle",
+                    selected = selectedTabIndex == 1,
+                    onClick = { selectedTabIndex = 1 },
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
-                when (selectedTabIndex) {
-                    0 -> SavedLocationsTab(
-                        savedLocations = savedLocations,
-                        currentLocation = currentLocation,
-                        onLocationSelected = { viewModel.selectLocation(it) },
-                        onFavoriteToggle = { viewModel.toggleFavorite(it) },
-                        onDeleteLocation = {}
-                    )
-                    1 -> NewLocationTab(
-                        currentStep = currentStep,
-                        searchQuery = searchQuery,
-                        onQueryChange = { viewModel.onSearchQueryChange(it) },
-                        searchResults = searchResults,
-                        isSearching = isSearching,
-                        keyboardController = keyboardController,
-                        viewModel = viewModel,
-                        onCountrySelected = { viewModel.onCountrySelected(it) },
-                        onRegionSelected = { country, region ->
-                            viewModel.onRegionSelected(country, region)
-                        },
-                        onCitySelected = { country, region, city ->
-                            viewModel.onCitySelected(country, region, city)
-                        }
-                    )
-                }
+            when (selectedTabIndex) {
+                0 -> SavedLocationsTab(
+                    savedLocations = savedLocations,
+                    currentLocation = currentLocation,
+                    onLocationSelected = { viewModel.selectLocation(it) },
+                    onFavoriteToggle = { viewModel.toggleFavorite(it) },
+                    onDeleteLocation = {}
+                )
+                1 -> NewLocationTab(
+                    currentStep = currentStep,
+                    searchQuery = searchQuery,
+                    onQueryChange = { viewModel.onSearchQueryChange(it) },
+                    searchResults = searchResults,
+                    isSearching = isSearching,
+                    keyboardController = keyboardController,
+                    viewModel = viewModel,
+                    onCountrySelected = { viewModel.onCountrySelected(it) },
+                    onRegionSelected = { country, region ->
+                        viewModel.onRegionSelected(country, region)
+                    },
+                    onCitySelected = { country, region, city ->
+                        viewModel.onCitySelected(country, region, city)
+                    }
+                )
             }
         }
 
+        // KATMAN 2: ÜST GÖRSEL (Overlay - Ortada)
+        Image(
+            painter = painterResource(id = R.drawable.ust_plan), // İSTEK: ust_plan eklendi
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // KATMAN 3: TOP BAR (Geri Butonu - En Üstte)
+        // İçerikten ve görselden bağımsız olarak en üstte durur
+        LocationSelectionTopBar(
+            currentStep = currentStep,
+            onBackClick = {
+                if (currentStep == SelectionStep.CountrySelection) {
+                    navController.popBackStack()
+                } else {
+                    viewModel.goBackStep()
+                }
+            }
+        )
+
+        // KATMAN 4: Yükleniyor Göstergesi (En Üstün de Üstü)
         if (isLoadingGps) {
             Box(
                 modifier = Modifier
@@ -187,14 +197,6 @@ fun LocationSelectionTopBar(
                 tint = Color.White
             )
         }
-
-        Text(
-            text = "  ",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Center)
-        )
     }
 }
 

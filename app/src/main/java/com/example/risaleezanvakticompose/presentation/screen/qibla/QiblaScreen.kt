@@ -9,6 +9,8 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -60,6 +62,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -237,7 +240,9 @@ fun QiblaScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        // KATMAN 1: İÇERİK (En altta)
+        // İSTEK: 80dp üst padding verildi
+        Column(modifier = Modifier.fillMaxSize().padding(top = 80.dp)) {
             GlassQiblaTopBar()
 
             when {
@@ -270,6 +275,15 @@ fun QiblaScreen(
                 }
             }
         }
+
+        // KATMAN 2: ÜST GÖRSEL (Overlay - En Üstte)
+        // İSTEK: ust_plan görseli eklendi
+        Image(
+            painter = painterResource(id = R.drawable.ust_plan),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 

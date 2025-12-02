@@ -26,6 +26,7 @@ import com.example.risaleezanvakticompose.service.PrayerTimeAlarmReceiver
 import com.example.risaleezanvakticompose.ui.theme.RisaleEzanVaktiComposeTheme
 import com.example.risaleezanvakticompose.util.PermissionManager
 import com.example.risaleezanvakticompose.util.WorkManagerHelper
+import com.google.accompanist.systemuicontroller.rememberSystemUiController // YENİ EKLENDİ
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -68,6 +69,12 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermissionIfNeeded()
 
         setContent {
+            // YENİ EKLENDİ: Tüm uygulama genelinde Status Bar'ı (Çentiği) gizle
+            val systemUiController = rememberSystemUiController()
+            LaunchedEffect(systemUiController) {
+                systemUiController.isStatusBarVisible = false
+            }
+
             RisaleEzanVaktiComposeTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
