@@ -82,8 +82,9 @@ fun LocationSelectionScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            
+
     ) {
+        // DÜZELTME: Ana Column'dan padding kaldırıldı, böylece TopBar yukarıda kalacak
         Column(modifier = Modifier.fillMaxSize()) {
             LocationSelectionTopBar(
                 currentStep = currentStep,
@@ -96,50 +97,57 @@ fun LocationSelectionScreen(
                 }
             )
 
-            Row(
+            // DÜZELTME: İçerik kısmı için yeni bir Column oluşturuldu ve aşağı kaydırıldı
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .fillMaxSize()
+                    .padding(top = 100.dp) // Sadece içerik aşağı kayacak
             ) {
-                TabButton(
-                    text = "Kayıtlı Konumlar",
-                    selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
-                    modifier = Modifier.weight(1f)
-                )
-                TabButton(
-                    text = "Yeni Ekle",
-                    selected = selectedTabIndex == 1,
-                    onClick = { selectedTabIndex = 1 },
-                    modifier = Modifier.weight(1f)
-                )
-            }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TabButton(
+                        text = "Kayıtlı Konumlar",
+                        selected = selectedTabIndex == 0,
+                        onClick = { selectedTabIndex = 0 },
+                        modifier = Modifier.weight(1f)
+                    )
+                    TabButton(
+                        text = "Yeni Ekle",
+                        selected = selectedTabIndex == 1,
+                        onClick = { selectedTabIndex = 1 },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
-            when (selectedTabIndex) {
-                0 -> SavedLocationsTab(
-                    savedLocations = savedLocations,
-                    currentLocation = currentLocation,
-                    onLocationSelected = { viewModel.selectLocation(it) },
-                    onFavoriteToggle = { viewModel.toggleFavorite(it) },
-                    onDeleteLocation = {}
-                )
-                1 -> NewLocationTab(
-                    currentStep = currentStep,
-                    searchQuery = searchQuery,
-                    onQueryChange = { viewModel.onSearchQueryChange(it) },
-                    searchResults = searchResults,
-                    isSearching = isSearching,
-                    keyboardController = keyboardController,
-                    viewModel = viewModel,
-                    onCountrySelected = { viewModel.onCountrySelected(it) },
-                    onRegionSelected = { country, region ->
-                        viewModel.onRegionSelected(country, region)
-                    },
-                    onCitySelected = { country, region, city ->
-                        viewModel.onCitySelected(country, region, city)
-                    }
-                )
+                when (selectedTabIndex) {
+                    0 -> SavedLocationsTab(
+                        savedLocations = savedLocations,
+                        currentLocation = currentLocation,
+                        onLocationSelected = { viewModel.selectLocation(it) },
+                        onFavoriteToggle = { viewModel.toggleFavorite(it) },
+                        onDeleteLocation = {}
+                    )
+                    1 -> NewLocationTab(
+                        currentStep = currentStep,
+                        searchQuery = searchQuery,
+                        onQueryChange = { viewModel.onSearchQueryChange(it) },
+                        searchResults = searchResults,
+                        isSearching = isSearching,
+                        keyboardController = keyboardController,
+                        viewModel = viewModel,
+                        onCountrySelected = { viewModel.onCountrySelected(it) },
+                        onRegionSelected = { country, region ->
+                            viewModel.onRegionSelected(country, region)
+                        },
+                        onCitySelected = { country, region, city ->
+                            viewModel.onCitySelected(country, region, city)
+                        }
+                    )
+                }
             }
         }
 
@@ -181,7 +189,7 @@ fun LocationSelectionTopBar(
         }
 
         Text(
-            text = "Konum Seç",
+            text = "  ",
             style = MaterialTheme.typography.titleLarge,
             color = Color.White,
             fontWeight = FontWeight.Bold,
