@@ -17,6 +17,12 @@ val ScheherazadeFamily = FontFamily(
 
 val RisaleSerif = ScheherazadeFamily
 
+// Yeni eklenen Barla font ailesi
+val BarlaFamily = FontFamily(
+    Font(R.font.barla, FontWeight.Normal), // barla.ttf Normal ağırlık için
+    Font(R.font.barla, FontWeight.Bold) // barla.ttf dosyasını Bold ağırlık için de kullan
+)
+
 // Normal font - Gövde metinleri için
 val RisaleSans = FontFamily.SansSerif
 

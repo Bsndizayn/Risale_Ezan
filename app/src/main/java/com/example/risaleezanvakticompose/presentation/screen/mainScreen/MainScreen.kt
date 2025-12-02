@@ -1,5 +1,8 @@
 package com.example.risaleezanvakticompose.presentation.screen.mainScreen
 
+// ==============================================================================
+// BÖLÜM 1: ANDROID VE COMPOSE İMPORTLARI
+// ==============================================================================
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -51,16 +54,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.risaleezanvakticompose.R
-import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
-import com.example.risaleezanvakticompose.data.local.entities.PrayerTimesEntity
-import com.example.risaleezanvakticompose.util.PermissionState
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.LocationSettingsRequest
-import com.google.android.gms.location.Priority
-import com.google.android.gms.location.SettingsClient
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -69,21 +62,49 @@ import android.util.Log
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.Settings
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
+import com.google.android.gms.location.SettingsClient
+import com.google.android.gms.tasks.CancellationTokenSource
+import java.time.format.TextStyle
+import androidx.compose.animation.core.rememberInfiniteTransition // Kaldırılması gereken bir import var, tekrar eklenmiş.
+import com.example.risaleezanvakticompose.ui.theme.BarlaFamily
+// ==============================================================================
+// BÖLÜM 2: UYGULAMA İMPORTLARI (Kendi Modelleri ve Tema)
+// ==============================================================================
+import com.example.risaleezanvakticompose.R
+import com.example.risaleezanvakticompose.data.local.entities.NotificationSettings
+import com.example.risaleezanvakticompose.data.local.entities.PrayerTimesEntity
 import com.example.risaleezanvakticompose.data.local.entities.SavedLocation
+import com.example.risaleezanvakticompose.ui.theme.DarkTextPrimary
+import com.example.risaleezanvakticompose.ui.theme.DividerLight
 import com.example.risaleezanvakticompose.ui.theme.GoldColor
+import com.example.risaleezanvakticompose.ui.theme.GoldLight
+import com.example.risaleezanvakticompose.ui.theme.PageBeige
+import com.example.risaleezanvakticompose.ui.theme.PageCream
+import com.example.risaleezanvakticompose.ui.theme.RisaleRed
+import com.example.risaleezanvakticompose.ui.theme.RisaleRedDark
 import com.example.risaleezanvakticompose.ui.theme.RisaleSans
 import com.example.risaleezanvakticompose.ui.theme.ScheherazadeFamily
 import com.example.risaleezanvakticompose.util.PermissionManager
-import com.google.android.gms.tasks.CancellationTokenSource
-import java.time.format.TextStyle
+import com.example.risaleezanvakticompose.util.PermissionState
 
 
+// ==============================================================================
+// BÖLÜM 3: ANA EKRAN COMPOSE FONKSİYONU
+// ==============================================================================
+
+/**
+ * Ana Uygulama Ekranı. Konum, namaz vakitleri, geri sayım ve Risale-i Nur vecizesi gibi ana bileşenleri barındırır.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -91,9 +112,11 @@ fun MainScreen(
     onLocationClick: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
+    // Context ve Activity referansları
     val context = LocalContext.current
     val activity = context.findActivity()
 
+    // ViewModel'den akış halindeki veriler (State)
     val uiState by viewModel.uiState.collectAsState()
     val currentLocation by viewModel.currentLocation.collectAsState()
     val countdown by viewModel.countdown.collectAsState()
@@ -101,15 +124,18 @@ fun MainScreen(
     val currentQuote by viewModel.currentQuote.collectAsState()
     val hasNotificationPermission by viewModel.hasNotificationPermission.collectAsState()
 
+    // Yerel UI State'ler
     var isQuoteExpanded by remember { mutableStateOf(true) }
     var isWeeklyExpanded by remember { mutableStateOf(false) }
 
     var showLocationPermissionEducationalDialog by remember { mutableStateOf(false) }
     var showLocationPermissionSettingsDialog by remember { mutableStateOf(false) }
 
+    // Konum isteği iptali ve zaman aşımı için değişkenler
     var cancellationTokenSource: CancellationTokenSource? by remember { mutableStateOf(null) }
     var timeoutHandler: Handler? by remember { mutableStateOf(null) }
 
+    // Konum ayarları sonucunu yakalamak için Launcher (Manifest izni sonrası GPS açma)
     val locationSettingsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -126,6 +152,7 @@ fun MainScreen(
         }
     }
 
+    // Konum izni sonucunu yakalamak için Launcher (Manifest izni)
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -159,6 +186,9 @@ fun MainScreen(
         }
     }
 
+    /**
+     * Konum isteği sürecini başlatan ana mantık. İzin durumuna göre dialog veya isteği tetikler.
+     */
     fun requestGpsLocation() {
         val activity = context.findActivity() ?: return
         val permissionManager = PermissionManager(context)
@@ -199,10 +229,12 @@ fun MainScreen(
         }
     }
 
+    // Uygulama başladığında bildirim izin durumunu güncelle
     LaunchedEffect(Unit) {
         activity?.let { viewModel.updateNotificationPermissionState(it) }
     }
 
+    // Composable ekrandan ayrılırken GPS isteklerini iptal et
     DisposableEffect(Unit) {
         onDispose {
             cancellationTokenSource?.cancel()
@@ -210,6 +242,11 @@ fun MainScreen(
         }
     }
 
+    // ==========================================================================
+    // BÖLÜM 4: İZİN DİALOGLARI
+    // ==========================================================================
+
+    // Konum izni için bilgilendirme dialogu
     if (showLocationPermissionEducationalDialog) {
         AlertDialog(
             onDismissRequest = { showLocationPermissionEducationalDialog = false },
@@ -239,6 +276,7 @@ fun MainScreen(
         )
     }
 
+    // Kalıcı reddedilen izin için ayarlar sayfasına yönlendirme dialogu
     if (showLocationPermissionSettingsDialog) {
         AlertDialog(
             onDismissRequest = { showLocationPermissionSettingsDialog = false },
@@ -269,6 +307,10 @@ fun MainScreen(
         )
     }
 
+    // ==========================================================================
+    // BÖLÜM 5: ANA UI YAPISI VE DURUM YÖNETİMİ
+    // ==========================================================================
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -276,6 +318,7 @@ fun MainScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            // Üst Çubuk
             GlassTopBar(
                 location = currentLocation,
                 currentDate = LocalDate.now().toString(),
@@ -283,6 +326,7 @@ fun MainScreen(
                 onProfileClick = onProfileClick
             )
 
+            // UI Durumuna Göre İçerik Gösterimi (Loading, NoLocation, Success, Error)
             when (val state = uiState) {
                 is MainUiState.Loading -> {
                     Box(
@@ -294,6 +338,7 @@ fun MainScreen(
                 }
 
                 is MainUiState.NoLocation -> {
+                    // Konum seçilmemiş durumu
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -301,15 +346,15 @@ fun MainScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
+                        // ... Konum yok içeriği ...
                         Icon(
                             imageVector = Icons.Default.LocationOff,
                             contentDescription = "Konum yok",
                             modifier = Modifier.size(80.dp),
                             tint = GoldColor.copy(alpha = 0.6f)
                         )
-
+                        // ... (Diğer metinler ve butonlar)
                         Spacer(modifier = Modifier.height(24.dp))
-
                         Text(
                             text = "Konum Seçilmedi",
                             style = MaterialTheme.typography.headlineSmall.copy(
@@ -318,18 +363,14 @@ fun MainScreen(
                             ),
                             color = GoldColor
                         )
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         Text(
                             text = "Namaz vakitlerini görebilmek için konum seçmeniz gerekiyor",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
                         )
-
                         Spacer(modifier = Modifier.height(32.dp))
-
                         Button(
                             onClick = { requestGpsLocation() },
                             modifier = Modifier.fillMaxWidth(),
@@ -351,9 +392,7 @@ fun MainScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedButton(
                             onClick = onLocationClick,
                             modifier = Modifier.fillMaxWidth(),
@@ -375,13 +414,15 @@ fun MainScreen(
                 }
 
                 is MainUiState.Success -> {
+                    // Ana İçerik Listesi
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(vertical = 16.dp)
                     ) {
+                        // Bildirim İzni Uyarısı Kartı
                         if (!hasNotificationPermission) {
                             item {
                                 Card(
@@ -445,6 +486,7 @@ fun MainScreen(
                             }
                         }
 
+                        // Geri Sayım ve Sıradaki Vakit Kartı (Şeffaflık Kaldırıldı)
                         item {
                             GlassHeroCard(
                                 nextPrayer = state.nextPrayer,
@@ -452,6 +494,7 @@ fun MainScreen(
                             )
                         }
 
+                        // Risale-i Nur Vecizesi Kartı
                         item {
                             RisaleQuoteExpandable(
                                 quote = currentQuote,
@@ -460,6 +503,7 @@ fun MainScreen(
                             )
                         }
 
+                        // Namaz Vakitleri Listesi Kartı (Şeffaflık Kaldırıldı)
                         item {
                             CompactPrayerTimesCard(
                                 prayerTimes = state.prayerTimes,
@@ -471,6 +515,7 @@ fun MainScreen(
                             )
                         }
 
+                        // Haftalık Vakitler (Genişletilebilir) (Şeffaflık Kaldırıldı)
                         item {
                             val weeklyTimes by viewModel.getWeeklyPrayerTimes(currentLocation?.placeId ?: 0)
                                 .collectAsState(initial = emptyList())
@@ -485,6 +530,7 @@ fun MainScreen(
                 }
 
                 is MainUiState.Error -> {
+                    // Hata durumu
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -517,6 +563,14 @@ fun MainScreen(
     }
 }
 
+
+// ==============================================================================
+// BÖLÜM 6: UI BİLEŞENLERİ (COMPOSE FONKSİYONLARI)
+// ==============================================================================
+
+/**
+ * Üstteki Konum ve Profil/Ayarlar Çubuğu (Glassmorphism stili)
+ */
 @Composable
 fun GlassTopBar(
     location: SavedLocation?,
@@ -538,7 +592,7 @@ fun GlassTopBar(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.10f))
+                    .background(Color.White.copy(alpha = 0.10f)) // Glass arka plan (Bu kısım şeffaf kaldı)
                     .clickable { onLocationClick() }
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -566,6 +620,7 @@ fun GlassTopBar(
                         )
                     }
                     Text(
+                        // Hicri ve Miladi tarihi gösterir
                         text = formatDateWithHijri(currentDate),
                         color = Color.White.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.bodySmall.copy(
@@ -574,6 +629,7 @@ fun GlassTopBar(
                     )
                 }
 
+                // Konum Değiştir ikonu
                 Box(
                     modifier = Modifier
                         .size(32.dp)
@@ -594,6 +650,7 @@ fun GlassTopBar(
 
             Spacer(modifier = Modifier.width(8.dp))
 
+            // Profil İkonu
             IconButton(
                 onClick = onProfileClick,
                 modifier = Modifier
@@ -611,7 +668,12 @@ fun GlassTopBar(
     }
 }
 
-// Geri Sayım Bölümü Düzeltildi (Box geri getirildi ve koyu yapıldı, boşluklar daraltıldı)
+// ... MainScreen.kt içinde
+
+/**
+ * Sıradaki Namaz Vakti ve Geri Sayım Kartı (Hero Card)
+ * ARKA PLAN VE ÇERÇEVE KALDIRILDI
+ */
 @Composable
 fun GlassHeroCard(
     nextPrayer: NextPrayerInfo,
@@ -620,46 +682,46 @@ fun GlassHeroCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.15f)
+            containerColor = Color.Transparent // Arka plan şeffaf yapıldı
         ),
-        shape = RoundedCornerShape(24.dp)
+        shape = RoundedCornerShape(0.dp), // Köşe radyusu kaldırıldı (veya 0'a yakın tutuldu)
+        border = null, // Çerçeve kaldırıldı
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // Gölge kaldırıldı
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                // DÜZELTME: Gradient arka plan KALDIRILDI
+                // .background(Brush.verticalGradient(listOf(RisaleRedDark, RisaleRed)))
+                .padding(16.dp), // İç padding korundu
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.AccessTime,
-                    contentDescription = null,
-                    tint = GoldColor.copy(alpha = 0.6f),
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = "S O N R A K İ",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = GoldColor.copy(alpha = 0.6f),
-                    letterSpacing = 2.sp
-                )
+
+
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Namaz Adı
             Text(
                 text = nextPrayer.name.uppercase(),
                 style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = BarlaFamily,
+                    letterSpacing = 8.sp,
+                    fontSize = 100.sp
                 ),
                 color = GoldColor
             )
 
-            Spacer(modifier = Modifier.height(0.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
+            // Namaz Saati
             Text(
                 text = nextPrayer.time,
                 style = MaterialTheme.typography.displayLarge.copy(
@@ -669,18 +731,18 @@ fun GlassHeroCard(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-
-            // DÜZELTME: Koyu Box tekrar eklendi
-            Box(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(2.dp)
-                    // Altın renginin opak/koyu bir tonunu kullanıyoruz
-                    .background(GoldColor.copy(alpha = 0.6f))
+            Text(
+                text = "EZAN VAKTİNE KALAN SÜRE",
+                style = MaterialTheme.typography.labelSmall,
+                color = GoldColor.copy(alpha = 0.6f),
+                letterSpacing = 2.sp
             )
+
+
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Geri Sayım Kutuları
             countdown?.let {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -688,7 +750,7 @@ fun GlassHeroCard(
                 ) {
                     CountdownBox(value = it.hours, label = "SA")
 
-                    // Ayırıcı düzeltildi: ScheherazadeFamily ve offset kaldırıldı, boşluk daraltıldı.
+                    // Saat ve Dakika Arası Ayırıcı
                     Text(
                         text = ":",
                         color = GoldColor,
@@ -700,7 +762,7 @@ fun GlassHeroCard(
 
                     CountdownBox(value = it.minutes, label = "DK")
 
-                    // Ayırıcı düzeltildi: ScheherazadeFamily ve offset kaldırıldı, boşluk daraltıldı.
+                    // Dakika ve Saniye Arası Ayırıcı
                     Text(
                         text = ":",
                         color = GoldColor,
@@ -717,21 +779,24 @@ fun GlassHeroCard(
         }
     }
 }
-
-// Geri Sayım Kutusu Düzeltildi (Boşluk daraltıldı ve font düzeltildi)
+/**
+ * Geri Sayım Sayılarını ve Etiketini Gösteren Bireysel Kutu
+ */
 @Composable
 fun CountdownBox(value: Int, label: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 4.dp)
+        modifier = Modifier.padding(horizontal = 4.dp) // Boşluk daraltıldı
     ) {
+        // Sayı değeri (RisaleSans ile hizalı ve sade)
         Text(
             text = value.toString().padStart(2, '0'),
             color = GoldColor,
             fontSize = 40.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = RisaleSans // DÜZELTME: Sade ve hizalı font kullanıldı
+            fontFamily = RisaleSans
         )
+        // Etiket (SA/DK/SN)
         Text(
             text = label,
             color = Color.White.copy(alpha = 0.6f),
@@ -740,6 +805,9 @@ fun CountdownBox(value: Int, label: String) {
     }
 }
 
+/**
+ * Risale-i Nur'dan Vecize Gösteren Genişletilebilir Kart
+ */
 @Composable
 fun RisaleQuoteExpandable(
     quote: String,
@@ -756,18 +824,22 @@ fun RisaleQuoteExpandable(
             .fillMaxWidth()
             .clickable { onToggle() },
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFF8DC).copy(alpha = 0.95f)
+            containerColor = GoldLight.copy(alpha = 1f),
         ),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color(0xFF8B3A3A).copy(alpha = 0.15f)), // ÇOK AZ BELİRGİN KENARLIK
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp) // Yumuşak gölge/ışıma
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // Başlık ve Genişletme İkonu
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // ... (Başlık metin ve ikonları)
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -775,6 +847,7 @@ fun RisaleQuoteExpandable(
                     Icon(
                         imageVector = Icons.Default.MenuBook,
                         contentDescription = null,
+                        // Açık temadan gelen rengi korumak için doğrudan renk kodu kullanılıyor
                         tint = Color(0xFF8B3A3A),
                         modifier = Modifier.size(24.dp)
                     )
@@ -789,7 +862,7 @@ fun RisaleQuoteExpandable(
                         )
                         Text(
                             text = "Vecize",
-                            color = Color(0xFF8B3A3A).copy(alpha = 0.7f),
+                            color = Color(0xFF8B3A3A),
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontFamily = ScheherazadeFamily
                             )
@@ -804,6 +877,7 @@ fun RisaleQuoteExpandable(
                 )
             }
 
+            // Genişletilmiş İçerik (Vecize Metni)
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Divider(color = Color(0xFF8B3A3A).copy(alpha = 0.2f))
@@ -815,14 +889,17 @@ fun RisaleQuoteExpandable(
                         fontWeight = FontWeight.Medium,
                         lineHeight = 22.sp
                     ),
-                    color = Color(0xFF2C1810)
+                    color = Color.Black // Opak kart olduğu için metin rengini beyaza çevirdik
                 )
             }
         }
     }
 }
 
-// NAMAZ VAKİTLERİ KARTI
+/**
+ * Namaz Vakitlerini Dikey Liste Olarak Gö Gösteren Kart
+ * (Yatay kaydırmadan dikey satır yapısına dönüştürülmüştür)
+ */
 @Composable
 fun CompactPrayerTimesCard(
     prayerTimes: PrayerTimesEntity,
@@ -833,16 +910,18 @@ fun CompactPrayerTimesCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.15f)
+            containerColor = RisaleRedDark // DÜZELTME: Opak yüzeye çevrildi
         ),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, GoldColor.copy(alpha = 0.15f)), // ÇOK AZ BELİRGİN KENARLIK
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp) // Yumuşak gölge/ışıma
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // Başlık (Bugünün/Yarının Vakitleri)
             val today = LocalDate.now().toString()
             val isShowingTomorrow = prayerTimes.date != today
-
             val title = if (isShowingTomorrow) {
                 "Yarının Vakitleri"
             } else {
@@ -862,75 +941,60 @@ fun CompactPrayerTimesCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // DİKEY LİSTE YAPISI
+            // DİKEY VAKİT LİSTESİ
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // İmsak
+                // Her namaz vakti için PrayerTimeRowItem kullanılır ve araya Divider eklenir.
                 PrayerTimeRowItem(
-                    name = "İmsak",
-                    time = prayerTimes.imsak,
+                    name = "İmsak", time = prayerTimes.imsak,
                     isNotificationEnabled = notificationSettings?.imsakEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("imsak") }
+                    hasPermission = hasNotificationPermission, onToggle = { onNotificationToggle("imsak") }
                 )
                 Divider(color = Color.White.copy(alpha = 0.1f))
 
-                // Güneş
                 PrayerTimeRowItem(
-                    name = "Güneş",
-                    time = prayerTimes.gunes,
+                    name = "Güneş", time = prayerTimes.gunes,
                     isNotificationEnabled = notificationSettings?.gunesEnabled ?: false,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("gunes") }
+                    hasPermission = hasNotificationPermission, onToggle = { onNotificationToggle("gunes") }
                 )
                 Divider(color = Color.White.copy(alpha = 0.1f))
 
-                // Öğle
                 PrayerTimeRowItem(
-                    name = "Öğle",
-                    time = prayerTimes.ogle,
+                    name = "Öğle", time = prayerTimes.ogle,
                     isNotificationEnabled = notificationSettings?.ogleEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("ogle") }
+                    hasPermission = hasNotificationPermission, onToggle = { onNotificationToggle("ogle") }
                 )
                 Divider(color = Color.White.copy(alpha = 0.1f))
 
-                // İkindi
                 PrayerTimeRowItem(
-                    name = "İkindi",
-                    time = prayerTimes.ikindi,
+                    name = "İkindi", time = prayerTimes.ikindi,
                     isNotificationEnabled = notificationSettings?.ikindiEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("ikindi") }
+                    hasPermission = hasNotificationPermission, onToggle = { onNotificationToggle("ikindi") }
                 )
                 Divider(color = Color.White.copy(alpha = 0.1f))
 
-                // Akşam
                 PrayerTimeRowItem(
-                    name = "Akşam",
-                    time = prayerTimes.aksam,
+                    name = "Akşam", time = prayerTimes.aksam,
                     isNotificationEnabled = notificationSettings?.aksamEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("aksam") }
+                    hasPermission = hasNotificationPermission, onToggle = { onNotificationToggle("aksam") }
                 )
                 Divider(color = Color.White.copy(alpha = 0.1f))
 
-                // Yatsı
                 PrayerTimeRowItem(
-                    name = "Yatsı",
-                    time = prayerTimes.yatsi,
+                    name = "Yatsı", time = prayerTimes.yatsi,
                     isNotificationEnabled = notificationSettings?.yatsiEnabled ?: true,
-                    hasPermission = hasNotificationPermission,
-                    onToggle = { onNotificationToggle("yatsi") }
+                    hasPermission = hasNotificationPermission, onToggle = { onNotificationToggle("yatsi") }
                 )
             }
         }
     }
 }
 
-// YENİ BİLEŞEN: Namaz Vakitlerini Satır Olarak Gösterir (Top-level declaration olmalı)
+/**
+ * Tek bir namaz vaktini (isim, saat) ve bildirim ikonunu gösteren satır.
+ */
 @Composable
 fun PrayerTimeRowItem(
     name: String,
@@ -951,7 +1015,7 @@ fun PrayerTimeRowItem(
             text = name,
             color = Color.White.copy(alpha = 0.7f),
             style = MaterialTheme.typography.bodyLarge.copy(
-                fontFamily = RisaleSans, // Sade font
+                fontFamily = RisaleSans,
                 fontWeight = FontWeight.Medium
             )
         )
@@ -960,25 +1024,28 @@ fun PrayerTimeRowItem(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Vakit Saati
             Text(
                 text = time,
                 color = GoldColor,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontFamily = RisaleSans, // Sade font
+                    fontFamily = RisaleSans,
                     fontWeight = FontWeight.Bold
                 ),
                 modifier = Modifier.padding(end = 8.dp)
             )
 
+            // Bildirim Aç/Kapa Butonu
             IconButton(
                 onClick = onToggle,
                 modifier = Modifier.size(32.dp),
                 enabled = hasPermission
             ) {
+                // İkona göre renk ve görsel seçimi
                 val iconColor = when {
-                    !hasPermission -> Color.White.copy(alpha = 0.3f)
-                    isNotificationEnabled -> GoldColor
-                    else -> Color.White.copy(alpha = 0.4f)
+                    !hasPermission -> Color.White.copy(alpha = 0.3f) // İzin yoksa soluk
+                    isNotificationEnabled -> GoldColor // Açık ise altın rengi
+                    else -> Color.White.copy(alpha = 0.4f) // Kapalı ise beyaz soluk
                 }
 
                 val icon = when {
@@ -999,12 +1066,16 @@ fun PrayerTimeRowItem(
 }
 
 
+/**
+ * Gelecek 30 Günlük Namaz Vakitlerini Gösteren Genişletilebilir Kart
+ */
 @Composable
 fun WeeklyPrayerTimesExpandable(
     weeklyTimes: List<PrayerTimesEntity>,
     isExpanded: Boolean,
     onToggle: () -> Unit
 ) {
+    // Genişleme animasyonu için döndürme açısı
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
         label = "rotation"
@@ -1013,8 +1084,8 @@ fun WeeklyPrayerTimesExpandable(
     var isLoading by remember { mutableStateOf(false) }
     var hasLoadedOnce by remember { mutableStateOf(false) }
 
+    // ... (Loading ve yükleme mantığı)
     LaunchedEffect(weeklyTimes) {
-        // Veriler yüklendiğinde loading'i kapat
         if (weeklyTimes.isNotEmpty()) {
             isLoading = false
             hasLoadedOnce = true
@@ -1028,15 +1099,17 @@ fun WeeklyPrayerTimesExpandable(
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
             .clickable { onToggle() },
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.15f)
+            containerColor = RisaleRedDark // DÜZELTME: Opak yüzeye çevrildi
         ),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, GoldColor.copy(alpha = 0.15f)), // ÇOK AZ BELİRGİN KENARLIK
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp) // Yumuşak gölge/ışıma
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Başlık ve Genişletme İkonu
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1059,6 +1132,7 @@ fun WeeklyPrayerTimesExpandable(
                 )
             }
 
+            // Genişletilebilir İçerik
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = expandVertically(),
@@ -1067,6 +1141,7 @@ fun WeeklyPrayerTimesExpandable(
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Yüklenme durumunda iskelet kartlar, aksi halde gerçek kartlar gösterilir
                     if (isLoading && weeklyTimes.isEmpty()) {
                         Row(
                             modifier = Modifier
@@ -1095,6 +1170,8 @@ fun WeeklyPrayerTimesExpandable(
         }
     }
 }
+
+// ... (SkeletonWeeklyCard, WeeklyDayCard, PrayerTimeRow, WeeklyTimeRow)
 
 @Composable
 fun SkeletonWeeklyCard() {
@@ -1293,6 +1370,11 @@ fun WeeklyTimeRow(name: String, time: String) {
     }
 }
 
+
+// ==============================================================================
+// BÖLÜM 7: YARDIMCI FONKSİYONLAR (LOCATION, TIME, UTILS)
+// ==============================================================================
+
 private fun checkLocationSettingsAndRequest(
     context: Context,
     onSettingsOk: () -> Unit,
@@ -1391,6 +1473,9 @@ fun Context.findActivity(): Activity? {
     return null
 }
 
+/**
+ * Miladi tarihi ayrıştırır, Hicri tarihi hesaplar ve her ikisini birleştirir.
+ */
 private fun formatDateWithHijri(dateString: String): String {
     return try {
         val date = LocalDate.parse(dateString)
@@ -1406,6 +1491,9 @@ private fun formatDateWithHijri(dateString: String): String {
     }
 }
 
+/**
+ * Verilen Miladi tarihi Hicri takvime çevirir (Basit algoritma).
+ */
 private fun gregorianToHijri(gregorianDate: LocalDate): String {
     val year = gregorianDate.year
     val month = gregorianDate.monthValue
@@ -1447,5 +1535,6 @@ private fun gregorianToHijri(gregorianDate: LocalDate): String {
         "Muharrem"
     }
 
+    // Hata giderildi: Hesaplanan değişkenler burada String olarak birleştirilir.
     return "$hijriDay $monthName $hijriYear"
 }
