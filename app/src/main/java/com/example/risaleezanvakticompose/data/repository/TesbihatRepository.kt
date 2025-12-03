@@ -37,32 +37,32 @@ class TesbihatRepository @Inject constructor(
             TesbihatSection(
                 id = "sabah_tamami",
                 title = "Tamamı",
-                description = "Sabah namazı tesbihatının tamamını göster",
+                description = "Sabah namazı tesbihatının baştan sona",
                 scrollId = "nav-1"
             ),
             TesbihatSection(
                 id = "sabah_farz_sonrasi",
-                title = "Farz Sonrası Tesbihat",
-                description = "Sabah namazı farzından sonra okunur",
-                scrollId = "nav-1"
-            ),
-            TesbihatSection(
-                id = "sabah_kelime_tevhid",
-                title = "Kelime-i Tevhid ve Dualar",
-                description = "La ilahe illallah zikri ve dualar",
+                title = "Ecirna Minennar Duası",
+                description = " Allahümme ecirnâ mine’n-nârٍ, Allahümme ecirnâ mine’n-nâr",
                 scrollId = "nav-2"
             ),
             TesbihatSection(
-                id = "sabah_ecirna",
-                title = "Ecirna Minennar Duası",
-                description = "Ateşten korunma duası",
+                id = "sabah_kelime_tevhid",
+                title = "Ecirnalardan Sonrası",
+                description = "Subhânallah, Elhamdülillah, Allahu Ekber",
                 scrollId = "nav-3"
             ),
             TesbihatSection(
-                id = "sabah_ayetelkursi",
-                title = "Âyetü'l Kürsî ve Tesbihat",
-                description = "Âyetü'l Kürsî, 33’lü tesbihler ve dua",
+                id = "sabah_ecirna",
+                title = "Tercüman-ı İsm-i A’zâm ",
+                description = "Sübḥâneke yâ Allah teʿâleyte yâ Raḥmân..",
                 scrollId = "nav-4"
+            ),
+            TesbihatSection(
+                id = "sabah_ayetelkursi",
+                title = "La Yestevi",
+                description = "Lâ yestevî ašḥâbü’n-nâri ve ašḥâbü’l-Cenneh...",
+                scrollId = "nav-5"
             )
         )
     }
@@ -73,39 +73,34 @@ class TesbihatRepository @Inject constructor(
             TesbihatSection(
                 id = "ogle_tamami",
                 title = "Tamamı",
-                description = "Öğle namazı tesbihatının tamamını göster",
+                description = "Öğle namazı tesbihatı baştan sona",
                 scrollId = "nav-ogle-1"
             ),
             TesbihatSection(
                 id = "ogle_farz_sonrasi",
-                title = "Farz Sonrası Tesbihat",
-                description = "Öğle namazı farzından sonra okunur",
-                scrollId = "nav-ogle-1"
-            ),
-            TesbihatSection(
-                id = "ogle_sunnet_sonrasi",
-                title = "Son Sünnet Sonrası Tesbihat",
-                description = "Son sünnet namazından sonra okunur",
+                title = "Kısa Tesbihat Başlangıç",
+                description = "Subhânallah, Elhamdülillah, Allahu Ekber",
                 scrollId = "nav-ogle-2"
             ),
             TesbihatSection(
-                id = "ogle_ismiazam",
-                title = "İsm-i Âzam Duası",
-                description = "Allah’ın isimleriyle yapılan dua",
+                id = "ogle_sunnet_sonrasi",
+                title = "Uzun Tesbihat Başlangıç",
+                description = "İnnallâhe ve melâiketehû yüšallûne ʿale’nnebiy.",
                 scrollId = "nav-ogle-3"
             ),
             TesbihatSection(
-                id = "ogle_esma_duasinin_duasi",
-                title = "Esma Duasının Duası",
-                description = "Esma duasından sonra okunur",
+                id = "ogle_sunnet_sonrasi",
+                title = "İsm-i Âzam Duası",
+                description = "Yâ Cemîlu yâ Allah, Yâ Ḳarîbu yâ Allah",
                 scrollId = "nav-ogle-4"
             ),
             TesbihatSection(
-                id = "ogle_fetih",
+                id = "ogle_ismiazam",
                 title = "Fetih Sûresi 27-29. Âyetler",
-                description = "Lekad Sadakallah ayetleri okunur",
+                description = "Leḳad šadaḳallâhü resûlehü...",
                 scrollId = "nav-ogle-5"
-            )
+            ),
+
         )
     }
 
@@ -115,37 +110,32 @@ class TesbihatRepository @Inject constructor(
             TesbihatSection(
                 id = "ikindi_tamami",
                 title = "Tamamı",
-                description = "İkindi namazı tesbihatının tamamını göster",
+                description = "İkindi namazı tesbihatı baştan sona",
                 scrollId = "nav-ikindi-1"
             ),
             TesbihatSection(
                 id = "ikindi_farz_sonrasi",
-                title = "Farz Sonrası Tesbihat",
-                description = "İkindi namazı farzından sonra okunur",
-                scrollId = "nav-ikindi-1"
-            ),
-            TesbihatSection(
-                id = "ikindi_tesbih_salavat",
-                title = "Tesbihat ve Salavatlar",
-                description = "Tesbih, salavat ve dualar bölümü",
+                title = "Kısa Tesbihat Başlangıç",
+                description = "Subhânallah, Elhamdülillah, Allahu Ekber",
                 scrollId = "nav-ikindi-2"
             ),
             TesbihatSection(
-                id = "ikindi_ismiazam",
-                title = "Tercüman-ı İsm-i Âzam Duası",
-                description = "Allah’ın en büyük ismiyle yapılan dua",
+                id = "ikindi_tesbih_salavat",
+                title = "Uzun Tesbihat Başlangıç",
+                description = "İnnallâhe ve melâiketehû yüšallûne ʿale’nnebiy.",
                 scrollId = "nav-ikindi-3"
             ),
             TesbihatSection(
-                id = "ikindi_ecirna",
-                title = "Ecirna Minennar Duası",
-                description = "Ateşten korunma duası",
+                id = "ikindi_ismiazam",
+                title = "Tercüman-ı İsm-i A’zâm ",
+                description = "Sübḥâneke yâ Allah teʿâleyte yâ Raḥmân..",
                 scrollId = "nav-ikindi-4"
             ),
+
             TesbihatSection(
                 id = "ikindi_nebe",
                 title = "Nebe Sûresi",
-                description = "Nebe Sûresi okunur",
+                description = "ʿAmme yetesêelûn .ʿAni’n-nebei’l-ʿaẓîm ",
                 scrollId = "nav-ikindi-5"
             )
         )
@@ -156,39 +146,34 @@ class TesbihatRepository @Inject constructor(
             TesbihatSection(
                 id = "aksam_tamami",
                 title = "Tamamı",
-                description = "Akşam namazı tesbihatının tamamını göster",
+                description = "Akşam namazı tesbihatı baştan sona",
                 scrollId = "nav-aksam-1"
             ),
             TesbihatSection(
                 id = "aksam_farz_sonrasi",
-                title = "Farz Sonrası Tesbihat",
-                description = "Akşam namazı farzından sonra okunur",
-                scrollId = "nav-aksam-1"
-            ),
-            TesbihatSection(
-                id = "aksam_sunnet_sonrasi",
-                title = "Sünnet Sonrası Tesbihat",
-                description = "Son sünnet namazından sonra okunur",
+                title = "Ecirna Minennar Duası",
+                description = " Allahümme ecirnâ mine’n-nârٍ, Allahümme ecirnâ mine’n-nâr",
                 scrollId = "nav-aksam-2"
             ),
             TesbihatSection(
-                id = "aksam_ecirna",
-                title = "Ecirna Minennar Duası",
-                description = "Ateşten korunma duası",
+                id = "aksam_sunnet_sonrasi",
+                title = "Kısa Tesbihat Başlangıç",
+                description = "Subhânallah, Elhamdülillah, Allahu Ekber",
                 scrollId = "nav-aksam-3"
             ),
             TesbihatSection(
-                id = "aksam_ismiazam",
-                title = "İsm-i A’zâm Duası",
-                description = "Allah'ın en büyük isimleriyle yapılan dua",
-                scrollId = "nav-ogle-3" // HTML'de böyle geçiyor
+                id = "aksam_ecirna",
+                title = "Uzun Tesbihat Başlangıç",
+                description = "İnnallâhe ve melâiketehû yüšallûne ʿale’nnebiy.",
+                scrollId = "nav-aksam-4"
             ),
             TesbihatSection(
-                id = "aksam_ismiazam_sonrasi",
-                title = "İsm-i A’zâm Sonrası Dua",
-                description = "Eller açılarak yapılan dua",
-                scrollId = "nav-ogle-4" // HTML'de bu kısımda dua geçiyor
+                id = "aksam_ismiazam",
+                title = "İsm-i Âzam Duası",
+                description = "Yâ Cemîlu yâ Allah, Yâ Ḳarîbu yâ Allah",
+                scrollId = "nav-aksam-5"
             ),
+
             TesbihatSection(
                 id = "aksam_hasr",
                 title = "Haşr Sûresi 20-24. Âyetler",
@@ -203,31 +188,25 @@ class TesbihatRepository @Inject constructor(
             TesbihatSection(
                 id = "yatsi_tamami",
                 title = "Tamamı",
-                description = "Yatsı namazı tesbihatının tamamını göster",
+                description = "Yatsı namazı tesbihatı baştan sona",
                 scrollId = "nav-yatsi-1"
             ),
             TesbihatSection(
                 id = "yatsi_farz_sonrasi",
-                title = "Farz Sonrası Tesbihat",
-                description = "Yatsı namazı farzından sonra okunur",
-                scrollId = "nav-yatsi-1"
-            ),
-            TesbihatSection(
-                id = "yatsi_duadan_sonra",
-                title = "Duadan Sonra",
-                description = "Son sünnet ve vitr namazından sonra okunur",
+                title = "Kısa Tesbihat Başlangıç",
+                description = "Subhânallah, Elhamdülillah, Allahu Ekber",
                 scrollId = "nav-yatsi-2"
             ),
             TesbihatSection(
-                id = "yatsi_ismiazam",
-                title = "İsm-i Âzam Duası",
-                description = "Allah’ın isimleriyle yapılan dua",
+                id = "yatsi_duadan_sonra",
+                title = "Uzun Tesbihat Başlangıç",
+                description = "İnnallâhe ve melâiketehû yüšallûne ʿale’nnebiy.",
                 scrollId = "nav-yatsi-3"
             ),
             TesbihatSection(
-                id = "yatsi_ismiazam_duasi",
-                title = "İsm-i Âzam Duasının Duası",
-                description = "İsm-i Âzam duasından sonra eller açılarak okunur",
+                id = "yatsi_ismiazam",
+                 title = "İsm-i Âzam Duası",
+                description = "Yâ Cemîlu yâ Allah, Yâ Ḳarîbu yâ Allah",
                 scrollId = "nav-yatsi-4"
             ),
             TesbihatSection(
@@ -260,7 +239,7 @@ class TesbihatRepository @Inject constructor(
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <style>
                         body {
-                            font-family: Arial, sans-serif;
+                            font-family: RisaleSans;
                             padding: 20px;
                             text-align: center;
                             background-color: #fdf7e0;
